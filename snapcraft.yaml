@@ -1,0 +1,37 @@
+name: pelion-edge
+base: core
+version: "1.2"
+summary: Pelion Edge
+description: Pelion Edge
+confinement: strict
+grade: devel
+architectures: 
+  - amd64
+
+# List of applications (commands, binaries, daemons) in the snap.
+apps:
+    edge-core:
+      command: ./edge-core -o 8081
+      plugs: [network-bind]
+parts:
+    build-edge-core:
+      plugin: cmake
+      source: https://github.com/ARMmbed/mbed-edge.git
+      source-branch: 0.9.0
+      source-subdir: build
+      build-packages:
+        - build-essential
+        - cmake
+        - git
+        - libcunit1-dev
+      stage-packages:
+        - libcunit1
+      override-pull: | 
+        snapcraftctl pull
+        cp ../../../mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c 
+      override-build: |
+        snapcraftctl build
+        install -D build/bin/* $SNAPCRAFT_PART_INSTALL
+      configflags:
+        - -DFIRMWARE_UPDATE=OFF
+        - -DDEVELOPER_MODE=ON
