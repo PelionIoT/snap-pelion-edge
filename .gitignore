@@ -1,0 +1,7 @@
+*.snap
+*.pyc
+mbed_cloud_dev_credentials.c
+parts/*
+prime/*
+snap/.snapcraft/
+stage/*
