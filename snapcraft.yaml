@@ -15,6 +15,7 @@ apps:
       plugs: [network-bind]
 parts:
     edge-core:
+      plugin: cmake
       source: https://github.com/ARMmbed/mbed-edge.git
       source-tag: 0.9.0
       build-packages:
@@ -28,13 +29,12 @@ parts:
         - mosquitto-clients
       stage-packages:
         - libcunit1
-      plugin: cmake
-      override-build: |
-        snapcraftctl build
-        install bin/edge-core $SNAPCRAFT_PART_INSTALL
       override-pull: | 
         snapcraftctl pull
         cp ../../../mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c 
       configflags:
         - -DFIRMWARE_UPDATE=OFF
         - -DDEVELOPER_MODE=ON
+      override-build: |
+        snapcraftctl build
+        install bin/edge-core ${SNAPCRAFT_PART_INSTALL}
