@@ -20,13 +20,8 @@ parts:
       source-tag: 0.9.0
       build-packages:
         - build-essential
-        - g++
         - cmake
         - git
-        - libcunit1-dev
-        - libc6-dev
-        - libmosquitto-dev
-        - mosquitto-clients
       override-pull: | 
         snapcraftctl pull
         git submodule update --init --recursive
