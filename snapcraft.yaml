@@ -29,10 +29,15 @@ parts:
         - mosquitto-clients
       override-pull: | 
         snapcraftctl pull
-        cp ../../../mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c 
+        git submodule update --init --recursive
+        cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c
       configflags:
+        - -DCMAKE_BUILD_TYPE=Release
+        - -DTRACE_LEVEL=INFO
         - -DFIRMWARE_UPDATE=OFF
         - -DDEVELOPER_MODE=ON
+        - -DFACTORY_MODE=OFF
+        - -DBYOC_MODE=OFF
       override-build: |
         snapcraftctl build
         install bin/edge-core ${SNAPCRAFT_PART_INSTALL}
