@@ -27,8 +27,6 @@ parts:
         - libc6-dev
         - libmosquitto-dev
         - mosquitto-clients
-      stage-packages:
-        - libcunit1
       override-pull: | 
         snapcraftctl pull
         cp ../../../mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c 
