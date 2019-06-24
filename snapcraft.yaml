@@ -41,3 +41,4 @@ parts:
       override-build: |
         snapcraftctl build
         install bin/edge-core ${SNAPCRAFT_PART_INSTALL}
+      prime: [edge-core]
