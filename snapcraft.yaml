@@ -12,6 +12,7 @@ architectures:
 apps:
     edge-core:
       command: ./edge-core -o 8081
+      daemon: simple
       plugs: [network-bind]
 layout:
     /var/lib/edge-core:
