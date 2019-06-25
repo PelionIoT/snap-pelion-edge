@@ -113,6 +113,31 @@ Snapcraft packaging for Pelion Edge
 
 These are just convenient snap commands that will run the binaries. The actual binaries are located here: `/snap/pelion-edge/current/`. Use the [Pelion Edge docs](https://github.com/armpelionedge/snap-pelion-edge#general-info-for-running-the-binaries) for information about running the binaries directly.
 
+## View Pelion Edge Logs
+Log files are captured by snap and are available with the following commands:
+
+To dump the whole log:
+``` bash
+snap logs -n=all pelion-edge.edge-core
+```
+
+To follow the log (print new lines as they come in):
+``` bash
+snap logs -f pelion-edge.edge-core
+```
+
+Alternatively, you can use journalctl.
+
+To dump the whole log:
+```bash
+journalctl -u snap.pelion-edge.edge-core -a
+```
+
+To follow the log (print new lines as they come in):
+```bash
+journalctl -u snap.pelion-edge.edge-core -f
+```
+
 ## Known Issues and Troubleshooting
 
 ### Edge service errors
