@@ -13,6 +13,9 @@ apps:
     edge-core:
       command: ./edge-core -o 8081
       plugs: [network-bind]
+layout:
+    /var/lib/edge-core:
+        bind: $SNAP_DATA/var/lib/edge-core
 parts:
     edge-core:
       plugin: cmake
@@ -26,6 +29,8 @@ parts:
         snapcraftctl pull
         git submodule update --init --recursive
         cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c
+        cp ${SNAPCRAFT_PROJECT_DIR}/cmake/target.cmake config/target.cmake
+        cp ${SNAPCRAFT_PART_SRC}/cmake/toolchains/mcc-linux-x86.cmake config/toolchain.cmake
       configflags:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=INFO
@@ -33,6 +38,7 @@ parts:
         - -DDEVELOPER_MODE=ON
         - -DFACTORY_MODE=OFF
         - -DBYOC_MODE=OFF
+        - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
       override-build: |
         snapcraftctl build
         install bin/edge-core ${SNAPCRAFT_PART_INSTALL}
