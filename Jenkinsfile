@@ -13,10 +13,6 @@ pipeline {
             steps {
                 sh '''
                     snapcraft --version
-                    apt-get install -y git build-essential cmake
-                    rm -rf snap-pelion-edge
-                    git clone git@github.com:armpelionedge/snap-pelion-edge.git -b ${BRANCH}
-                    cd snap-pelion-edge
                     cp "${MBED_CLOUD_DEV_CREDENTIALS_C}" mbed_cloud_dev_credentials.c
                     snapcraft
                     '''
@@ -25,7 +21,7 @@ pipeline {
     }
     post {
         success {
-            archiveArtifacts artifacts: 'snap-pelion-edge/pelion-edge_*.snap', fingerprint: true
+            archiveArtifacts artifacts: 'pelion-edge_*.snap', fingerprint: true
         }
     }
 }
