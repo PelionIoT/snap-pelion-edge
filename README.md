@@ -4,11 +4,13 @@ Snapcraft packaging for Pelion Edge
 ## Prerequisites
 
 ### Build Prerequisites
-* Ubuntu 16
+* Ubuntu (or any Linux if using docker)
+* git
+
+Install these if you're not using docker:
 * snapcraft >= 3.6
 * build-essential
 * cmake
-* git
 
 ### User account prerequisites
 1. [Create an account on Pelion Cloud](https://os.mbed.com/account/signup/)
@@ -21,17 +23,7 @@ Snapcraft packaging for Pelion Edge
 
 
 ## Build Pelion-Edge
-1. Install your required snap development tools (snapcraft, build-essential) and other developer tools you might need (git, nodejs, bzr, etc.).
-    ```bash
-    sudo apt-get update && sudo apt-get upgrade
-    sudo apt-get install snapcraft build-essential git
-    ```
 
-    Note: the minimum required version of snapcraft is 3.6 which can be viewed with `snapcraft --version`.  If your version of snapcraft is older than 3.6, then install snapcraft via `snap` instead of `apt-get` or `apt`.
-    ```bash
-    sudo apt-get remove snapcraft
-    sudo snap install --classic snapcraft
-    ```
 
 1. Clone the 'snap-pelion-edge' repository:
     ```bash
@@ -44,12 +36,27 @@ Snapcraft packaging for Pelion Edge
     1. If you don't have a certificate select:
         1. New certificate > Create a developer certificate.
     1. When you have a certificate generate you can select it and open its panel.
-    1. On this panel click 'Download Developer C file' to receive 'mbed_cloud_dev_credentials.c'
+    1. On this panel click 'Download Developer C file' to receive `mbed_cloud_dev_credentials.c`
 
-1. After downloading 'mbed_cloud_dev_credentials.c' copy it to the 'snap-pelion-edge' directory:
+1. After downloading `mbed_cloud_dev_credentials.c` copy it to the 'snap-pelion-edge' directory:
     ```bash
     cp /path/to/mbed_cloud_dev_credentials.c /path/to/snap-pelion-edge/.
     ```
+
+If you have docker you can now run `docker run --rm -v "$PWD":/build -w /build snapcore/snapcraft:stable snapcraft --debug` or follow the rest of the build steps below.
+
+1. Install your required snap development tools (snapcraft, build-essential) and other developer tools you might need (git, nodejs, bzr, etc.).
+    ```bash
+    sudo apt-get update && sudo apt-get upgrade
+    sudo apt-get install snapcraft build-essential git
+    ```
+
+    Note: the minimum required version of snapcraft is 3.6 which can be viewed with `snapcraft --version`.  If your version of snapcraft is older than 3.6, then install snapcraft via `snap` instead of `apt-get` or `apt`.
+    ```bash
+    sudo apt-get remove snapcraft
+    sudo snap install --classic snapcraft
+    ```
+
 
 1. Compile your snap with 'snapcraft' (you may have to type your GitHub credentials during compile)
     ```bash
