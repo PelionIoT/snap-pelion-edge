@@ -52,3 +52,11 @@ parts:
     files:
         plugin: dump
         source: files/
+    devicejs:
+      plugin: nodejs
+      nodejs-package-manager: npm
+      build-packages:
+        - python
+        - build-essential
+      source: https://github.com/mray190/devicejs-ng.git 
+      source-branch: master
