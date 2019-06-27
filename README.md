@@ -104,21 +104,10 @@ If you have docker you can now run `docker run --rm -v "$PWD":/build -w /build s
     sudo snap install --dangerous pelion-edge_<version>_<arch>.snap
     ```
 
-## Run Pelion Edge
-1. Once the app is installed, configure any required permissions for edge-core to use system services, for example bluez:
-    ```bash
-    snap connect pelion-edge:client bluez:service
-    ```
-1. Use the following command to start pelion-edge normally.
-    ```bash
-    pelion-edge.edge-core
-    ```
-1. If you need to reset your local Pelion Cloud credentials, restart pelion-edge with the following option:
-    ```bash
-    pelion-edge.edge-core --reset-storage
-    ```
-
-These are just convenient snap commands that will run the binaries. The actual binaries are located here: `/snap/pelion-edge/current/`. Use the [Pelion Edge docs](https://github.com/armpelionedge/snap-pelion-edge#general-info-for-running-the-binaries) for information about running the binaries directly.
+1. pelion-edge.edge-core is now running in the background. To see the status of the daemon, run:
+   ```bash
+   ps aux | grep pelion
+   ```
 
 ## View Pelion Edge Logs
 Log files are captured by snap and are available with the following commands:
