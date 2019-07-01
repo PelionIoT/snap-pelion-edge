@@ -60,3 +60,9 @@ parts:
         - build-essential
       source: https://github.com/mray190/devicejs-ng.git 
       source-branch: master
+      stage: [ -deps/*, -bin/devicedb ]
+    devicedb:
+      plugin: go
+      source: git@github.com:armPelionEdge/devicedb.git
+      source-branch: master
+      go-importpath: devicedb
