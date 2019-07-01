@@ -11,9 +11,11 @@ architectures:
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
     edge-core:
-      command: ./edge-core -o 8081
+      command: launch-edge-core.sh
       daemon: simple
       plugs: [network-bind]
+    help:
+      command: cat ${SNAP}/help.md
 layout:
     /var/lib/edge-core:
         bind: $SNAP_DATA/var/lib/edge-core
@@ -44,3 +46,6 @@ parts:
         snapcraftctl build
         install bin/edge-core ${SNAPCRAFT_PART_INSTALL}
       prime: [edge-core]
+    files:
+        plugin: dump
+        source: files/

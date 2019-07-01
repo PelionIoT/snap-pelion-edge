@@ -1,0 +1,5 @@
+#!/bin/bash
+
+if [ ! -f "$SNAP_DATA/edge-core.conf" ]; then
+    cp "$SNAP/edge-core.conf" "$SNAP_DATA/edge-core.conf"
+fi
