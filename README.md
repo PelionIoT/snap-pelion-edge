@@ -132,9 +132,10 @@ If you have docker you can now build with the snapcraft docker image, or skip th
     ```bash
     systemctl stop snap.pelion-edge.edge-core
     ```
-* If you need to reset your local Pelion Cloud credentials, delete the credentials cache and restart pelion-edge:
+* If you need to reset your local Pelion Cloud credentials, stop pelion-edge and run pelion-edge.edge-core-reset-storage
     ```bash
-    rm -rf /var/snap/pelion-edge/current/var/lib/edge-core/mcc_config/
+    snap stop pelion-edge
+    pelion-edge.edge-core-reset-storage
     ```
 
 These are just convenient snap commands that will run the binaries. The actual binaries are located here: `/snap/pelion-edge/current/`. Use the [Pelion Edge docs](https://github.com/armpelionedge/snap-pelion-edge#general-info-for-running-the-binaries) for information about running the binaries directly.
@@ -180,9 +181,10 @@ If you see an error like below for the edge-service:
 2018-09-13 18:14:14.003 tid:   6932 [ERR ][fcc ]: key_config_manager.c:309:kcm_item_get_data:Failed reading file from storage (3)
 ```
 
-Please use the binary to reset storage by running the following command:
+Please reset your credentials by running the pelion-edge.edge-core-reset-storage app:
 ```bash
-pelion-edge.edge-core --reset-storage
+sudo snap stop pelion-edge
+sudo pelion-edge.edge-core-reset-storage
 ```
 
 ### Edge startup errors

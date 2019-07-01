@@ -14,6 +14,9 @@ apps:
       command: launch-edge-core.sh
       daemon: simple
       plugs: [network-bind]
+    edge-core-reset-storage:
+      command: launch-edge-core.sh --reset-storage
+      plugs: [network-bind]
     help:
       command: cat ${SNAP}/help.md
 layout:
