@@ -1,0 +1,77 @@
+From b3b9b8549e78e78ed0bfe7bb9c387679f6e3612e Mon Sep 17 00:00:00 2001
+From: Michael Ray <mray190@gmail.com>
+Date: Tue, 2 Jul 2019 14:10:35 -0500
+Subject: [PATCH] Added package.json
+
+Auto-generated from the devjs-production-tools project
+---
+ package.json | 57 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
+ create mode 100644 package.json
+
+diff --git a/package.json b/package.json
+new file mode 100644
+index 0000000..fa5db87
+--- /dev/null
++++ b/package.json
+@@ -0,0 +1,57 @@
++{
++  "name": "consolidated-packages",
++  "version": "0.0.1",
++  "description": "consolidated package",
++  "author": {
++    "name": "WigWag",
++    "email": "support@wigwag.com"
++  },
++  "website": {
++    "url": "wigwag.com"
++  },
++  "repository": {},
++  "private": true,
++  "dependencies": {
++    "body-parser": "^1.18.2",
++    "bonjour": "^3.5.0",
++    "bufferutil": "^3.0.5",
++    "chalk": "^2.1.0",
++    "colors": "1.1.2",
++    "commander": "2.9.0",
++    "devjs-configurator": "http://github.com/armPelionEdge/devjs-configurator#master",
++    "es6-promise": "^3.0.2",
++    "express": "^4.16.3",
++    "express-device": "^0.4.2",
++    "formidable": "^1.1.1",
++    "grease-log-client": "https://github.com/armPelionEdge/grease-log-client",
++    "handlebars": "4.0.5",
++    "http": "0.0.0",
++    "iconv": "^2.3.4",
++    "inquirer": "6.2.2",
++    "json-formatter-js": "^2.2.0",
++    "jsonminify": "^0.2.3",
++    "jsonschema": "1.1.1",
++    "jsonwebtoken": "^7.4.3",
++    "md5": "^2.2.1",
++    "mkdirp": "^0.5.1",
++    "moment": "~2.10.6",
++    "node-array": "0.0.7",
++    "node-expat": "^2.3.18",
++    "node-znp": "git+ssh://git@github.com:armPelionEdge/node-znp.git#master",
++    "optimist": "^0.6.1",
++    "promise": "^7.0.4",
++    "pty.js": "0.3.1",
++    "random-number": "0.0.9",
++    "readline-sync": "^1.4.7",
++    "request": "2.60.0",
++    "semver": "5.3.0",
++    "sleep": "^5.1.1",
++    "sprintf-js": "^1.0.3",
++    "underscore": "*",
++    "unix-dgram": "^2.0.0",
++    "userid": "0.2.0",
++    "uuid": "^3.2.1",
++    "ws": "3.0.0",
++    "yamljs": "^0.3.0"
++  }
++}
+-- 
+2.17.1
+
