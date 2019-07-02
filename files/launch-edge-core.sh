@@ -16,4 +16,4 @@ if [ -f "${CONF_FILE}" ]; then
     ARGS="${ARGS} $(cat "${CONF_FILE}")"
 fi
 
-exec ${SNAP}/edge-core ${ARGS}
+exec ${SNAP}/wigwag/mbed/edge-core ${ARGS}
