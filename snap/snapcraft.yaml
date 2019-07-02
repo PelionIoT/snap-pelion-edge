@@ -48,38 +48,29 @@ parts:
       override-build: |
         snapcraftctl build
         install bin/edge-core ${SNAPCRAFT_PART_INSTALL}
-      prime: [edge-core]
+      organize:
+        'edge-core': wigwag/mbed/
     files:
         plugin: dump
         source: files/
-    devicejs:
+    devicejs-ng:
       plugin: nodejs-improved
       nodejs-package-manager: npm
       build-packages:
         - python
         - build-essential
-      source: https://github.com/mray190/devicejs-ng.git 
+      source: git@github.com:armPelionEdge/devicejs-ng.git
       source-branch: master
       stage: [ -deps/*, -bin/devicedb ]
       organize:
-        '*': devicejs/
+        '*': wigwag/devicejs-ng/
     devicedb:
       plugin: go
       source: git@github.com:armPelionEdge/devicedb.git
       source-branch: master
       go-importpath: devicedb
       organize:
-        '*': devicedb/
-    devjs-production-tools:
-      plugin: nodejs-improved
-      nodejs-package-manager: npm
-      build-packages:
-        - python
-        - build-essential
-      source: git@github.com:armPelionEdge/devjs-production-tools.git
-      source-branch: master
-      organize:
-        '*': devjs-production-tools/
+        'bin/*': wigwag/system/bin/
     edge-node-modules:
       plugin: nodejs-improved
       nodejs-package-manager: npm
@@ -92,4 +83,14 @@ parts:
         git am ${SNAPCRAFT_PROJECT_DIR}/patches/edge-node-modules/0001-Added-package.json.patch
         snapcraftctl build
       organize:
-        '*': edge-node-modules/
+        'DevStateManager/': wigwag/wigwag-core-modules/DevStateManager/
+        'LEDController/': wigwag/wigwag-core-modules/LEDController/
+        'RelayStatsSender/': wigwag/wigwag-core-modules/RelayStatsSender/
+        'VirtualDeviceDriver/': wigwag/wigwag-core-modules/VirtualDeviceDriver/
+        'onsite-enterprise-server/': wigwag/wigwag-core-modules/onsite-enterprise-server/
+        'relay-term/': wigwag/wigwag-core-modules/relay-term/
+        'rsmi/': wigwag/devicejs-core-modules/rsmi/
+        'zigbeeHA/': wigwag/devicejs-core-modules/zigbeeHA/
+        'node_modules/': wigwag/devicejs-core-modules/node_modules/
+        'maestroRunner/': wigwag/devicejs-core-modules/maestroRunner/
+        'core-interfaces/': wigwag/devicejs-core-modules/core-interfaces/
