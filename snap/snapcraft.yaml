@@ -53,7 +53,7 @@ parts:
         plugin: dump
         source: files/
     devicejs:
-      plugin: nodejs
+      plugin: nodejs-improved
       nodejs-package-manager: npm
       build-packages:
         - python
