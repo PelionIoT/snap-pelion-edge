@@ -61,8 +61,35 @@ parts:
       source: https://github.com/mray190/devicejs-ng.git 
       source-branch: master
       stage: [ -deps/*, -bin/devicedb ]
+      organize:
+        '*': devicejs/
     devicedb:
       plugin: go
       source: git@github.com:armPelionEdge/devicedb.git
       source-branch: master
       go-importpath: devicedb
+      organize:
+        '*': devicedb/
+    devjs-production-tools:
+      plugin: nodejs-improved
+      nodejs-package-manager: npm
+      build-packages:
+        - python
+        - build-essential
+      source: git@github.com:armPelionEdge/devjs-production-tools.git
+      source-branch: master
+      organize:
+        '*': devjs-production-tools/
+    edge-node-modules:
+      plugin: nodejs-improved
+      nodejs-package-manager: npm
+      build-packages:
+        - python
+        - build-essential
+      source: git@github.com:armPelionEdge/edge-node-modules.git
+      source-branch: master
+      override-build: |
+        git am ${SNAPCRAFT_PROJECT_DIR}/patches/edge-node-modules/0001-Added-package.json.patch
+        snapcraftctl build
+      organize:
+        '*': edge-node-modules/
