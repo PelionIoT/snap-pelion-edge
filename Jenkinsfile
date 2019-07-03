@@ -15,6 +15,7 @@ pipeline {
                 sh '''
                     snapcraft --version
                     cp "${MBED_CLOUD_DEV_CREDENTIALS_C}" mbed_cloud_dev_credentials.c
+                    apt-get update
                     snapcraft
                     '''
             }
