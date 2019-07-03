@@ -19,9 +19,15 @@ apps:
       plugs: [network-bind]
     help:
       command: cat ${SNAP}/help.md
+    deviceoswd:
+      command: wigwag/system/bin/deviceOSWD -w 3000 -m 900 -s /var/lib/pelion/deviceOSkeepalive
+      daemon: simple 
+      plugs: [network-bind]
 layout:
     /var/lib/edge-core:
         bind: $SNAP_DATA/var/lib/edge-core
+    /var/lib/pelion:
+        bind: $SNAP_DATA/var/lib/pelion
 parts:
     edge-core:
       plugin: cmake
@@ -94,3 +100,42 @@ parts:
         'node_modules/': wigwag/devicejs-core-modules/node_modules/
         'maestroRunner/': wigwag/devicejs-core-modules/maestroRunner/
         'core-interfaces/': wigwag/devicejs-core-modules/core-interfaces/
+    deviceoswd:
+      plugin: autotools
+      source: git@github.com:armPelionEdge/edgeos-wd.git 
+      source-branch: master
+      build-packages:
+        - libtool
+        - m4
+      override-build: |
+        cd deps
+        ./install-deps.sh
+        cd ..
+        make clean
+        make deviceOSWD-dummy
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_dummy
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD
+        make clean
+        make deviceOSWD-dummy-debug
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_dummy_debug
+        make clean
+        make deviceOSWD-a10-debug
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_a10_debug
+        make clean
+        make deviceOSWD-a10
+        make clean
+        make deviceOSWD-a10-relay
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_a10_relay
+        make clean
+        make deviceOSWD-a10-tiny841
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_a10_tiny841
+        make clean
+        make deviceOSWD-rpi-3bplus
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_rpi_3bplus
+      organize:
+        deviceOSWD: wigwag/system/bin/deviceOSWD
+        deviceOSWD_dummy: wigwag/system/bin/deviceOSWD_dummy
+        deviceOSWD_a10_debug: wigwag/system/bin/deviceOSWD_a10_debug
+        deviceOSWD_a10_relay: wigwag/system/bin/deviceOSWD_a10_relay
+        deviceOSWD_dummy_debug: wigwag/system/bin/deviceOSWD_dummy_debug
+        deviceOSWD_a10_tiny841: wigwag/system/bin/deviceOSWD_a10_tiny841
