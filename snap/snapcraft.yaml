@@ -20,14 +20,12 @@ apps:
     help:
       command: cat ${SNAP}/help.md
     deviceoswd:
-      command: wigwag/system/bin/deviceOSWD -w 3000 -m 900 -s /var/lib/pelion/deviceOSkeepalive
+      command: wigwag/system/bin/deviceOSWD -w 3000 -m 900 -s /var/lib/pelion-edge/deviceOSkeepalive
       daemon: simple 
       plugs: [network-bind]
 layout:
-    /var/lib/edge-core:
-        bind: $SNAP_DATA/var/lib/edge-core
-    /var/lib/pelion:
-        bind: $SNAP_DATA/var/lib/pelion
+    /var/lib/pelion-edge:
+        bind: $SNAP_DATA/var/lib/pelion-edge
 parts:
     edge-core:
       plugin: cmake
