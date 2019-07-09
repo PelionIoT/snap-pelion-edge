@@ -137,3 +137,109 @@ parts:
         deviceOSWD_a10_relay: wigwag/system/bin/deviceOSWD_a10_relay
         deviceOSWD_dummy_debug: wigwag/system/bin/deviceOSWD_dummy_debug
         deviceOSWD_a10_tiny841: wigwag/system/bin/deviceOSWD_a10_tiny841
+    wwrelay-utils:
+      plugin: nodejs-improved
+      nodejs-package-manager: npm
+      build-packages:
+        - python
+        - build-essential
+      source: git@github.com:armPelionEdge/edge-utils.git
+      source-branch: master
+      override-build: |
+        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/package.json .
+        snapcraftctl build
+        cd 6BSMD
+        make all
+        cd ../I2C
+        ../../npm/bin/npm install --production
+        cd ../GPIO
+        ../../npm/bin/npm install --production
+        make
+        cd ../slip-radio
+        ../../npm/bin/npm install --production
+        cd ../slipcomms
+        make
+        cd ..
+        install slipcomms/slipcomms ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs-core-modules/rsmi/bin/slipcomms-arm
+        cd cc2530prog
+        make
+        cd ..
+        install cc2530prog/cc2530prog ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs-core-modules/rsmi/bin/cc2530prog-arm
+        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/wwrelay etc/init.d/.
+        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/version.json wigwag/wwrelay-utils/conf/versions.json
+        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/version.json wigwag/etc/versions.json
+        install dev-tools/bin/ccommon.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/ccommon.sh
+        install dev-tools/bin/stopwatchdog.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/stopwatchdog
+        install dev-tools/scripts/restartjob.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/restartjob.sh
+        install GPIO/led.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/led
+        install GPIO/pinctrl.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/pinctrl
+        install GPIO/leddaemon ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/leddaemon
+        install DOGcontrol/dogProgrammer.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/dogProgrammer
+        install I2C/eetool.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/eetool
+      organize:
+        conf: wigwag/wwrelay-utils/conf
+        6BSMD: wigwag/wwrelay-utils/6BSMD
+        common: wigwag/wwrelay-utils/common
+        slip-radio: wigwag/wwrelay-utils/slip-radio
+        .b: wigwag/wwrelay-utils/.b
+        initscripts: wigwag/wwrelay-utils/initscripts
+        GPIO: wigwag/wwrelay-utils/GPIO
+        I2C: wigwag/wwrelay-utils/I2C
+        debug_scripts: wigwag/wwrelay-utils/debug_scripts
+        dev-tools: wigwag/wwrelay-utils/dev-tools
+      filesets:
+        etc:
+          - etc/dnsmasq.conf
+          - etc/dnsmasq.d/*
+          - etc/modprobe.d/*
+          - etc/profile.d/wigwagpath.sh
+          - etc/init.d/devjssupport
+          - etc/init.d/relayterm
+          - etc/init.d/wwfunctions
+          - etc/init.d/wwrelay
+        conf:
+          - wigwag/wwrelay-utils/conf/*
+        versions:
+          - wigwag/etc/versions.json
+        utils:
+          - wigwag/devicejs-core-modules/rsmi/bin/slipcomms-arm
+          - wigwag/devicejs-core-modules/rsmi/bin/cc2530prog-arm
+          - wigwag/wwrelay-utils/6BSMD/*
+          - wigwag/wwrelay-utils/common/*
+          - wigwag/wwrelay-utils/slip-radio/*
+          - wigwag/wwrelay-utils/.b
+          - wigwag/wwrelay-utils/initscripts/*
+          - wigwag/wwrelay-utils/GPIO/*
+          - -wigwag/wwrelay-utils/GPIO/led.sh
+          - -wigwag/wwrelay-utils/GPIO/pinctrl.sh
+          - -wigwag/wwrelay-utils/GPIO/leddaemon
+          - -wigwag/wwrelay-utils/I2C/eetool.sh
+        debug:
+          - wigwag/wwrelay-utils/debug_scripts
+        devtools:
+          - wigwag/wwrelay-utils/dev-tools
+          - -wigwag/wwrelay-utils/dev-tools/bin/stopwatchdog.sh
+          - -wigwag/wwrelay-utils/dev-tools/bin/info.sh
+        system:
+          - wigwag/system/bin/ccommon.sh
+          - wigwag/system/bin/stopwatchdog
+          - wigwag/system/bin/restartjob.sh
+          - wigwag/system/bin/led
+          - wigwag/system/bin/pinctrl
+          - wigwag/system/bin/leddaemon
+          - wigwag/system/bin/dogProgrammer
+          - wigwag/system/bin/eetool
+      stage:
+        - $etc
+        - $conf
+        - $versions
+        - $utils
+        - $debug
+        - $devtools
+        - $system
+    dss:
+      plugin: dump
+      source: git@github.com:armPelionEdge/edgeos-shell-scripts.git
+      source-branch: master
+      organize:
+        '*': wigwag/system/bin/
