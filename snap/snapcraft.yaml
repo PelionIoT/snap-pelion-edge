@@ -56,7 +56,7 @@ parts:
         'edge-core': wigwag/mbed/
     files:
         plugin: dump
-        source: files/
+        source: files-dumped/
     devicejs-ng:
       plugin: nodejs-improved
       nodejs-package-manager: npm
