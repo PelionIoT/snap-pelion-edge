@@ -13,3 +13,14 @@ RUN unsquashfs -d /snap/go/current go.snap
 # Link the go binaries to make them available to snapcraft
 RUN ln -sf /snap/go/current/bin/go /snap/bin/go
 RUN ln -sf /snap/go/current/bin/gofmt /snap/bin/gofmt
+
+# Install gosu so that we can run snapcraft as the current user
+# instead of as root
+RUN apt install gosu
+
+# Install the script that sets up the user environment
+# and runs CMD as the current user instead of as root
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
