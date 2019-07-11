@@ -1,7 +1,6 @@
 pipeline {
     agent {
-        docker {
-            image 'snapcore/snapcraft:stable'
+        dockerfile {
             args '-v jenkins-data:/root'
             label 'master'
         }
