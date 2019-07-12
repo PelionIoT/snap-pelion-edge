@@ -243,3 +243,11 @@ parts:
       source-branch: master
       organize:
         '*': wigwag/system/bin/
+    openssl10:
+      plugin: make
+      make-install-var: "INSTALL_PREFIX"
+      source: https://www.openssl.org/source/openssl-1.0.2s.tar.gz
+      override-build: |
+        ./config shared
+        make depend
+        snapcraftctl build
