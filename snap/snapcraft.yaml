@@ -312,7 +312,18 @@ parts:
         mkdir -p go-workspace/bin
         mkdir -p go-workspace/pkg
         mkdir -p go-workspace/src
-        mkdir -p go-workspace/src/github.com/armPelionEdge  
+        mkdir -p go-workspace/src/github.com/armPelionEdge
+        # maestro-shell
+        WORKSPACE="`pwd`/go-workspace"
+        export CGO_ENABLED=1
+        export GOPATH="$WORKSPACE"
+        export GOBIN="$WORKSPACE/bin"
+        cd go-workspace/src/github.com/armPelionEdge
+        git clone git@github.com:armPelionEdge/maestro-shell.git
+        cd maestro-shell
+        go build
+        cd $TOP
+        # Resume maestro install  
         mv "${S_M}" go-workspace/src/github.com/armPelionEdge/maestro
         mv go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/maestroSpecs go-workspace/src/github.com/armPelionEdge/maestroSpecs
         mv go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/mustache go-workspace/src/github.com/armPelionEdge/mustache
@@ -353,6 +364,8 @@ parts:
         for f in $ALL_LIBS; do
           install -m 0755 $MAESTRO_LIBS/$f ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
         done
+        # maestro-shell installs
+        install go-workspace/src/github.com/armPelionEdge/maestro-shell/maestro-shell ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro-shell
       filesets:
         etc:
           - etc/init.d/maestro.sh
