@@ -19,9 +19,17 @@ apps:
       plugs: [network-bind]
     help:
       command: cat ${SNAP}/help.md
+    deviceoswd:
+      command: wigwag/system/bin/deviceOSWD -w 3000 -m 900 -s /var/lib/pelion-edge/deviceOSkeepalive
+      daemon: simple 
+      plugs: [network-bind]
+    maestro:
+      command: wigwag/system/bin/maestro -config wigwag/wwrelay-utils/conf/maestro-conf/edge-config-rpi-production.yaml
+      daemon: simple
+      plugs: [network-bind]
 layout:
-    /var/lib/edge-core:
-        bind: $SNAP_DATA/var/lib/edge-core
+    /var/lib/pelion-edge:
+        bind: $SNAP_DATA/var/lib/pelion-edge
 parts:
     edge-core:
       plugin: cmake
@@ -48,7 +56,359 @@ parts:
       override-build: |
         snapcraftctl build
         install bin/edge-core ${SNAPCRAFT_PART_INSTALL}
-      prime: [edge-core]
+      organize:
+        'edge-core': wigwag/mbed/
     files:
         plugin: dump
-        source: files/
+        source: files-dumped/
+    devicejs-ng:
+      plugin: nodejs-improved
+      nodejs-package-manager: npm
+      build-packages:
+        - python
+        - build-essential
+      source: git@github.com:armPelionEdge/devicejs-ng.git
+      source-branch: master
+      stage: [ -deps/*, -bin/devicedb ]
+      organize:
+        '*': wigwag/devicejs-ng/
+    devicedb:
+      plugin: go
+      source: git@github.com:armPelionEdge/devicedb.git
+      source-branch: master
+      go-importpath: devicedb
+      organize:
+        'bin/*': wigwag/system/bin/
+    edge-node-modules:
+      plugin: nodejs-improved
+      nodejs-package-manager: npm
+      build-packages:
+        - python
+        - build-essential
+      source: git@github.com:armPelionEdge/edge-node-modules.git
+      source-branch: master
+      override-build: |
+        git am ${SNAPCRAFT_PROJECT_DIR}/patches/edge-node-modules/0001-Added-package.json.patch
+        snapcraftctl build
+      organize:
+        'DevStateManager/': wigwag/wigwag-core-modules/DevStateManager/
+        'LEDController/': wigwag/wigwag-core-modules/LEDController/
+        'RelayStatsSender/': wigwag/wigwag-core-modules/RelayStatsSender/
+        'VirtualDeviceDriver/': wigwag/wigwag-core-modules/VirtualDeviceDriver/
+        'onsite-enterprise-server/': wigwag/wigwag-core-modules/onsite-enterprise-server/
+        'relay-term/': wigwag/wigwag-core-modules/relay-term/
+        'rsmi/': wigwag/devicejs-core-modules/rsmi/
+        'zigbeeHA/': wigwag/devicejs-core-modules/zigbeeHA/
+        'node_modules/': wigwag/devicejs-core-modules/node_modules/
+        'maestroRunner/': wigwag/devicejs-core-modules/maestroRunner/
+        'core-interfaces/': wigwag/devicejs-core-modules/core-interfaces/
+    deviceoswd:
+      plugin: autotools
+      source: git@github.com:armPelionEdge/edgeos-wd.git 
+      source-branch: master
+      build-packages:
+        - libtool
+        - m4
+      override-build: |
+        cd deps
+        ./install-deps.sh
+        cd ..
+        make clean
+        make deviceOSWD-dummy
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_dummy
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD
+        make clean
+        make deviceOSWD-dummy-debug
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_dummy_debug
+        make clean
+        make deviceOSWD-a10-debug
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_a10_debug
+        make clean
+        make deviceOSWD-a10
+        make clean
+        make deviceOSWD-a10-relay
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_a10_relay
+        make clean
+        make deviceOSWD-a10-tiny841
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_a10_tiny841
+        make clean
+        make deviceOSWD-rpi-3bplus
+        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_rpi_3bplus
+        install -d ${SNAPCRAFT_PART_INSTALL}/etc/init.d
+        install ${SNAPCRAFT_PROJECT_DIR}/files-installed/deviceoswd/deviceOS-watchdog ${SNAPCRAFT_PART_INSTALL}/etc/init.d/deviceOS-watchdog
+      organize:
+        deviceOSWD: wigwag/system/bin/deviceOSWD
+        deviceOSWD_dummy: wigwag/system/bin/deviceOSWD_dummy
+        deviceOSWD_a10_debug: wigwag/system/bin/deviceOSWD_a10_debug
+        deviceOSWD_a10_relay: wigwag/system/bin/deviceOSWD_a10_relay
+        deviceOSWD_dummy_debug: wigwag/system/bin/deviceOSWD_dummy_debug
+        deviceOSWD_a10_tiny841: wigwag/system/bin/deviceOSWD_a10_tiny841
+      stage:
+        - etc/init.d/deviceOS-watchdog
+        - wigwag/system/bin/*
+    wwrelay-utils:
+      plugin: nodejs-improved
+      nodejs-package-manager: npm
+      build-packages:
+        - python
+        - build-essential
+      source: git@github.com:armPelionEdge/edge-utils.git
+      source-branch: master
+      override-build: |
+        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/package.json .
+        snapcraftctl build
+        cd 6BSMD
+        make all
+        cd ../I2C
+        ../../npm/bin/npm install --production
+        cd ../GPIO
+        ../../npm/bin/npm install --production
+        make
+        cd ../slip-radio
+        ../../npm/bin/npm install --production
+        cd ../slipcomms
+        make
+        cd ..
+        install slipcomms/slipcomms ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs-core-modules/rsmi/bin/slipcomms-arm
+        cd cc2530prog
+        make
+        cd ..
+        install cc2530prog/cc2530prog ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs-core-modules/rsmi/bin/cc2530prog-arm
+        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/wwrelay etc/init.d/.
+        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/version.json wigwag/wwrelay-utils/conf/versions.json
+        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/version.json wigwag/etc/versions.json
+        install dev-tools/bin/ccommon.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/ccommon.sh
+        install dev-tools/bin/stopwatchdog.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/stopwatchdog
+        install dev-tools/scripts/restartjob.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/restartjob.sh
+        install GPIO/led.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/led
+        install GPIO/pinctrl.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/pinctrl
+        install GPIO/leddaemon ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/leddaemon
+        install DOGcontrol/dogProgrammer.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/dogProgrammer
+        install I2C/eetool.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/eetool
+        install -d ${SNAPCRAFT_PART_INSTALL}/etc/network
+        install -d ${SNAPCRAFT_PART_INSTALL}/etc/udev
+        install -d ${SNAPCRAFT_PART_INSTALL}/etc/udev/rules.d
+        install -d ${SNAPCRAFT_PART_INSTALL}/localdata
+        install -d ${SNAPCRAFT_PART_INSTALL}/userdata
+        install -d ${SNAPCRAFT_PART_INSTALL}/upgrades
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/devicejs
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs/conf
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs/devjs-usr/App
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/support
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/log
+        install initscripts/UDEV/96-local.rules ${SNAPCRAFT_PART_INSTALL}/etc/udev/rules.d/96-local.rules
+      organize:
+        conf: wigwag/wwrelay-utils/conf
+        6BSMD: wigwag/wwrelay-utils/6BSMD
+        common: wigwag/wwrelay-utils/common
+        slip-radio: wigwag/wwrelay-utils/slip-radio
+        .b: wigwag/wwrelay-utils/.b
+        initscripts: wigwag/wwrelay-utils/initscripts
+        GPIO: wigwag/wwrelay-utils/GPIO
+        I2C: wigwag/wwrelay-utils/I2C
+        debug_scripts: wigwag/wwrelay-utils/debug_scripts
+        dev-tools: wigwag/wwrelay-utils/dev-tools
+        I2C: wigwag/wwrelay-utils/I2C
+      filesets:
+        top:
+          - localdata
+          - userdata
+          - upgrades
+        etc:
+          - etc/dnsmasq.conf
+          - etc/dnsmasq.d/*
+          - etc/modprobe.d/*
+          - etc/profile.d/wigwagpath.sh
+          - etc/init.d/devjssupport
+          - etc/init.d/relayterm
+          - etc/init.d/wwfunctions
+          - etc/init.d/wwrelay
+          - etc/network
+          - etc/udev
+          - wigwag/etc/devicejs
+        conf:
+          - wigwag/wwrelay-utils/conf/*
+          - wigwag/devicejs/conf
+          - wigwag/devicejs/devjs-usr/App
+        versions:
+          - wigwag/etc/versions.json
+        utils:
+          - wigwag/devicejs-core-modules/rsmi/bin/slipcomms-arm
+          - wigwag/devicejs-core-modules/rsmi/bin/cc2530prog-arm
+          - wigwag/wwrelay-utils/6BSMD/*
+          - wigwag/wwrelay-utils/common/*
+          - wigwag/wwrelay-utils/slip-radio/*
+          - wigwag/wwrelay-utils/.b
+          - wigwag/wwrelay-utils/initscripts/*
+          - wigwag/wwrelay-utils/GPIO/*
+          - wigwag/wwrelay-utils/I2C/*
+          - -wigwag/wwrelay-utils/GPIO/led.sh
+          - -wigwag/wwrelay-utils/GPIO/pinctrl.sh
+          - -wigwag/wwrelay-utils/GPIO/leddaemon
+          - -wigwag/wwrelay-utils/I2C/eetool.sh
+        debug:
+          - wigwag/wwrelay-utils/debug_scripts
+          - wigwag/log
+        devtools:
+          - wigwag/wwrelay-utils/dev-tools
+          - -wigwag/wwrelay-utils/dev-tools/bin/stopwatchdog.sh
+          - -wigwag/wwrelay-utils/dev-tools/bin/info.sh
+        system:
+          - wigwag/system/bin/ccommon.sh
+          - wigwag/system/bin/stopwatchdog
+          - wigwag/system/bin/restartjob.sh
+          - wigwag/system/bin/led
+          - wigwag/system/bin/pinctrl
+          - wigwag/system/bin/leddaemon
+          - wigwag/system/bin/dogProgrammer
+          - wigwag/system/bin/eetool
+        support:
+          - wigwag/support
+      stage:
+        - $top
+        - $etc
+        - $conf
+        - $versions
+        - $utils
+        - $debug
+        - $devtools
+        - $system
+        - $support
+    dss:
+      plugin: dump
+      source: git@github.com:armPelionEdge/edgeos-shell-scripts.git
+      source-branch: master
+      organize:
+        '*': wigwag/system/bin/
+    openssl10:
+      plugin: make
+      make-install-var: "INSTALL_PREFIX"
+      source: https://www.openssl.org/source/openssl-1.0.2s.tar.gz
+      override-build: |
+        ./config shared
+        make depend
+        snapcraftctl build
+    maestro:
+      plugin: autotools
+      build-packages:
+        - python
+        - build-essential
+        - golang
+      source: git@github.com:armPelionEdge/maestro.git
+      source-branch: master
+      override-build: |
+        rm -rf *
+        TOP=`pwd`
+        mkdir git
+        git clone git@github.com:armPelionEdge/maestro.git m
+        git clone git@github.com:armPelionEdge/rallypointwatchdogs.git wd
+        S_WD="${TOP}/wd"
+        S_M="${TOP}/m"
+        cd $S_M
+        mkdir -p vendor/github.com/armPelionEdge/greasego/deps/lib
+        mkdir -p vendor/github.com/armPelionEdge/greasego/deps/include
+        mkdir -p vendor/github.com/armPelionEdge/greasego/deps/bin
+        cd vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/deps/
+        ./install-deps.sh
+        cd ..
+        rm -f *.o *.a
+        make libgrease.a-server
+        make libgrease.so.1
+        make grease_echo
+        make standalone_test_logsink
+        GREASEGO=$S_M/vendor/github.com/armPelionEdge/greasego
+        if [ -e libgrease.so.1 ]; then
+        # migrate all of the greaselib dependencies up to the folder Go will use
+        cp -r deps/build/lib/* $GREASEGO/deps/lib
+        cp -r deps/build/include/* $GREASEGO/deps/include
+        cp $GREASEGO/deps/src/greaseLib/deps/libuv-v1.10.1/include/uv* $GREASEGO/deps/include
+        # move our binary into lib - static is all we use
+        cp libgrease.so.1 $GREASEGO/deps/lib
+        cp *.h $GREASEGO/deps/include
+        cd $GREASEGO/deps/lib
+        if [ ! -e libgrease.so ]; then
+          ln -s libgrease.so.1 libgrease.so
+        fi
+        fi
+        # NOTE: MUST INSTALL libgrease.so.1 to Yocto
+        cd $S_M/vendor/github.com/armPelionEdge/greasego
+        DEBUG=1 ./build.sh preprocess_only
+        rm -rf src
+        # remove the /vendor/maestroSpecs dir, b/c we want this to use the same folder
+        # as the plugins (watchdog, etc.)
+        cd $S_M
+        DEBUG=1 DEBUG2=1 ./build.sh preprocess_only
+        # wipe out the src directories, seems to cause confusion with Go compiler in
+        rm -rf src
+        # Yocto build
+        cd $TOP
+        mkdir -p go-workspace/bin
+        mkdir -p go-workspace/pkg
+        mkdir -p go-workspace/src
+        mkdir -p go-workspace/src/github.com/armPelionEdge
+        # maestro-shell
+        WORKSPACE="`pwd`/go-workspace"
+        export CGO_ENABLED=1
+        export GOPATH="$WORKSPACE"
+        export GOBIN="$WORKSPACE/bin"
+        cd go-workspace/src/github.com/armPelionEdge
+        git clone git@github.com:armPelionEdge/maestro-shell.git
+        cd maestro-shell
+        go build
+        cd $TOP
+        # Resume maestro install  
+        mv "${S_M}" go-workspace/src/github.com/armPelionEdge/maestro
+        mv go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/maestroSpecs go-workspace/src/github.com/armPelionEdge/maestroSpecs
+        mv go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/mustache go-workspace/src/github.com/armPelionEdge/mustache
+        rm -rf "${S_WD}/vendor/github.com/armPelionEdge/maestroSpecs"
+        mv "${S_WD}" go-workspace/src/github.com/armPelionEdge/rallypointwatchdogs
+        # do the actual build
+        S_SPECS="${TOP}/specs"
+        cd $TOP
+        WORKSPACE="`pwd`/go-workspace"
+        export CGO_ENABLED=1
+        export GOPATH="$WORKSPACE"
+        export GOBIN="$WORKSPACE/bin"
+        cd go-workspace/src
+        cd github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego
+        make clean
+        make bindings.a-debug
+        # when not doing a debug - get rid of the DEBUG vars
+        # On 'thud': for some reason the GOARCH is using the host not the target
+        export GOARCH=`echo $AR | awk -F '-' '{print $1}'`
+        go env
+        cd "$WORKSPACE"/bin
+        go build -x github.com/armPelionEdge/maestro/maestro
+        cd "$WORKSPACE"/src/github.com/armPelionEdge/rallypointwatchdogs
+        # TODO -  only build what we need for the platform
+        ./build.sh
+        cd $TOP
+        install -d ${SNAPCRAFT_PART_INSTALL}/etc/init.d
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
+        install ${SNAPCRAFT_PROJECT_DIR}/files-installed/maestro/maestro.sh ${SNAPCRAFT_PART_INSTALL}/etc/init.d/maestro.sh
+        install go-workspace/src/github.com/armPelionEdge/rallypointwatchdogs/rp100/rp100wd.so ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib/rp100wd.so
+        install go-workspace/src/github.com/armPelionEdge/rallypointwatchdogs/dummy/dummywd.so ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib/dummywd.so
+        install go-workspace/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
+        install go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/grease_echo ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/grease_echo
+        install go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/standalone_test_logsink ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/standalone_test_logsink
+        MAESTRO_LIBS="${TOP}/go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/lib"
+        ALL_LIBS="libTW.a libprofiler.a libstacktrace.a libtcmalloc.la libtcmalloc_debug.a libtcmalloc_minimal.la libuv.a libgrease.so libprofiler.la libstacktrace.la libtcmalloc_and_profiler.a libtcmalloc_debug.la libtcmalloc_minimal_debug.a libgrease.so.1 libtcmalloc.a libtcmalloc_and_profiler.la  libtcmalloc_minimal.a libtcmalloc_minimal_debug.la"
+        for f in $ALL_LIBS; do
+          install -m 0755 $MAESTRO_LIBS/$f ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
+        done
+        # maestro-shell installs
+        install go-workspace/src/github.com/armPelionEdge/maestro-shell/maestro-shell ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro-shell
+      filesets:
+        etc:
+          - etc/init.d/maestro.sh
+        bin:
+          - wigwag/system/bin/*
+        lib:
+          - wigwag/system/lib/*
+      stage:
+        - $lib
+        - $bin
+        - $etc
+
+

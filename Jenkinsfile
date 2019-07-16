@@ -1,7 +1,6 @@
 pipeline {
     agent {
-        docker {
-            image 'snapcore/snapcraft:stable'
+        dockerfile {
             args '-v jenkins-data:/root'
             label 'master'
         }
@@ -17,6 +16,7 @@ pipeline {
                     cp "${MBED_CLOUD_DEV_CREDENTIALS_C}" mbed_cloud_dev_credentials.c
                     apt-get update
                     snapcraft
+                    ./scripts/install_check.sh prime/
                     '''
             }
         }
