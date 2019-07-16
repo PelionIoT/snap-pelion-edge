@@ -134,6 +134,8 @@ parts:
         make clean
         make deviceOSWD-rpi-3bplus
         install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_rpi_3bplus
+        install -d ${SNAPCRAFT_PART_INSTALL}/etc/init.d
+        install ${SNAPCRAFT_PROJECT_DIR}/files-installed/deviceoswd/deviceOS-watchdog ${SNAPCRAFT_PART_INSTALL}/etc/init.d/deviceOS-watchdog
       organize:
         deviceOSWD: wigwag/system/bin/deviceOSWD
         deviceOSWD_dummy: wigwag/system/bin/deviceOSWD_dummy
@@ -141,6 +143,9 @@ parts:
         deviceOSWD_a10_relay: wigwag/system/bin/deviceOSWD_a10_relay
         deviceOSWD_dummy_debug: wigwag/system/bin/deviceOSWD_dummy_debug
         deviceOSWD_a10_tiny841: wigwag/system/bin/deviceOSWD_a10_tiny841
+      stage:
+        - etc/init.d/deviceOS-watchdog
+        - wigwag/system/bin/*
     wwrelay-utils:
       plugin: nodejs-improved
       nodejs-package-manager: npm
@@ -180,6 +185,18 @@ parts:
         install GPIO/leddaemon ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/leddaemon
         install DOGcontrol/dogProgrammer.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/dogProgrammer
         install I2C/eetool.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/eetool
+        install -d ${SNAPCRAFT_PART_INSTALL}/etc/network
+        install -d ${SNAPCRAFT_PART_INSTALL}/etc/udev
+        install -d ${SNAPCRAFT_PART_INSTALL}/etc/udev/rules.d
+        install -d ${SNAPCRAFT_PART_INSTALL}/localdata
+        install -d ${SNAPCRAFT_PART_INSTALL}/userdata
+        install -d ${SNAPCRAFT_PART_INSTALL}/upgrades
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/devicejs
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs/conf
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs/devjs-usr/App
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/support
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/log
+        install initscripts/UDEV/96-local.rules ${SNAPCRAFT_PART_INSTALL}/etc/udev/rules.d/96-local.rules
       organize:
         conf: wigwag/wwrelay-utils/conf
         6BSMD: wigwag/wwrelay-utils/6BSMD
@@ -191,7 +208,12 @@ parts:
         I2C: wigwag/wwrelay-utils/I2C
         debug_scripts: wigwag/wwrelay-utils/debug_scripts
         dev-tools: wigwag/wwrelay-utils/dev-tools
+        I2C: wigwag/wwrelay-utils/I2C
       filesets:
+        top:
+          - localdata
+          - userdata
+          - upgrades
         etc:
           - etc/dnsmasq.conf
           - etc/dnsmasq.d/*
@@ -201,8 +223,13 @@ parts:
           - etc/init.d/relayterm
           - etc/init.d/wwfunctions
           - etc/init.d/wwrelay
+          - etc/network
+          - etc/udev
+          - wigwag/etc/devicejs
         conf:
           - wigwag/wwrelay-utils/conf/*
+          - wigwag/devicejs/conf
+          - wigwag/devicejs/devjs-usr/App
         versions:
           - wigwag/etc/versions.json
         utils:
@@ -214,12 +241,14 @@ parts:
           - wigwag/wwrelay-utils/.b
           - wigwag/wwrelay-utils/initscripts/*
           - wigwag/wwrelay-utils/GPIO/*
+          - wigwag/wwrelay-utils/I2C/*
           - -wigwag/wwrelay-utils/GPIO/led.sh
           - -wigwag/wwrelay-utils/GPIO/pinctrl.sh
           - -wigwag/wwrelay-utils/GPIO/leddaemon
           - -wigwag/wwrelay-utils/I2C/eetool.sh
         debug:
           - wigwag/wwrelay-utils/debug_scripts
+          - wigwag/log
         devtools:
           - wigwag/wwrelay-utils/dev-tools
           - -wigwag/wwrelay-utils/dev-tools/bin/stopwatchdog.sh
@@ -233,7 +262,10 @@ parts:
           - wigwag/system/bin/leddaemon
           - wigwag/system/bin/dogProgrammer
           - wigwag/system/bin/eetool
+        support:
+          - wigwag/support
       stage:
+        - $top
         - $etc
         - $conf
         - $versions
@@ -241,6 +273,7 @@ parts:
         - $debug
         - $devtools
         - $system
+        - $support
     dss:
       plugin: dump
       source: git@github.com:armPelionEdge/edgeos-shell-scripts.git
