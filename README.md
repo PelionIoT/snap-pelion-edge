@@ -193,3 +193,14 @@ If you see the following error when starting edge-core, you are probably attempt
 /snap/core/current/usr/lib/snapd/snap-confine: error while loading shared libraries:
     libudev.so.1: cannot open shared object file: No such file or directory
 ```
+
+## Verify build
+
+We have provided a shell script that will verify that all the files/folders have been properly created and deployed into your build.
+
+Run the following script from the home directory in your build environment:
+```
+./scripts/install_check.sh prime/
+```
+
+The `prime/` parameter is the search folder. You can swap this out for your root directory if you are running this script on the install machine
