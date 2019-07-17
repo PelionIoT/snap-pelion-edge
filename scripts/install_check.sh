@@ -97,6 +97,7 @@ declare -a file_list=(
     'wigwag/system/lib/dummywd.so'
     'wigwag/system/lib/rp100wd.so'
     'wigwag/wwrelay-utils/conf/versions.json'
+    'wigwag/system/bin/fp-edge'
 )
 
 for file in "${file_list[@]}"
