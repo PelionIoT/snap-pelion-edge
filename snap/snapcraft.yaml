@@ -27,6 +27,8 @@ apps:
       command: wigwag/system/bin/maestro -config wigwag/wwrelay-utils/conf/maestro-conf/edge-config-rpi-production.yaml
       environment:
         LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
+      passthrough:
+        restart-delay: 5s
       daemon: simple
       plugs: [network-bind]
     fp-edge:
