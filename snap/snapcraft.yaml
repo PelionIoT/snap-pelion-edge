@@ -400,7 +400,7 @@ parts:
         export GOARCH=`echo $AR | awk -F '-' '{print $1}'`
         go env
         cd "$WORKSPACE"/bin
-        go build -x github.com/armPelionEdge/maestro/maestro
+        go build -tags debug -x github.com/armPelionEdge/maestro/maestro
         cd "$WORKSPACE"/src/github.com/armPelionEdge/rallypointwatchdogs
         # TODO -  only build what we need for the platform
         ./build.sh
