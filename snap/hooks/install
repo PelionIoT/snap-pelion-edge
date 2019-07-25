@@ -3,3 +3,19 @@
 if [ ! -f "$SNAP_DATA/edge-core.conf" ]; then
     cp "$SNAP/edge-core.conf" "$SNAP_DATA/edge-core.conf"
 fi
+
+if [ ! -d "$SNAP_DATA/userdata/etc" ]; then
+    mkdir -p $SNAP_DATA/userdata/etc
+fi
+
+if [ ! -d "$SNAP_DATA/localdata" ]; then
+    mkdir -p $SNAP_DATA/localdata
+fi
+
+if [ ! -d "$SNAP_DATA/wigwag/log" ]; then
+    mkdir -p $SNAP_DATA/wigwag/log
+fi
+
+if [ ! -d "$SNAP_DATA/upgrades" ]; then
+    mkdir -p $SNAP_DATA/upgrades
+fi

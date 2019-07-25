@@ -210,14 +210,10 @@ parts:
         install -d ${SNAPCRAFT_PART_INSTALL}/etc/network
         install -d ${SNAPCRAFT_PART_INSTALL}/etc/udev
         install -d ${SNAPCRAFT_PART_INSTALL}/etc/udev/rules.d
-        install -d ${SNAPCRAFT_PART_INSTALL}/localdata
-        install -d ${SNAPCRAFT_PART_INSTALL}/userdata
-        install -d ${SNAPCRAFT_PART_INSTALL}/upgrades
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/devicejs
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs/conf
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs/devjs-usr/App
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/support
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/log
         install initscripts/UDEV/96-local.rules ${SNAPCRAFT_PART_INSTALL}/etc/udev/rules.d/96-local.rules
       organize:
         conf: wigwag/wwrelay-utils/conf
@@ -232,10 +228,6 @@ parts:
         dev-tools: wigwag/wwrelay-utils/dev-tools
         I2C: wigwag/wwrelay-utils/I2C
       filesets:
-        top:
-          - localdata
-          - userdata
-          - upgrades
         etc:
           - etc/dnsmasq.conf
           - etc/dnsmasq.d/*
@@ -270,7 +262,6 @@ parts:
           - -wigwag/wwrelay-utils/I2C/eetool.sh
         debug:
           - wigwag/wwrelay-utils/debug_scripts
-          - wigwag/log
         devtools:
           - wigwag/wwrelay-utils/dev-tools
           - -wigwag/wwrelay-utils/dev-tools/bin/stopwatchdog.sh
@@ -287,7 +278,6 @@ parts:
         support:
           - wigwag/support
       stage:
-        - $top
         - $etc
         - $conf
         - $versions
