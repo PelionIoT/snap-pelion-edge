@@ -1,23 +1,11 @@
 #!/bin/bash
+mkdir -p ${SNAP_DATA}/userdata/edge_gw_config
+jq -r .ssl.server.certificate ${SNAP_DATA}/var/lib/edge_gw_identity/identity.json > ${SNAP_DATA}/userdata/edge_gw_config/kubelet.pem
+jq -r .ssl.server.key ${SNAP_DATA}/var/lib/edge_gw_identity/identity.json > ${SNAP_DATA}/userdata/edge_gw_config/kubelet-key.pem
 
-# SNAP_DATA: /var/snap/pelion-edge/current/
-CONF_FILE=${SNAP_DATA}/fp-edge.conf
-
-# defaults
-ARGS=""
-
-# read from CLI args given by snapcraft.yaml->apps->command
-if [ "$#" -gt "0" ]; then
-    ARGS="${ARGS} $@"
-fi
-
-# read from conf file
-if [ -f "${CONF_FILE}" ]; then
-    ARGS="${ARGS} $(cat "${CONF_FILE}")"
-fi
-
-mkdir -p /userdata/edge_gw_config
-jq -r .ssl.ca.ca /userdata/edge_gw_config/identity.json > /userdata/edge_gw_config/ca.pem
-jq -r .ssl.server.certificate /userdata/edge_gw_config/identity.json > /userdata/edge_gw_config/kubelet.pem
-jq -r .ssl.server.key userdata/edge_gw_config/identity.json > /userdata/edge_gw_config/kubelet-key.pem
-exec ${SNAP}/wigwag/system/bin/fp-edge ${ARGS}
+exec ${SNAP}/wigwag/system/bin/fp-edge \
+    -proxy-uri=https://kaas-edge-nodes.arm.com \
+    -ca=${SNAP}/ca.pem \
+    -cert-strategy-options=cert=${SNAP_DATA}/userdata/edge_gw_config/kubelet.pem \
+    -cert-strategy-options=key=${SNAP_DATA}/userdata/edge_gw_config/kubelet-key.pem \
+    -tunnel-uri=ws://127.0.0.1:8080/connect

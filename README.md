@@ -82,6 +82,41 @@ Install these if you're not using docker:
     ```
     This results in a new file `pelion-edge_<version>_<arch>.snap` in the local directory.
 
+## Build Docker
+1. Clone the 'docker-snap' repository
+   ```bash
+   git clone https://git.launchpad.net/~docker/+git/snap docker-snap
+   cd docker-snap
+   ```
+
+1. Check out commit `6d52e71183e3f433b4ab4608f1aa0157de1f3823`
+   ```bash
+   git checkout 6d52e71183e3f433b4ab4608f1aa0157de1f3823
+   ```
+
+1. Install `lxd`. This is required by `snapcraft cleanbuild`
+   ```bash
+   sudo apt install lxd
+   ```
+
+1. Set up `lxd`. Just use the default options
+   ```bash
+   lxd init
+   ```
+
+1. Build the docker snap
+   ```bash
+   snapcraft cleanbuild
+   ```
+   This generates a `.snap` file `docker_18.06.1-ce_amd64.snap`
+
+1. If you see a message like "Create LXC container: LXD doesn't have a uid/gid allocation" add these lines
+   ```
+   root:1000000:65536
+   lxd:1000000:65536
+   ```
+   to `/etc/subuid` and `/etc/subgid` and restart lxd `sudo systemctl restart lxd` then try building again.
+
 ## Install and Run Pelion-Edge
 
 ### Install on Ubuntu Core 16
@@ -102,8 +137,34 @@ Install these if you're not using docker:
 
 1. Continue following the Ubuntu 16 instructions below.
 
-### Install the snap on Ubuntu 16
+### Install the docker snap on Ubuntu 16
+1. Copy the `docker_18.06.1-ce_amd64.snap` package to the device
+
+1. Use the `snap` utility to install the snap package.
+    ```bash
+    sudo snap install --dangerous docker_18.06.1-ce_amd64.snap
+    ```
+
+1. Connect docker plugs and slots
+   ```bash
+   sudo snap connect docker:privileged :docker-support
+   sudo snap connect docker:support :docker-support
+   sudo snap connect docker:firewall-control :firewall-control
+   sudo snap connect docker:home :home
+   sudo snap connect docker:docker-cli docker:docker-daemon
+   sudo snap disable docker
+   sudo snap enable docker
+   ``` 
+
+### Install the pelion-edge snap on Ubuntu 16
 1. Copy the `pelion-edge_<version>_<arch>.snap` package to the device.
+
+1. On your target device update the `/etc/hosts` file. Append these lines to the bottom.
+   ```
+   146.148.90.233 kaas-edge-nodes.arm.com
+   146.148.90.233 kaas-edge-admin.arm.com
+   146.148.90.233 fog-proxy.arm.com
+   ```
 
 1. Use the `snap` utility to install the snap package.
     ```bash
@@ -113,9 +174,9 @@ Install these if you're not using docker:
     ```bash
     error: cannot find signatures with metadata for snap
     ```
-    add the `--dangerous` option
+    add the `--devmode` option
     ```bash
-    sudo snap install --dangerous --devmode pelion-edge_<version>_<arch>.snap
+    sudo snap install --devmode pelion-edge_<version>_<arch>.snap
     ```
 
 ## Run Pelion Edge
