@@ -8,6 +8,9 @@ grade: devel
 architectures: 
   - amd64
 
+plugs:
+    system-files:
+        read: [/proc, /etc]
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
     edge-core:
@@ -16,10 +19,9 @@ apps:
       restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
-      plugs: [network-bind]
+      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
-      plugs: [network-bind]
     help:
       command: cat ${SNAP}/help.md
     deviceoswd:
@@ -34,9 +36,11 @@ apps:
         restart-delay: 5s
       restart-condition: always
       daemon: simple
-      plugs: [network-bind]
+      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, system-files, x11]
     edgenet:
-      command: docker network create --subnet=10.0.0.0/24 --gateway=10.0.0.1 edgenet
+      command: launch-edgenet.sh
+      daemon: oneshot
+      plugs: [docker]
     fp-edge:
       passthrough:
         restart-delay: 5s
@@ -47,6 +51,13 @@ apps:
     identity:
       command: launch-pelion-identity.sh $SNAP/wigwag $SNAP_DATA/var/lib
       daemon: simple
+    kubelet:
+      passthrough:
+        restart-delay: 5s
+      restart-condition: always
+      command: launch-kubelet.sh
+      daemon: simple
+      plugs: [block-devices, bluetooth-control, docker, firewall-control, kubernetes-support, mount-observe, netlink-audit, netlink-connector, network-control, process-control, system-files, system-observe, system-trace]
 layout:
     /var/lib/pelion-edge:
         bind: $SNAP_DATA/var/lib/pelion-edge
@@ -128,8 +139,6 @@ parts:
       source: git@github.com:armPelionEdge/fog-proxy.git
       source-branch: master
       go-importpath: github.com/armPelionEdge/fog-proxy
-      stage-packages:
-        - jq
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
@@ -482,5 +491,100 @@ parts:
         - $lib
         - $bin
         - $etc
+    cni:
+      plugin: go
+      source: git@github.com:containernetworking/plugins.git
+      source-branch: master
+      go-importpath: github.com/containernetworking/plugins
+      override-pull: |
+        # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
+        # Create the go workspace. This is normally done by the plugin
+        install -d go
+        install -d go/src
+        install -d go/bin
+        install -d go/pkg
+        install -d go/src/github.com/containernetworking
+        cd go/src/github.com/containernetworking
+        git clone git@github.com:containernetworking/plugins.git
+      override-build: |
+        export GOFLAGS="${GOFLAGS} -mod=vendor"
+        export GOPATH=${SNAPCRAFT_PART_SRC}/go
+        export PROJECT_DIR=${GOPATH}/src/github.com/containernetworking/plugins
 
+        cd ${PROJECT_DIR}
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin
 
+        PLUGINS="plugins/meta/* plugins/main/* plugins/ipam/*"
+        for d in $PLUGINS; do
+          echo "$d"
+          if [ -d "$d" ]; then
+            plugin="$(basename "$d")"
+            if [ $plugin != "windows" ]; then
+              echo "  $plugin"
+              go install github.com/containernetworking/plugins/$d
+              install $GOPATH/bin/$plugin ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/$plugin
+            fi
+          fi
+        done
+
+        cd ${SNAPCRAFT_PART_SRC}
+
+        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/c2d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d
+        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/c2d-inner ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d-inner
+
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d
+        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/10-c2d.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/10-c2d.conf
+        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/99-loopback.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/99-loopback.conf
+      filesets:
+        cni_bin:
+          - wigwag/system/opt/cni/bin/*
+        cni_conf:
+          - wigwag/system/etc/cni/net.d/*
+      stage:
+        - $cni_bin
+        - $cni_conf
+    kubelet:
+      plugin: go
+      source: git@gitlab.com:arm-isg-edge/argus.git
+      source-branch: master
+      go-importpath: k8s.io/kubernetes
+      override-pull: |
+        # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored depdnencies.
+        # Create the go workspace. This is normally done by the plugin
+        install -d go
+        install -d go/src
+        install -d go/bin
+        install -d go/pkg
+        install -d go/src/k8s.io
+        cd go/src/k8s.io
+        git clone git@gitlab.com:arm-isg-edge/argus.git kubernetes
+      override-build: |
+        export GOPATH=${SNAPCRAFT_PART_SRC}/go
+        cd ${GOPATH}/src/k8s.io/kubernetes/hack/make-rules
+        ./build.sh cmd/kubelet
+
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/var/lib/kubelet
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files-installed/kubelet/kubeconfig ${SNAPCRAFT_PART_INSTALL}/wigwag/system/var/lib/kubelet/kubeconfig
+        install -m 0755 ../../_output/bin/kubelet ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/kubelet
+      stage:
+        - wigwag/system/bin/kubelet
+        - wigwag/system/var/lib/kubelet/kubeconfig
+      stage-packages: [coreutils, iptables, systemd]
+    jq:
+      plugin: autotools
+      configflags:
+        - -disable-docs
+      source: git@github.com:stedolan/jq.git
+      source-branch: jq-1.6
+      build-packages:
+        - libtool
+        - flex
+        - bison
+    curl:
+      plugin: autotools
+      source: git@github.com:curl/curl.git
+      source-branch: curl-7_65_3
+      install-via: prefix
+      build-packages:
+        - libtool
