@@ -11,6 +11,9 @@ architectures:
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
     edge-core:
+      passthrough:
+        restart-delay: 5s
+      restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
       plugs: [network-bind]
@@ -29,11 +32,15 @@ apps:
         LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
       passthrough:
         restart-delay: 5s
+      restart-condition: always
       daemon: simple
       plugs: [network-bind]
     edgenet:
       command: docker network create --subnet=10.0.0.0/24 --gateway=10.0.0.1 edgenet
     fp-edge:
+      passthrough:
+        restart-delay: 5s
+      restart-condition: always
       command: launch-fp-edge.sh
       daemon: simple
       plugs: [network-bind]
