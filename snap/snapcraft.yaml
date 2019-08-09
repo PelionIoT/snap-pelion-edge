@@ -98,7 +98,7 @@ parts:
       plugin: go
       source: git@github.com:armPelionEdge/devicedb.git
       source-branch: master
-      go-importpath: devicedb
+      go-importpath: github.com/armPelionEdge/devicedb
       organize:
         'bin/*': wigwag/system/bin/
     edge-node-modules:
