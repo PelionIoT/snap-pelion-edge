@@ -518,8 +518,8 @@ parts:
 
         cd ${SNAPCRAFT_PART_SRC}
 
-        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/c2d go/bin/c2d
-        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/c2d-inner go/bin/c2d-inner
+        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/c2d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d
+        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/c2d-inner ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d-inner
 
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d
         install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/10-c2d.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/10-c2d.conf
