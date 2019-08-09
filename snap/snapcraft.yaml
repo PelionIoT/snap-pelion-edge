@@ -537,8 +537,6 @@ parts:
       source: git@gitlab.com:arm-isg-edge/argus.git
       source-branch: master
       go-importpath: k8s.io/kubernetes
-      stage-packages:
-        - jq
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored depdnencies.
         # Create the go workspace. This is normally done by the plugin
