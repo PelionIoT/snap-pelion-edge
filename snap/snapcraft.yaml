@@ -31,6 +31,9 @@ apps:
         restart-delay: 5s
       daemon: simple
       plugs: [network-bind]
+    edgenet:
+      command: docker network create --subnet=10.0.0.0/24 --gateway=10.0.0.1 edgenet
+      plugs: [docker-execuutables]
     fp-edge:
       command: launch-fp-edge.sh
       daemon: simple
@@ -67,8 +70,39 @@ parts:
       organize:
         'edge-core': wigwag/mbed/
     files:
-        plugin: dump
-        source: files-dumped/
+      plugin: dump
+      source: files-dumped/
+      stage:
+        - bin/*
+        - '*'
+      prime:
+        - -bin/go-build-helper.sh
+    docker-cli:
+      after:
+        - files
+      plugin: make
+      build-snaps: ["go"]
+      source: git@github.com:docker/cli.git
+      source-tag: v18.09.7
+      override-build: |
+        # docker build specific environment variables
+        export VERSION=$SNAPCRAFT_PROJECT_VERSION
+        export DOCKER_GITCOMMIT=$(git rev-parse --short HEAD)
+        export GITCOMMIT=$DOCKER_GITCOMMIT
+        export DISABLE_WARN_OUTSIDE_CONTAINER=1
+
+        # setup the go build environment for docker-cli
+        . $SNAPCRAFT_STAGE/bin/go-build-helper.sh
+        gopartbootstrap github.com/docker/cli
+
+        # build the docker cli binary
+        cd $GOPATH/src/github.com/docker/cli
+        unset LDFLAGS
+        make dynbinary
+
+        install -d "$SNAPCRAFT_PART_INSTALL/bin"
+        install -T "$GOPATH/src/github.com/docker/cli/build/docker" "$SNAPCRAFT_PART_INSTALL/bin/docker"
+        install -T "$GOPATH/src/github.com/docker/cli/contrib/completion/bash/docker" "$SNAPCRAFT_PART_INSTALL/bin/docker-completion.sh"
     devicejs-ng:
       plugin: nodejs-improved
       nodejs-package-manager: npm
