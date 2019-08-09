@@ -39,16 +39,30 @@ apps:
       daemon: simple
       plugs: [network-bind]
     kubelet:
-      command: wigwag/system/bin/kubelet --image-pull-progress-deadline=2m --kubeconfig=/var/lib/kubelet/kubeconfig --network-plugin=cni --register-node=true
+      command: wigwag/system/bin/kubelet --image-pull-progress-deadline=2m --kubeconfig=$SNAP/wigwag/system/var/lib/kubelet/kubeconfig --network-plugin=cni --register-node=true
       daemon: simple
-      plugs: [network-bind]
+      plugs:
+        - mount-observe
+        - network
+        - network-bind
+        - process-control
+        - hardware-observe
+        - kubernetes-support
+        - block-devices
+        - system-observe
+        - firewall-control
+        - network-control
+        - network-observe
+        - network-setup-observe
 layout:
     /var/lib/pelion-edge:
         bind: $SNAP_DATA/var/lib/pelion-edge
     /etc/cni/net.d:
         bind: $SNAP/wigwag/system/etc/cni/net.d
     /var/lib/kubelet:
-        bind: $SNAP/wigwag/system/var/lib/kubelet
+        bind: $SNAP_DATA/var/lib/kubelet
+    /var/lib/dockershim:
+        bind: $SNAP_DATA/var/lib/dockershim
     /opt/cni/bin:
         bind: $SNAP/wigwag/system/opt/cni/bin
 parts:
