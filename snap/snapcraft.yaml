@@ -45,7 +45,7 @@ apps:
       daemon: simple
       plugs: [network-bind]
     wait-for-pelion-identity:
-      command: wigwag/wwrelay-utils/debug_scripts/create-new-eeprom-with-self-signed-certs.sh
+      command: sh wigwag/wwrelay-utils/debug_scripts/create-new-eeprom-with-self-signed-certs.sh
       daemon: oneshot
       restart-condition: on-failure
       passthrough:
