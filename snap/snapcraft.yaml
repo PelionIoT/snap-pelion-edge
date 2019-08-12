@@ -3,7 +3,7 @@ base: core
 version: "1.2"
 summary: Pelion Edge
 description: Pelion Edge
-confinement: strict
+confinement: classic
 grade: devel
 architectures: 
   - amd64
@@ -39,7 +39,7 @@ apps:
       daemon: simple
       plugs: [network-bind]
     kubelet:
-      command: wigwag/system/bin/kubelet --image-pull-progress-deadline=2m --kubeconfig=$SNAP/wigwag/system/var/lib/kubelet/kubeconfig --network-plugin=cni --register-node=true
+      command: wigwag/system/bin/kubelet --image-pull-progress-deadline=2m --kubeconfig=$SNAP/wigwag/system/var/lib/kubelet/kubeconfig --cni-bin-dir=$SNAP/wigwag/system/opt/cni/bin --cni-conf-dir=$SNAP/wigwag/system/etc/cni/net.d --network-plugin=cni --register-node=true
       daemon: simple
       plugs:
         - mount-observe
@@ -54,17 +54,10 @@ apps:
         - network-control
         - network-observe
         - network-setup-observe
+        - docker
 layout:
     /var/lib/pelion-edge:
         bind: $SNAP_DATA/var/lib/pelion-edge
-    /etc/cni/net.d:
-        bind: $SNAP/wigwag/system/etc/cni/net.d
-    /var/lib/kubelet:
-        bind: $SNAP_DATA/var/lib/kubelet
-    /var/lib/dockershim:
-        bind: $SNAP_DATA/var/lib/dockershim
-    /opt/cni/bin:
-        bind: $SNAP/wigwag/system/opt/cni/bin
 parts:
     edge-core:
       plugin: cmake
