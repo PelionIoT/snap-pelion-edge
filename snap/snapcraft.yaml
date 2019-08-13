@@ -45,25 +45,13 @@ apps:
       daemon: simple
       plugs: [network-bind]
     kubelet:
-      command: wigwag/system/bin/kubelet --image-pull-progress-deadline=2m --kubeconfig=$SNAP/wigwag/system/var/lib/kubelet/kubeconfig --cni-bin-dir=$SNAP/wigwag/system/opt/cni/bin --cni-conf-dir=$SNAP/wigwag/system/etc/cni/net.d --network-plugin=cni --register-node=true
+      command: launch-kubelet.sh
       daemon: simple
-      plugs:
-        - mount-observe
-        - network
-        - network-bind
-        - process-control
-        - hardware-observe
-        - kubernetes-support
-        - block-devices
-        - system-observe
-        - firewall-control
-        - network-control
-        - network-observe
-        - network-setup-observe
-        - docker
 layout:
     /var/lib/pelion-edge:
         bind: $SNAP_DATA/var/lib/pelion-edge
+    /userdata/edge_gw_config:
+        bind: $SNAP_DATA/userdata/edge_gw_config
 parts:
     edge-core:
       plugin: cmake
@@ -147,10 +135,13 @@ parts:
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/userdata/edge_gw_config
+        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files-installed/identity.json ${SNAPCRAFT_PART_INSTALL}/wigwag/userdata/edge_gw_config/identity.json
       organize:
         bin/fp-edge: wigwag/system/bin/fp-edge
       stage:
         - wigwag/system/bin/fp-edge
+        - wigwag/userdata/edge_gw_config/identity.json
     devicedb:
       plugin: go
       source: git@github.com:armPelionEdge/devicedb.git
