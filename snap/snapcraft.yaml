@@ -3,7 +3,7 @@ base: core
 version: "1.2"
 summary: Pelion Edge
 description: Pelion Edge
-confinement: strict
+confinement: classic
 grade: devel
 architectures: 
   - amd64
@@ -44,6 +44,23 @@ apps:
       command: launch-fp-edge.sh
       daemon: simple
       plugs: [network-bind]
+    kubelet:
+      command: wigwag/system/bin/kubelet --image-pull-progress-deadline=2m --kubeconfig=$SNAP/wigwag/system/var/lib/kubelet/kubeconfig --cni-bin-dir=$SNAP/wigwag/system/opt/cni/bin --cni-conf-dir=$SNAP/wigwag/system/etc/cni/net.d --network-plugin=cni --register-node=true
+      daemon: simple
+      plugs:
+        - mount-observe
+        - network
+        - network-bind
+        - process-control
+        - hardware-observe
+        - kubernetes-support
+        - block-devices
+        - system-observe
+        - firewall-control
+        - network-control
+        - network-observe
+        - network-setup-observe
+        - docker
 layout:
     /var/lib/pelion-edge:
         bind: $SNAP_DATA/var/lib/pelion-edge
@@ -462,5 +479,82 @@ parts:
         - $lib
         - $bin
         - $etc
+    cni:
+      plugin: go
+      source: git@github.com:containernetworking/plugins.git
+      source-branch: master
+      go-importpath: github.com/containernetworking/plugins
+      override-pull: |
+        # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
+        # Create the go workspace. This is normally done by the plugin
+        install -d go
+        install -d go/src
+        install -d go/bin
+        install -d go/pkg
+        install -d go/src/github.com/containernetworking
+        cd go/src/github.com/containernetworking
+        git clone git@github.com:containernetworking/plugins.git
+      override-build: |
+        export GOFLAGS="${GOFLAGS} -mod=vendor"
+        export GOPATH=${SNAPCRAFT_PART_SRC}/go
+        export PROJECT_DIR=${GOPATH}/src/github.com/containernetworking/plugins
 
+        cd ${PROJECT_DIR}
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin
 
+        PLUGINS="plugins/meta/* plugins/main/* plugins/ipam/*"
+        for d in $PLUGINS; do
+          echo "$d"
+          if [ -d "$d" ]; then
+            plugin="$(basename "$d")"
+            if [ $plugin != "windows" ]; then
+              echo "  $plugin"
+              go install github.com/containernetworking/plugins/$d
+              install $GOPATH/bin/$plugin ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/$plugin
+            fi
+          fi
+        done
+
+        cd ${SNAPCRAFT_PART_SRC}
+
+        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/c2d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d
+        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/c2d-inner ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d-inner
+
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d
+        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/10-c2d.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/10-c2d.conf
+        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/99-loopback.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/99-loopback.conf
+      filesets:
+        cni_bin:
+          - wigwag/system/opt/cni/bin/*
+        cni_conf:
+          - wigwag/system/etc/cni/net.d/*
+      stage:
+        - $cni_bin
+        - $cni_conf
+    kubelet:
+      plugin: go
+      source: git@gitlab.com:arm-isg-edge/argus.git
+      source-branch: master
+      go-importpath: k8s.io/kubernetes
+      override-pull: |
+        # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored depdnencies.
+        # Create the go workspace. This is normally done by the plugin
+        install -d go
+        install -d go/src
+        install -d go/bin
+        install -d go/pkg
+        install -d go/src/k8s.io
+        cd go/src/k8s.io
+        git clone git@gitlab.com:arm-isg-edge/argus.git kubernetes
+      override-build: |
+        export GOPATH=${SNAPCRAFT_PART_SRC}/go
+        cd ${GOPATH}/src/k8s.io/kubernetes/hack/make-rules
+        ./build.sh cmd/kubelet
+
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/var/lib/kubelet
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files-installed/kubelet/kubeconfig ${SNAPCRAFT_PART_INSTALL}/wigwag/system/var/lib/kubelet/kubeconfig
+        install -m 0755 ../../_output/bin/kubelet ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/kubelet
+      stage:
+        - wigwag/system/bin/kubelet
+        - wigwag/system/var/lib/kubelet/kubeconfig
