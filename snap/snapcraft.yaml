@@ -16,16 +16,13 @@ apps:
       restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
-      plugs: [network-bind]
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
-      plugs: [network-bind]
     help:
       command: cat ${SNAP}/help.md
     deviceoswd:
       command: wigwag/system/bin/deviceOSWD -w 3000 -m 900 -s /var/lib/pelion-edge/deviceOSkeepalive
       daemon: simple 
-      plugs: [network-bind]
     maestro:
       command: wigwag/system/bin/maestro -config $SNAP/wigwag/wwrelay-utils/conf/maestro-conf/edge-config-dell5000-demo.yaml
       environment:
@@ -34,7 +31,6 @@ apps:
         restart-delay: 5s
       restart-condition: always
       daemon: simple
-      plugs: [network-bind]
     edgenet:
       command: docker network create --subnet=10.0.0.0/24 --gateway=10.0.0.1 edgenet
     fp-edge:
@@ -43,7 +39,6 @@ apps:
       restart-condition: always
       command: launch-fp-edge.sh
       daemon: simple
-      plugs: [network-bind]
     kubelet:
       command: launch-kubelet.sh
       daemon: simple
