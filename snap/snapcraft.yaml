@@ -3,7 +3,7 @@ base: core
 version: "1.2"
 summary: Pelion Edge
 description: Pelion Edge
-confinement: classic
+confinement: devmode
 grade: devel
 architectures: 
   - amd64
@@ -33,6 +33,7 @@ apps:
       daemon: simple
     edgenet:
       command: docker network create --subnet=10.0.0.0/24 --gateway=10.0.0.1 edgenet
+      daemon: oneshot
     fp-edge:
       passthrough:
         restart-delay: 5s
@@ -45,8 +46,8 @@ apps:
 layout:
     /var/lib/pelion-edge:
         bind: $SNAP_DATA/var/lib/pelion-edge
-    /userdata/edge_gw_config:
-        bind: $SNAP_DATA/userdata/edge_gw_config
+    /var/lib/kubelet:
+        bind: $SNAP_DATA/var/lib/kubelet
 parts:
     edge-core:
       plugin: cmake
@@ -125,8 +126,6 @@ parts:
       source: git@github.com:armPelionEdge/fog-proxy.git
       source-branch: master
       go-importpath: github.com/armPelionEdge/fog-proxy
-      stage-packages:
-        - jq
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin

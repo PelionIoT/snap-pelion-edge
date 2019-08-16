@@ -16,8 +16,8 @@ if [ -f "${CONF_FILE}" ]; then
     ARGS="${ARGS} $(cat "${CONF_FILE}")"
 fi
 
-mkdir -p /userdata/edge_gw_config
-jq -r .ssl.ca.ca ${SNAP}/wigwag/userdata/edge_gw_config/identity.json > /userdata/edge_gw_config/ca.pem
-jq -r .ssl.server.certificate ${SNAP}/wigwag/userdata/edge_gw_config/identity.json > /userdata/edge_gw_config/kubelet.pem
-jq -r .ssl.server.key ${SNAP}/wigwag/userdata/edge_gw_config/identity.json > /userdata/edge_gw_config/kubelet-key.pem
+mkdir -p ${SNAP_DATA}/userdata/edge_gw_config
+jq -r .ssl.ca.ca ${SNAP}/wigwag/userdata/edge_gw_config/identity.json > ${SNAP_DATA}/userdata/edge_gw_config/ca.pem
+jq -r .ssl.server.certificate ${SNAP}/wigwag/userdata/edge_gw_config/identity.json > ${SNAP_DATA}/userdata/edge_gw_config/kubelet.pem
+jq -r .ssl.server.key ${SNAP}/wigwag/userdata/edge_gw_config/identity.json > ${SNAP_DATA}/userdata/edge_gw_config/kubelet-key.pem
 exec ${SNAP}/wigwag/system/bin/fp-edge ${ARGS}
