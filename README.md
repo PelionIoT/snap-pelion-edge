@@ -45,10 +45,14 @@ Install these if you're not using docker:
 
 1. If you have docker you can now build with the snapcraft docker image, or skip this step and follow the rest of the build steps below.
     ```bash
-    docker run --rm -v "$PWD":/build -w /build snapcore/snapcraft:stable snapcraft --debug
+    docker build --no-cache -f Dockerfile --label snapcore/snapcraft --tag ${USER}/snapcraft:latest .
+    docker run --rm -v "$PWD":/build -v ${HOME}/.ssh:/root/.ssh -v ${HOME}/.gitconfig:/root/.gitconfig -v ${HOME}/.netrc:/root/.netrc -w /build ${USER}/snapcraft:latest snapcraft --debug
     ```
 
-    Note: Running the build in Docker may contaminate your project folders with files owned by root and will cause permission denied error when you run the build outside of Docker. Run sudo chown --changes --recursive $USER:$USER _project_folder_ to fix-up.
+    Tip: Use the following command to drop you into a shell within the docker container. Once in the docker environment, don't forget to run the entrypoint.sh script to set up your ssh keys.
+    ```bash
+    docker run --rm -it -v ${HOME}/.ssh:/root/.ssh -v ${HOME}/.gitconfig:/root/.gitconfig -v ${HOME}/.netrc:/root/.netrc -v "${PWD}":/build ${USER}/snapcraft:latest /bin/bash
+    ```
 
 1. If you are not using docker, install the snap development tools and other developer tools you might need (snapcraft, build-essential, git, nodejs, bzr, etc.) on your host system.
     ```bash
