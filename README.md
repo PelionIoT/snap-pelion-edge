@@ -9,8 +9,11 @@ Snapcraft packaging for Pelion Edge
 
 Install these if you're not using docker:
 * snapcraft >= 3.6
+    * snap install --classic snapcraft
 * build-essential
 * cmake
+* golang
+    * snap install --classic --channel=latest/stable go
 
 ### User account prerequisites
 1. [Create an account on Pelion Cloud](https://os.mbed.com/account/signup/)

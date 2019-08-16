@@ -351,7 +351,6 @@ parts:
       build-packages:
         - python
         - build-essential
-        - golang
       source: git@github.com:armPelionEdge/maestro.git
       source-branch: master
       override-build: |
