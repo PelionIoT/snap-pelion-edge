@@ -543,3 +543,20 @@ parts:
       stage:
         - wigwag/system/bin/kubelet
         - wigwag/system/var/lib/kubelet/kubeconfig
+    jq:
+      plugin: autotools
+      configflags:
+        - -disable-docs
+      source: git@github.com:stedolan/jq.git
+      source-branch: jq-1.6
+      build-packages:
+        - libtool
+        - flex
+        - bison
+    curl:
+      plugin: autotools
+      source: git@github.com:curl/curl.git
+      source-branch: curl-7_65_3
+      install-via: prefix
+      build-packages:
+        - libtool

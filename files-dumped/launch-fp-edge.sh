@@ -13,7 +13,7 @@ fi
 
 # read from conf file
 if [ -f "${CONF_FILE}" ]; then
-    ARGS="${ARGS} $(cat "${CONF_FILE}")"
+    ARGS="${ARGS} $(cat "${CONF_FILE}" | envsubst)"
 fi
 
 mkdir -p ${SNAP_DATA}/userdata/edge_gw_config
