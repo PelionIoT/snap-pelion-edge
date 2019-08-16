@@ -3,7 +3,7 @@ base: core
 version: "1.2"
 summary: Pelion Edge
 description: Pelion Edge
-confinement: strict
+confinement: devmode
 grade: devel
 architectures: 
   - amd64
@@ -238,7 +238,8 @@ parts:
         - python
         - build-essential
       source: git@github.com:armPelionEdge/edge-utils.git
-      source-branch: master
+      #TODO: move back to master branch once change makes it onto master
+      source-branch: non-root-identity
       override-build: |
         cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/package.json .
         snapcraftctl build
