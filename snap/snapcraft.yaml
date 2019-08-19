@@ -3,11 +3,14 @@ base: core
 version: "1.2"
 summary: Pelion Edge
 description: Pelion Edge
-confinement: classic
+confinement: devmode
 grade: devel
 architectures: 
   - amd64
 
+plugs:
+    system-files:
+        read: [/proc, /etc]
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
     edge-core:
@@ -16,6 +19,7 @@ apps:
       restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
+      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
     help:
@@ -23,6 +27,7 @@ apps:
     deviceoswd:
       command: wigwag/system/bin/deviceOSWD -w 3000 -m 900 -s /var/lib/pelion-edge/deviceOSkeepalive
       daemon: simple 
+      plugs: [network-bind]
     maestro:
       command: wigwag/system/bin/maestro -config $SNAP/wigwag/wwrelay-utils/conf/maestro-conf/edge-config-dell5000-demo.yaml
       environment:
@@ -31,9 +36,11 @@ apps:
         restart-delay: 5s
       restart-condition: always
       daemon: simple
+      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, system-files, x11]
     edgenet:
-      command: docker network create --subnet=10.0.0.0/24 --gateway=10.0.0.1 edgenet
+      command: launch-edgenet.sh
       daemon: oneshot
+      plugs: [docker]
     fp-edge:
       passthrough:
         restart-delay: 5s
@@ -41,8 +48,12 @@ apps:
       command: launch-fp-edge.sh
       daemon: simple
     kubelet:
+      passthrough:
+        restart-delay: 5s
+      restart-condition: always
       command: launch-kubelet.sh
       daemon: simple
+      plugs: [block-devices, bluetooth-control, docker, firewall-control, kubernetes-support, mount-observe, netlink-audit, netlink-connector, network-control, process-control, system-files, system-observe, system-trace]
 layout:
     /var/lib/pelion-edge:
         bind: $SNAP_DATA/var/lib/pelion-edge
@@ -347,7 +358,6 @@ parts:
       build-packages:
         - python
         - build-essential
-        - golang
       source: git@github.com:armPelionEdge/maestro.git
       source-branch: master
       override-build: |
@@ -543,6 +553,7 @@ parts:
       stage:
         - wigwag/system/bin/kubelet
         - wigwag/system/var/lib/kubelet/kubeconfig
+      stage-packages: [coreutils, iptables, systemd]
     jq:
       plugin: autotools
       configflags:
