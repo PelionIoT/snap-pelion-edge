@@ -107,7 +107,7 @@ Install these if you're not using docker:
 
 1. Use the `snap` utility to install the snap package.
     ```bash
-    sudo snap install pelion-edge_<version>_<arch>.snap
+    sudo snap install --devmode pelion-edge_<version>_<arch>.snap
     ```
     If you see the following message:
     ```bash
@@ -115,7 +115,7 @@ Install these if you're not using docker:
     ```
     add the `--dangerous` option
     ```bash
-    sudo snap install --dangerous pelion-edge_<version>_<arch>.snap
+    sudo snap install --dangerous --devmode pelion-edge_<version>_<arch>.snap
     ```
 
 ## Run Pelion Edge
