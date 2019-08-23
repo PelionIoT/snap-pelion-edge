@@ -44,12 +44,9 @@ apps:
       command: launch-fp-edge.sh
       daemon: simple
       plugs: [network-bind]
-    wait-for-pelion-identity:
-      command: sh wigwag/wwrelay-utils/debug_scripts/create-new-eeprom-with-self-signed-certs.sh
-      daemon: oneshot
-      restart-condition: on-failure
-      passthrough:
-        restart-delay: 5s
+    identity:
+      command: launch-pelion-identity.sh $SNAP/wigwag $SNAP_DATA/var/lib
+      daemon: simple
 layout:
     /var/lib/pelion-edge:
         bind: $SNAP_DATA/var/lib/pelion-edge
