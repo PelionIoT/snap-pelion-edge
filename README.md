@@ -58,14 +58,7 @@ Install these if you're not using docker:
     sudo apt-get update && sudo apt-get upgrade
     sudo apt-get install snapcraft build-essential git cmake
     ```
-
-    Note: The minimum required version of snapcraft is 3.6. You can view your version number with `snapcraft --version`. If your version of snapcraft is older than 3.6, then install snapcraft using `snap` instead of `apt-get` or `apt`:
     
-    ```bash
-    sudo apt-get remove snapcraft
-    sudo snap install --classic snapcraft
-    ```
-
     Note: When you execute snapcraft to build the package, snapcraft attempts to install additional packages listed under `build-packages` of each part in `snapcraft.yaml`. You may be prompted for a sudo password if these packages are not already installed on your development system.
 
 1. Compile your snap with `snapcraft` (you may have to type your GitHub credentials during compile):
