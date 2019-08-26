@@ -1,6 +1,6 @@
 # snap-pelion-edge
 
-This repository contains snapcraft packaging for Pelion Edge.
+This repository contains snapcraft packaging for Pelion Edge. This lets you run Pelion Edge on Ubuntu.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ Install these if you're not using docker:
 1. [A Pelion Cloud account](https://os.mbed.com/account/signup/).
 1. [Access to Pelion Cloud](https://console.mbed.com/cloud-registration).
 1. An [Ubuntu SSO account](https://login.ubuntu.com/). This is required for an Ubuntu Core installation. 
-1. An SSH key [imported into your Ubuntu SSO account](https://login.ubuntu.com/ssh-keys). Please see the [Ubuntu instructions](https://help.ubuntu.com/community/SSH/OpenSSH/Keys) for more information about generating an SSH key on your computer.
+1. An SSH key [uploaded into your Ubuntu SSO account](https://login.ubuntu.com/ssh-keys) so you can SSH into your Ubuntu SSO account. Please see the [Ubuntu instructions](https://help.ubuntu.com/community/SSH/OpenSSH/Keys) for more information about generating an SSH key on your computer.
 
 ## Build Pelion Edge
 
