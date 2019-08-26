@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#NOTE: The following use of `false` will cause this subsequent while loop to
+# run its loop body. This implements a construct similar to C's `do { ... } while`.
+# This makes this shell script a bit hard to reason about, so if the loop body
+# grows beyond a single sleep and shell call, replace it with more idiomatic bash.
 false
 while [ $? -ne 0 ]
 do
