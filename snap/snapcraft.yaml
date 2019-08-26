@@ -146,6 +146,23 @@ parts:
       stage:
         - etc/init.d/deviceOS-watchdog
         - wigwag/system/bin/*
+    jq:
+      plugin: autotools
+      configflags:
+        - -disable-docs
+      source: git@github.com:stedolan/jq.git
+      source-branch: jq-1.6
+      build-packages:
+        - libtool
+        - flex
+        - bison
+    curl:
+      plugin: autotools
+      source: git@github.com:curl/curl.git
+      source-branch: curl-7_65_3
+      install-via: prefix
+      build-packages:
+        - libtool
     wwrelay-utils:
       plugin: nodejs-improved
       nodejs-package-manager: npm
