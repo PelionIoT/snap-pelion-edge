@@ -32,49 +32,49 @@ Install these if you're not using docker:
     ```
 
 1. Generate a device certificate from the Device Management Portal:
-    1. Log in to the ['mbed Portal'](https://portal.mbedcloud.com/login), and select Device identity > Certificates.
-    1. If you don't have a certificate select:
-        1. New certificate > Create a developer certificate.
-    1. When you have a certificate generate you can select it and open its panel.
-    1. On this panel click 'Download Developer C file' to receive `mbed_cloud_dev_credentials.c`
+   
+   1. Log in to the [Device Management Portal](https://portal.mbedcloud.com/login), and select **Device identity > Certificates**.
+   1. If you don't have a certificate, select **New certificate > Create a developer certificate**.
+   1. When you have a certificate, and open its panel.
+   1. On this panel, click **Download Developer C file** to receive `mbed_cloud_dev_credentials.c`.
 
-1. After downloading `mbed_cloud_dev_credentials.c` copy it to the `snap-pelion-edge` directory:
+1. Copy `mbed_cloud_dev_credentials.c` to the `snap-pelion-edge` directory:
 
     ```bash
     cp /path/to/mbed_cloud_dev_credentials.c /path/to/snap-pelion-edge/.
     ```
 
-1. If you have docker you can now build with the snapcraft docker image, or skip this step and follow the rest of the build steps below.
+1. If you have Docker, you can now build with the snapcraft Docker image:
 
     ```bash
     docker run --rm -v "$PWD":/build -w /build snapcore/snapcraft:stable snapcraft --debug
     ```
 
-    Note: Running the build in Docker may contaminate your project folders with files owned by root and will cause permission denied error when you run the build outside of Docker. Run sudo chown --changes --recursive $USER:$USER _project_folder_ to fix-up.
+   Note: Running the build in Docker may contaminate your project folders with files owned by root and causes a *permission denied* error when you run the build outside of Docker. Run `sudo chown --changes --recursive $USER:$USER _project_folder_` to fix it.
 
-1. If you are not using docker, install the snap development tools and other developer tools you might need (snapcraft, build-essential, git, nodejs, bzr, etc.) on your host system.
+1. If you are not using Docker, install the snap development tools and other developer tools you might need (snapcraft, build-essential, git, nodejs, bzr and so on.) on your host system:
 
     ```bash
     sudo apt-get update && sudo apt-get upgrade
     sudo apt-get install snapcraft build-essential git cmake
     ```
 
-    Note: the minimum required version of snapcraft is 3.6 which can be viewed with `snapcraft --version`.  If your version of snapcraft is older than 3.6, then install snapcraft via `snap` instead of `apt-get` or `apt`.
+    Note: The minimum required version of snapcraft is 3.6. You can view your version number with `snapcraft --version`. If your version of snapcraft is older than 3.6, then install snapcraft using `snap` instead of `apt-get` or `apt`:
     
     ```bash
     sudo apt-get remove snapcraft
     sudo snap install --classic snapcraft
     ```
 
-    Note: When you execute snapcraft to build the package, snapcraft will attempt to install additional packages listed under `build-packages` of each part in snapcraft.yaml.  You may be prompted for a sudo password if these packages are not already installed on your dev system.
+    Note: When you execute snapcraft to build the package, snapcraft attempts to install additional packages listed under `build-packages` of each part in `snapcraft.yaml`. You may be prompted for a sudo password if these packages are not already installed on your development system.
 
-1. Compile your snap with 'snapcraft' (you may have to type your GitHub credentials during compile)
+1. Compile your snap with `snapcraft` (you may have to type your GitHub credentials during compile):
 
     ```bash
     snapcraft
     ```
 
-    Note: If you receive an error regarding 'multipass', try building with the following options:
+    Note: If you receive an error regarding `multipass`, build with the following options:
     
     ```bash
     SNAPCRAFT_BUILD_ENVIRONMENT=host snapcraft --debug
