@@ -12,6 +12,29 @@ plugs:
     read:
     - /proc
     - /etc
+  home:
+    read: all
+  support:
+    interface: docker-support
+  privileged:
+    interface: docker-support
+    privileged-containers: true
+  docker-cli:
+    interface: docker
+slots:
+  docker-daemon:
+    interface: docker
+  docker-executables:
+    content: docker-executables
+    interface: content
+    read:
+      - .
+passthrough:
+  layout:
+    /var/lib/pelion-edge:
+      bind: $SNAP_DATA/var/lib/pelion-edge
+    /etc/docker:
+      bind: $SNAP_DATA/etc/docker
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
   edge-core:
@@ -58,7 +81,11 @@ apps:
     - x11
   edgenet:
     command: launch-edgenet.sh
-    daemon: oneshot
+    # We want to make sure this command succeeds at least once
+    daemon: simple
+    restart-condition: on-failure
+    passthrough:
+      restart-delay: 5s
     plugs:
     - docker
   fp-edge:
@@ -92,9 +119,44 @@ apps:
     - system-files
     - system-observe
     - system-trace
-layout:
-  /var/lib/pelion-edge:
-    bind: $SNAP_DATA/var/lib/pelion-edge
+  docker:
+    command: docker
+    environment:
+      GIT_TEMPLATE_DIR: $SNAP/share/git-core/templates
+      GIT_CONFIG_NOSYSTEM: "true"
+      GIT_EXEC_PATH: $SNAP/libexec/git-core
+      GIT_TEXTDOMAINDIR: $SNAP/usr/share/locale
+    completer: bin/docker-completion.sh
+    plugs:
+      - docker-cli
+      - network
+      - home
+  dockerd:
+    command: dockerd-wrapper
+    daemon: simple
+    plugs:
+      - network-bind
+      - firewall-control
+      - support
+      - privileged
+      - home
+    slots:
+      - docker-daemon
+  compose:
+    command: docker-compose
+    plugs:
+      - docker-cli
+      - network
+      - home
+  machine:
+    command: docker-machine
+    plugs:
+      - docker-cli
+      - network
+      - home
+      - network-bind
+  help:
+    command: help
 parts:
   edge-core:
     plugin: cmake
