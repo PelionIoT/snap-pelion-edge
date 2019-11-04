@@ -1,6 +1,6 @@
 # Snap, Kubelet, and Docker
-Kubelet requires a ["container runtime"](https://kubernetes.io/docs/setup/production-environment/container-runtimes/) to manage containers for Pods.
-Docker is one of the most common container runtimes and is what we chose to pair with kubelet for our build. We encountered several obstacles while
+Kubelet uses a ["container runtime"](https://kubernetes.io/docs/setup/production-environment/container-runtimes/) to manage containers for Pods.
+Docker is one of the most common container runtimes and is what we chose to pair with kubelet in this build. We encountered several obstacles while
 trying to integrate kubelet, docker, and snap. This document outlines the process we went through to arrive at our current setup including the 
 problems and their solutions at each step.
 
@@ -9,12 +9,12 @@ Before knowing anything about the restrictions the snap environment enforced we 
 vs using the off-the-shelf docker snap. We considered that packaging docker with our snap might have undesirable side-effects if a user were to 
 install our snap on a system where docker was already installed. After all, our snap may not be the only user of docker on that system and we didn't 
 want to require a user with docker already running to uninstall their docker daemon and use ours instead. It was unclear how running two instances 
-of docker on a system would affect it and what kind of isolation snaps provided. We settled on using the off-the-shelf docker snap and keeping our
-software in a different snap. This was appealing because we avoided possible conflicts with other docker daemons, make our build process easier,
-and make our snap smaller. The task seemed simple enough but quirks of snap and the isolation it provides prevents this approach from being possible.
+of docker on a system would affect it and what kind of isolation snaps provided. We settled on trying to integrate with off-the-shelf docker snap 
+and keeping our software in a different snap. This was appealing because we avoided possible conflicts with other docker daemons, made our build 
+process easier, and made our snap smaller. The task seemed simple enough but quirks of snap and the isolation it provides precludes this approach.
 
-### Problem 1: Apparmor Profiles - Ptrace
-When kubelet starts up it talks to a kubernetes API server in the cloud to discover which Pods it has been assigned. A Pod is basically a specification for a set of containers that share the same networking namespace and the parameters they should be run with. After kubelet receives a Pod assignment from the API server it asks docker to start up a [pause container](https://www.ianlewis.org/en/almighty-pause-container) for this Pod which it uses to initialize the Pod's networking namespace that all other containers will belong to. All containers in a Pod will therefore share an IP address and will be able to talk to each other over localhost. CNI, or container networking interface, plugins are responsible for initializing the networking interfaces for a Pod when it is starting up. CNI plugins just executables started up by kubelet when it wants to configure the network interfaces of a new Pod. The loopback CNI plugin sets up the loopback interface for a Pod. Originally when trying to run the pelion-edge snap alongside the official docker snap the kubelet logs showed these errors while trying to deploy a Pod.
+### Problem 1: AppArmor Profiles & Ptrace
+When kubelet starts up it talks to a kubernetes API server in the cloud to discover which Pods it has been assigned. A Pod is basically a specification for a set of containers that share the same networking namespace and the parameters they should be run with. After kubelet receives a Pod assignment from the API server it asks docker to start up a [pause container](https://www.ianlewis.org/en/almighty-pause-container) for this Pod which it uses to initialize the Pod's networking namespace that all other containers will belong to. All containers in a Pod will therefore share an IP address and will be able to talk to each other over localhost. CNI, container networking interface, plugins are responsible for initializing the networking interfaces for a Pod when it is starting up. CNI plugins just executables started by kubelet when it wants to configure the network interfaces of a new Pod. The loopback CNI plugin sets up the loopback interface for a Pod. When trying to run the pelion-edge snap alongside the official docker snap the kubelet logs showed these errors while trying to deploy a Pod.
 
 ```
 Aug 21 18:37:24 localhost.localdomain pelion-edge.kubelet[10990]: E0821 18:37:24.426195   10990 cni.go:309] Error adding default_test-pod-016c6de7e4f7000000000001001003c1/2017642be9f6094dec4997f658cc4187ade60eb193fa1b8ef1f064b988502412 to network loopback/cni-loopback: failed to Statfs "/proc/14361/ns/net": permission denied
@@ -24,33 +24,50 @@ Aug 21 18:37:24 localhost.localdomain pelion-edge.kubelet[10990]: E0821 18:37:24
 Aug 21 18:37:24 localhost.localdomain pelion-edge.kubelet[10990]: E0821 18:37:24.896412   10990 kuberuntime_manager.go:662] createPodSandbox for pod "test-pod-016c6de7e4f7000000000001001003c1_default(2032456b-c2b8-11e9-9621-263fe8375b9d)" failed: rpc error: code = Unknown desc = failed to set up sandbox container "2017642be9f6094dec4997f658cc4187ade60eb193fa1b8ef1f064b988502412" network for pod "test-pod-016c6de7e4f7000000000001001003c1": NetworkPlugin cni failed to set up pod "test-pod-016c6de7e4f7000000000001001003c1_default" network: failed to Statfs "/proc/14361/ns/net": permission denied
 Aug 21 18:37:24 localhost.localdomain pelion-edge.kubelet[10990]: E0821 18:37:24.896516   10990 pod_workers.go:190] Error syncing pod 2032456b-c2b8-11e9-9621-263fe8375b9d ("test-pod-016c6de7e4f7000000000001001003c1_default(2032456b-c2b8-11e9-9621-263fe8375b9d)"), skipping: failed to "CreatePodSandbox" for "test-pod-016c6de7e4f7000000000001001003c1_default(2032456b-c2b8-11e9-9621-263fe8375b9d)" with CreatePodSandboxError: "CreatePodSandbox for pod \"test-pod-016c6de7e4f7000000000001001003c1_default(2032456b-c2b8-11e9-9621-263fe8375b9d)\" failed: rpc error: code = Unknown desc = failed to set up sandbox container \"2017642be9f6094dec4997f658cc4187ade60eb193fa1b8ef1f064b988502412\" network for pod \"test-pod-016c6de7e4f7000000000001001003c1\": NetworkPlugin cni failed to set up pod \"test-pod-016c6de7e4f7000000000001001003c1_default\" network: failed to Statfs \"/proc/14361/ns/net\": permission denied"
 ```
-This is really the same error bubbling up through the stack. The core issue here is in the first log message where the loopback CNI plugin is unable to complete successfully due to a permissions error. This error is generated in the [github.com/containernetworking/plugins/package/ns](https://github.com/containernetworking/plugins/blob/485be65581341430f9106a194a98f0f2412245fb/pkg/ns/ns_linux.go#L122) package, a dependency of the loopback CNI binary where it makes a Statfs system call on /proc/14361/ns/net where 14361 is the PID of the pause container process for the new Pod. Ultimately the Pod creation fails and kubelet will tear everything down. The Pod remains in the ContainerCreating state in the API server as kubelet spins trying and failing again and again. This error occurs whether the pelion-edge snap is running with devmode, or strict isolation. We used the snappy-debug tool to see if apparmor is denying any system calls and to get some more information about why they are rejected.
+
+These logs show the same error bubbling up through the stack, but the core issue is reported in the first line:
+
+```
+Aug 21 18:37:24 localhost.localdomain pelion-edge.kubelet[10990]: E0821 18:37:24.426195   10990 cni.go:309] Error adding default_test-pod-016c6de7e4f7000000000001001003c1/2017642be9f6094dec4997f658cc4187ade60eb193fa1b8ef1f064b988502412 to network loopback/cni-loopback: failed to Statfs "/proc/14361/ns/net": permission denied
+```
+
+After some investigation we found that this error is generated in the [github.com/containernetworking/plugins/package/ns](https://github.com/containernetworking/plugins/blob/485be65581341430f9106a194a98f0f2412245fb/pkg/ns/ns_linux.go#L122) package, a dependency of the loopback CNI binary where it makes a Statfs system call to /proc/14361/ns/net where 14361 is the PID of the pause container process for the new Pod. Ultimately the Pod creation fails and kubelet will tear everything down. The Pod remains in the ContainerCreating state in the API server as kubelet spins trying and failing again and again. This error occurs whether the pelion-edge snap is running with devmode, or strict isolation.
+
+We weren't sure what was causing these permission errors. We used the snappy-debug tool to see if AppArmor is denying any system calls and to get some more information about why they are rejected.
 
 ```bash
 barheadedgoose@localhost:~$ sudo snappy-debug.security scanlog | grep DENIED
 INFO: Detected Ubuntu Core. For best results, redirect journalctl. Eg:
 INFO: $ sudo journalctl --output=short --follow --all | sudo snappy-debug
 WARN: could not find log mark, is syslog enabled?
-Log: apparmor="DENIED" operation="ptrace" profile="docker-default" pid=1666 comm="loopback" requested_mask="tracedby" denied_mask="tracedby" peer="snap.pelion-edge.kubelet"
-Log: apparmor="DENIED" operation="ptrace" profile="docker-default" pid=1824 comm="loopback" requested_mask="tracedby" denied_mask="tracedby" peer="snap.pelion-edge.kubelet"
-Log: apparmor="DENIED" operation="ptrace" profile="docker-default" pid=1977 comm="loopback" requested_mask="tracedby" denied_mask="tracedby" peer="snap.pelion-edge.kubelet"
-Log: apparmor="DENIED" operation="ptrace" profile="docker-default" pid=2139 comm="loopback" requested_mask="tracedby" denied_mask="tracedby" peer="snap.pelion-edge.kubelet"
-Log: apparmor="DENIED" operation="ptrace" profile="docker-default" pid=2285 comm="loopback" requested_mask="tracedby" denied_mask="tracedby" peer="snap.pelion-edge.kubelet"
+Log: AppArmor="DENIED" operation="ptrace" profile="docker-default" pid=1666 comm="loopback" requested_mask="tracedby" denied_mask="tracedby" peer="snap.pelion-edge.kubelet"
+Log: AppArmor="DENIED" operation="ptrace" profile="docker-default" pid=1824 comm="loopback" requested_mask="tracedby" denied_mask="tracedby" peer="snap.pelion-edge.kubelet"
+Log: AppArmor="DENIED" operation="ptrace" profile="docker-default" pid=1977 comm="loopback" requested_mask="tracedby" denied_mask="tracedby" peer="snap.pelion-edge.kubelet"
+Log: AppArmor="DENIED" operation="ptrace" profile="docker-default" pid=2139 comm="loopback" requested_mask="tracedby" denied_mask="tracedby" peer="snap.pelion-edge.kubelet"
+Log: AppArmor="DENIED" operation="ptrace" profile="docker-default" pid=2285 comm="loopback" requested_mask="tracedby" denied_mask="tracedby" peer="snap.pelion-edge.kubelet"
 ```
 
-These seemed to be correlated with the "permission denied" errors seen in the kubelet logs, but in order to confirm this theory kubelet needed to be run with strace so that we could match the pid listed in the snappy-debug logs with the PIDs of the loopback CNI processes. Snaps can be run in the foreground instead of as a daemon. First the daemon needs to be stopped.
+There seemed to be a correlation between these AppArmor the "permission denied" errors seen in the kubelet logs. If the two were connected then
+that would imply that this docker-default AppArmor policy was responsible for the "permission denied" errors that were occuring in the loopback
+CNI plugin. The missing link here was the PID of the loopback CNI plugin process. The kubelet logs told us the PID of the container process,
+but the snappy-debug logs contained PIDs from unknown processes. We strongly suspected that these were the PIDs of the loopback CNI plugin processes,
+but were unable to confirm this because the loopback CNI plugin executed too fast for inspection to work with `ps` or some such command.
+
+We ran kubelet with strace so we could see the PIDs of all the child processes it creates. This would allow us to match the PID contained in the snappy-debug logs with the PIDs of the loopback CNI processes.
+
+First we stopped the kubelet service so we could run it in the foreground with strace.
 
 ```bash
 barheadedgoose@localhost:~$ sudo service snap.pelion-edge.kubelet stop
 ```
 
-We can start the snap in the foreground with strace enabled. Strace lets us trace the child processes and threads created by kubelet and see which system calls they are making.
+Next we started the snap in the foreground with strace enabled.
 
 ```bash
 barheadedgoose@localhost:~$ sudo snap run --strace="-f -o kubelet.strace.out" pelion-edge.kubelet
 ```
 
-A new file is created for each child process with a log of the system calls it is making. In our case we spot checked a few of the PIDs listed in the snappy-debug log and compared them to the the strace output.
+A new file was created for each child process with a log of the system calls it is making. In our case we cross referenced a few of the PIDs listed in the snappy-debug log with the the strace output for kubelet child processes with a matching PID.
 
 ```
 # kubelet.strace.out.1666
@@ -70,10 +87,14 @@ statfs("/proc/1761/ns/net", 0xc0000b9b40) = -1 EACCES (Permission denied)
 ...
 ```
 
-This confirms that the apparmor errors in the log correspond with the loopback CNI invocations made by kubelet and that the docker-default apparmor policy is responsible for rejecting the statfs request.
+Based on the system calls contained in these files it seemed fairly definitive that these the AppArmor DENIED errors were the direct cause of the statfs
+"permission denied" errors. Now the question became "what is this docker-default AppArmor policy and why is it blocking these system calls?".
 
 #### docker-default Policy
-Snap creates apparmor policies for snaps based on the snap's plug and slot settings. Apparmor policies for devmode snaps are put into complain mode where profile violations are reported but not enforced. Snap sets the apparmor profile for strict snaps to enforce mode where the profile is enforced. Completely separate from that Docker applies its own docker-default apparmor policy to containers it creates. By itself the docker-default profile doesn't do anything that would cause problems for kubelet, but the docker-snap build process actually patches dockerd's code to edit the template used to generate the docker-default apparmor profile.
+Snap creates AppArmor policies for snaps based on the snap's plug and slot settings. AppArmor policies for devmode snaps are put into complain mode where profile violations are reported but not enforced. Snap sets the AppArmor profile for strict snaps to enforce mode where the profile is enforced. After 
+a little research [we found](https://docs.docker.com/engine/security/apparmor/) that the `docker-default` policy is something applied to container processes by docker, not something generated by snap. However, if this were the case, why did this problem only present itself when running docker inside a snap?
+
+As it turns out the [docker-snap](https://code.launchpad.net/~docker/+git/snap) build process actually patches dockerd's code to edit the template used to generate the docker-default AppArmor profile:
 
 ```
 + # Snap based docker distribution accesses
@@ -84,7 +105,12 @@ Snap creates apparmor policies for snaps based on the snap's plug and slot setti
 + signal (send, receive) peer=docker-default,
 ```
 
-These changes seem like they would be responsible for the permissions problems. A possible fix would be to edit this patch so that snap.pelion-edge.kubelet is added as a peer. This is where I'm unsure, however, since I don't really know too much about how apparmor profiles and ptrace work and how ptrace relates to system calls like statfs. My initial idea was to change the patch to something like this and rebuild the docker-snap myself:
+In this case the policy would only allow ptrace system calls from the `snap.docker.dockerd` process, the docker daemon inside the docker snap. As we
+discovered later these rules only seem to apply between two processes that both have AppArmor profiles applied. If we performed this system call from
+a process that was not running in the snap environment, and therefore did not have an AppArmor profile applied, there were no permission problems.
+
+A simple fix seemed to be to edit this patch so that snap.pelion-edge.kubelet is added as a ptrace peer. To test this we needed to build the docker
+snap ourselves from source.
 
 ```
 + # Snap based docker distribution accesses
@@ -99,9 +125,9 @@ These changes seem like they would be responsible for the permissions problems. 
 + signal (send, receive) peer=docker-default,
 ```
 
-Before changing anything, however, I just built an unmodified docker snap from this repository: [https://git.launchpad.net/~docker/+git/snap/](https://git.launchpad.net/~docker/+git/snap/). It was hard to determine which commit they built the latest official snap from but I just built from the latest commit on master where the docker version matched what I had installed before. I got that built, uninstalled the official docker snap, then installed this snap instead. To my surprise, it worked. The snap I built from the unmodified docker-snap repository worked without any permissions problems. That's where I stopped looking into the problem. This configuration seems to work for now. The only caveat being that we need to build the docker snap ourselves.
-
-Although I got it working I don't know why this works. I compared the dockerd binary from both builds, the official snap and my snap. Both are the exact same version, from the exact same commit. If I run strings on both binaries the docker-default template is exactly the same between the two. However, one works with kubelet and the other doesn't. If this ever stops working then I'd suggest trying the above where the docker-snap is built with a modified apparmor policy patch. Maybe somebody else wants to look into this and try to figure out what's special about the official docker snap that makes it fail when our own build works.
+As a control we started by building the docker snap from this repository: [https://git.launchpad.net/~docker/+git/snap/](https://git.launchpad.net/~docker/+git/snap/) without making any modifications. It was hard to determine which commit they built the latest official snap from but we just built from the latest commit on master where the docker version matched what was installed by the official snap. We needed to verify that this problem is repeatable even when we build the snap ourselves. We verified that the docker-default AppArmor profile patch was the same in the commit we were building from. We built the snap, uninstalled the official docker snap from our gateway, then installed our docker snap build. To our surprise it worked. The snap we built from the unmodified docker-snap repository worked without any permissions problems. We stopped here, having found a configuration that got around the AppArmor permission problems. Either way this workaround was messy. Our initial intent was to simplify the deployment by using the official docker snap, but now we had to deliver a custom
+docker snap with the pelion-edge snap. This was hardly better than just integrating docker into the pelion-edge snap. As we later found out putting docker
+into the pelion-edge snap was unavoidable. There were certain problems that could not be avoided unless we merged them together.
 
 ### Problem 2: Kubernetes Secret Volumes And Snap
 Kubernetes has built-in support for a handful of [volume types](https://kubernetes.io/docs/concepts/storage/volumes/). Volumes can be attached to Pods from various sources after which they become mounted as part of that Pod's filesystem. Two common types of volumes are configMap and secret volumes whereby kubelet maps a ConfigMap or Secret resource stored in the API server to the filesystem of a Pod. The process for doing looks roughly like this:
@@ -116,11 +142,17 @@ Secrets and ConfigMaps are basically just maps consisting of key-value pairs. Wh
 
 Each snap exists in its own mount namespace as described [here](https://github.com/snapcore/snapd/blob/master/cmd/snap-confine/README.mount_namespace). Any mounts created by the process in a snap are not visible to processes outside of that snap's mount namespace. ConfigMaps work because kubelet doesn't create any new mounts. It creates a directory in an existing mount and writes files to that directory. The directory and its contents are visible outside that snap's mount namespace. Secrets don't work because a new mount is created which isn't visible to processes outside kubelet's snap.
 
-I deployed these resources to test ConfigMap and Secret volumes
+We deployed these resources to test ConfigMap and Secret volumes
 
 * [my-cm.yaml](./volumes/my-cm.yaml)
 * [my-secret.yaml](./volumes/my-secret.yaml)
 * [test-pod-mounts.yaml](./volumes/test-pod-mounts.yaml)
+
+We first noticed a problem when a Pod that mounted a Secret and a ConfigMap could see files mounted from the ConfigMap but not the Secret. In effect,
+the volume mapped to a Secret appeared to be empty to container processes while the volume mapped to the ConfigMap contained the expected files. Since
+docker containers exist within the docker snap's mount namespace but the tmpfs mount was created by kubelet inside the pelion-edge snap's mount namespace
+the mount, and hence the file, was not visible to the docker container inside the pod. We didn't need to do anything special to verify this. We just ran
+`df` from a normal shell, which runs in a different mount namespace than the kubelet process, and see that the tmpfs mount is not visible.
 
 ```bash
 barheadedgoose@localhost:~$ df
@@ -152,6 +184,11 @@ tmpfs             149492       0    149492   0% /run/user/1000
 /dev/loop3         99200   99200         0 100% /snap/docker/x1
 /dev/loop9        151296  151296         0 100% /snap/pelion-edge/x1
 barheadedgoose@localhost:~$ sudo ls /var/snap/pelion-edge/x1/var/lib/kubelet/pods/a02257f2-c68d-11e9-9621-263fe8375b9d/volumes/kubernetes.io~secret/my-secret
+```
+
+Next we run a shell inside the same mount namespace as kubelet and the tmpfs mount is visible along with the files.
+
+```bash
 barheadedgoose@localhost:~$ sudo snap run --shell pelion-edge.kubelet
 root@localhost:/home/barheadedgoose# df
 Filesystem     1K-blocks    Used Available Use% Mounted on
@@ -187,8 +224,34 @@ root@localhost:/home/barheadedgoose# ls /var/snap/pelion-edge/x1/var/lib/kubelet
 example.txt
 ```
 
-Here I show the view of the /var/snap/pelion-edge/x1/var/lib/kubelet/pods/a02257f2-c68d-11e9-9621-263fe8375b9d/volumes/kubernetes.io~secret/my-secret directory from inside the snap's mount namespace and outside to show the results. example.txt is visible inside the pelion-edge snap's mount namespace. It is not visible outside, so is not visible to the docker container. This manifests itself by appearing to be an empty directory inside the container.
-
-The only solution to this problem was to put docker inside the same snap as the other software so everything would operate inside the same mount namespace.
+Other than changin how snap itself works the only solution to this problem was to put docker inside the same snap as the other software so everything 
+would operate inside the same mount namespace.
 
 ## Integrating Docker Into The Pelion Edge Snap
+As we found in the last section certain problems were unavoidable if we didn't put docker inside the same snap as kubelet, notably the problem with
+secret volume mounts. Integrating docker into the pelion-edge snap was relatively straightforward, we just needed to merge elements from the docker-snap
+snapcraft file into the pelion-edge snapcraft file.
+
+### Modifying the docker-default Policy
+One non-obvious change we had to make to integrate docker into our snap was the modification of the docker-default policy patch. We needed to change
+`snap.docker.dockerd` to `snap.pelion-edge.dockerd` to avoid ptrace AppArmor permission problems as described above.
+
+```
+diff --git a/components/engine/profiles/apparmor/template.go b/components/engine/profiles/apparmor/template.go
+index c00a3f70e9..1d8f66c823 100644
+--- a/components/engine/profiles/apparmor/template.go
++++ b/components/engine/profiles/apparmor/template.go
+@@ -40,5 +40,12 @@ profile {{.Name}} flags=(attach_disconnected,mediate_deleted) {
+   # suppress ptrace denials when using 'docker ps' or using 'ps' inside a container
+   ptrace (trace,read) peer={{.Name}},
+ {{end}}
++
++  # Snap based docker distribution accesses
++  #   Allow the daemon to trace/signal containers
++  ptrace (readby, tracedby) peer="snap.pelion-edge.dockerd",
++  signal (receive) peer="snap.pelion-edge.dockerd",
++  #   Allow container processes to signal other container processes
++  signal (send, receive) peer=docker-default,
+ }
+ `
+```
