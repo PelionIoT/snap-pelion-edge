@@ -126,7 +126,7 @@ The snap we built from the unmodified Docker-snap repository worked without any 
 Kubernetes has built-in support for a handful of [volume types](https://kubernetes.io/docs/concepts/storage/volumes/). Volumes can be attached to Pods from various sources after which they become mounted as part of that Pod's file system. Two common types of volumes are configMap and secret volumes, whereby kubelet maps a ConfigMap or Secret resource stored in the API server to the filesystem of a Pod. The process for doing so looks roughly like this:
 
 1. Kubelet receives a new Pod from the API server and starts the setup process for the Pod.
-1. Kubelet creates a directory for this Pod where it can set up volumes (usually something like /var/lib/kubelet/pods/a02257f2-c68d-11e9-9621-263fe8375b9volumes. If the Pod requires volumes kubelet will create a subdirectory here for each volume attached to the Pod.
+1. Kubelet creates a directory for this Pod where it can set up volumes (usually something like /var/lib/kubelet/pods/a02257f2-c68d-11e9-9621-263fe8375b9/volumes. If the Pod requires volumes kubelet will create a subdirectory here for each volume attached to the Pod.
 1. Kubelet sees that this Pod requires a volume whose type is Secret or ConfigMap.
 1. Kubelet requests the Secret or ConfigMap from the API server.
 1. Kubelet sets up files in a directory using the data inside the Secret or ConfigMap and maps that to the Pod's file system.
@@ -141,7 +141,20 @@ We deployed these resources to test ConfigMap and Secret volumes:
 * [my-secret.yaml](./volumes/my-secret.yaml).
 * [test-pod-mounts.yaml](./volumes/test-pod-mounts.yaml).
 
-We first noticed a problem when a Pod that mounted a Secret and a ConfigMap could see files mounted from the ConfigMap but not the Secret. In effect, the volume mapped to a Secret appeared to be empty to container processes while the volume mapped to the ConfigMap contained the expected files. Because Docker containers exist within the Docker snap's mount namespace but the tmpfs mount was created by kubelet inside the pelion-edge snap's mount namespace, the mount, and hence the file, was not visible to the Docker container inside the Pod. We didn't need to do anything special to verify this. We just run `df` from a normal shell, which runs in a different mount namespace than the kubelet process, and see that the tmpfs mount is not visible:
+We first noticed a problem when a Pod that mounted a Secret and a ConfigMap could see files mounted from the ConfigMap but not the Secret. In effect, the volume mapped to a Secret appeared to be empty to container processes while the volume mapped to the ConfigMap contained the expected files.
+
+```bash
+$ kubectl exec -it test-pod-016e46b7a6c90000000000010011b192 -- sh
+/ # ls /
+.dockerenv  dev/        home/       media/      my_cm/      opt/        root/       sbin/       sys/        usr/
+bin/        etc/        lib/        mnt/        my_secret/  proc/       run/        srv/        tmp/        var/
+/ # ls /my_cm/
+example.txt
+/ # ls /my_secret/
+```
+
+Because Docker containers exist within the Docker snap's mount namespace but the tmpfs mount was created by kubelet inside the pelion-edge snap's mount namespace, the mount, and hence the file, was not visible to the Docker container inside the Pod. We didn't need to do anything special to verify this. We just run `df` from a normal shell, which runs in a different mount namespace than the kubelet process, and see that the tmpfs mount is not visible. The ConfigMap
+volume files are visible:
 
 ```bash
 barheadedgoose@localhost:~$ df
@@ -172,10 +185,12 @@ cgmfs                100       0       100   0% /run/cgmanager/fs
 tmpfs             149492       0    149492   0% /run/user/1000
 /dev/loop3         99200   99200         0 100% /snap/docker/x1
 /dev/loop9        151296  151296         0 100% /snap/pelion-edge/x1
-barheadedgoose@localhost:~$ sudo ls /var/snap/pelion-edge/x1/var/lib/kubelet/pods/a02257f2-c68d-11e9-9621-263fe8375b9d/volumes/kubernetes.io~secret/my-secret
+barheadedgoose@localhost:~$ sudo ls /var/snap/pelion-edge/x1/var/lib/kubelet/pods/a02257f2-c68d-11e9-9621-263fe8375b9d/volumes/kubernetes.io~secret/examplesecret
+barheadedgoose@localhost:~$ sudo ls /var/snap/pelion-edge/x1/var/lib/kubelet/pods/a02257f2-c68d-11e9-9621-263fe8375b9d/volumes/kubernetes.io~configmap/examplecm
+example.txt
 ```
 
-Next, we run a shell inside the same mount namespace as kubelet and the tmpfs mount is visible along with the files:
+Next, we run a shell inside the same mount namespace as kubelet and the tmpfs mount is visible along with the files for both the Secret and ConfigMap volumes:
 
 ```bash
 barheadedgoose@localhost:~$ sudo snap run --shell pelion-edge.kubelet
@@ -208,8 +223,10 @@ udev              742044       0    742044   0% /dev
 tmpfs             747460      32    747428   1% /dev/shm
 tmpfs             747460       0    747460   0% /sys/fs/cgroup
 tmpfs             747460      16    747444   1% /var/lib
-tmpfs             747460       4    747456   1% /var/snap/pelion-edge/x1/var/lib/kubelet/pods/a02257f2-c68d-11e9-9621-263fe8375b9d/volumes/kubernetes.io~secret/my-secret
-root@localhost:/home/barheadedgoose# ls /var/snap/pelion-edge/x1/var/lib/kubelet/pods/a02257f2-c68d-11e9-9621-263fe8375b9d/volumes/kubernetes.io~secret/my-secret
+tmpfs             747460       4    747456   1% /var/snap/pelion-edge/x1/var/lib/kubelet/pods/a02257f2-c68d-11e9-9621-263fe8375b9d/volumes/kubernetes.io~secret/examplesecret
+root@localhost:/home/barheadedgoose# ls /var/snap/pelion-edge/x1/var/lib/kubelet/pods/a02257f2-c68d-11e9-9621-263fe8375b9d/volumes/kubernetes.io~secret/examplesecret
+example.txt
+root@localhost:/home/barheadedgoose# ls /var/snap/pelion-edge/x1/var/lib/kubelet/pods/a02257f2-c68d-11e9-9621-263fe8375b9d/volumes/kubernetes.io~configmap/examplecm
 example.txt
 ```
 
