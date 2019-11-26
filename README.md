@@ -44,10 +44,13 @@ Install these if you're not using docker:
     cp /path/to/mbed_cloud_dev_credentials.c /path/to/snap-pelion-edge/.
     ```
 
+1. Make sure your `~/.ssh/id_rsa.pub` key is registered with `github.com` and `gitlab.com`, and that they both exist in `known_hosts` (for example, by running `ssh -T git@github.com` and `ssh -T git@gitlab.com`).
+
 1. If you have Docker, you can now build with the snapcraft Docker image:
 
     ```bash
-    docker run --rm -v "$PWD":/build -w /build snapcore/snapcraft:stable snapcraft --debug
+    docker build --no-cache -f Dockerfile --label snapcore/snapcraft --tag ${USER}/snapcraft:latest .
+    docker run --rm -v "$PWD":/build -w /build -v ${HOME}/.ssh:/root/.ssh -v ${HOME}/.gitconfig:/root/.gitconfig ${USER}/snapcraft:latest snapcraft --debug
     ```
 
    Note: Running the build in Docker may contaminate your project folders with files owned by root and causes a *permission denied* error when you run the build outside of Docker. Run `sudo chown --changes --recursive $USER:$USER _project_folder_` to fix it.
