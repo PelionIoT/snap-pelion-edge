@@ -32,3 +32,7 @@ fi
 
 # ensure the layouts dir for /etc/docker exists
 mkdir -p "$SNAP_DATA/etc/docker"
+
+if [ ! -f "$SNAP_DATA/maestro-config.yaml" ]; then
+    cp "$SNAP/wigwag/wwrelay-utils/conf/maestro-conf/edge-config-dell5000-demo-no-dhcp.yaml" "$SNAP_DATA/maestro-config.yaml"
+fi
