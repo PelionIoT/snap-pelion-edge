@@ -126,7 +126,7 @@ apps:
       command: help
 parts:
     edge-core:
-      plugin: cmake
+      plugin: cmak
       source: https://github.com/ARMmbed/mbed-edge.git
       source-tag: 0.9.0
       build-packages:
