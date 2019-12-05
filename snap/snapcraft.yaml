@@ -52,7 +52,7 @@ apps:
       daemon: simple 
       plugs: [network-bind]
     maestro:
-      command: wigwag/system/bin/maestro -config $SNAP/wigwag/wwrelay-utils/conf/maestro-conf/edge-config-dell5000-demo.yaml
+      command: wigwag/system/bin/maestro -config $SNAP_DATA/edge-config-dell5000-demo-no-dhcp.yaml
       environment:
         LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
       passthrough:
