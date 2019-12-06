@@ -1,7 +1,7 @@
 pipeline {
     agent {
         dockerfile {
-            args '-v jenkins-data:/root'
+            args '-v /fastest/micray01/snap-build:/root'
             label 'master'
         }
     }
