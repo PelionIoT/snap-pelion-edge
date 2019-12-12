@@ -5,7 +5,7 @@ summary: Pelion Edge
 description: Pelion Edge
 confinement: devmode
 grade: devel
-architectures: 
+architectures:
   - amd64
 
 plugs:
@@ -49,7 +49,7 @@ apps:
       command: cat ${SNAP}/help.md
     deviceoswd:
       command: wigwag/system/bin/deviceOSWD -w 3000 -m 900 -s /var/lib/pelion-edge/deviceOSkeepalive
-      daemon: simple 
+      daemon: simple
       plugs: [network-bind]
     maestro:
       command: wigwag/system/bin/maestro -config $SNAP_DATA/maestro-config.yaml
@@ -133,7 +133,7 @@ parts:
         - build-essential
         - cmake
         - git
-      override-pull: | 
+      override-pull: |
         snapcraftctl pull
         git submodule update --init --recursive
         cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c
@@ -215,7 +215,7 @@ parts:
         'core-interfaces/': wigwag/devicejs-core-modules/core-interfaces/
     deviceoswd:
       plugin: autotools
-      source: git@github.com:armPelionEdge/edgeos-wd.git 
+      source: git@github.com:armPelionEdge/edgeos-wd.git
       source-branch: master
       build-packages:
         - libtool
@@ -457,7 +457,7 @@ parts:
         cd maestro-shell
         go build
         cd $TOP
-        # Resume maestro install  
+        # Resume maestro install
         mv "${S_M}" go-workspace/src/github.com/armPelionEdge/maestro
         mv go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/maestroSpecs go-workspace/src/github.com/armPelionEdge/maestroSpecs
         mv go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/mustache go-workspace/src/github.com/armPelionEdge/mustache
