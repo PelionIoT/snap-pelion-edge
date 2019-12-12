@@ -127,7 +127,7 @@ apps:
 parts:
     edge-core:
       plugin: cmake
-      source: https://github.com/ARMmbed/mbed-edge.git
+      source: git@github.com:ARMmbed/mbed-edge.git
       source-tag: 0.9.0
       build-packages:
         - build-essential
@@ -625,7 +625,7 @@ parts:
       - config/daemon.json
     docker-docker:
       plugin: make
-      source: https://github.com/docker/docker-ce.git
+      source: git@github.com:docker/docker-ce.git
       source-tag: v18.06.1-ce
       source-depth: 1
       override-build: |
@@ -672,7 +672,7 @@ parts:
       - libltdl7
     # this part is so that things like `docker build -t foobar github.com/foo/bar` work
     docker-git:
-      source: https://github.com/git/git
+      source: git@github.com:git/git
       source-type: git
       source-tag: v2.19.0
       source-depth: 1
@@ -690,7 +690,7 @@ parts:
       - libcurl4-openssl-dev
     docker-containerd:
       plugin: make
-      source: https://github.com/containerd/containerd.git
+      source: git@github.com:containerd/containerd.git
       # from : https://github.com/docker/docker-ce/blob/v18.06.1-ce/components/engine/hack/dockerfile/install/containerd.installer
       source-commit: 468a545b9edcd5932818eb9de8e72413e616e86e
       override-build: |
@@ -710,7 +710,7 @@ parts:
       - make
     docker-runc:
       plugin: make
-      source: https://github.com/opencontainers/runc.git
+      source: git@github.com:opencontainers/runc.git
       # from https://github.com/docker/docker-ce/blob/v18.06.1-ce/components/engine/hack/dockerfile/install/runc.installer
       source-commit: 69663f0bd4b60df09991c08812a60108003fa340
       override-build: |
@@ -730,7 +730,7 @@ parts:
       - make
     docker-libnetwork:
       plugin: make
-      source: https://github.com/docker/libnetwork.git
+      source: git@github.com:docker/libnetwork.git
       # from https://github.com/docker/docker-ce/blob/v18.06.1-ce/components/engine/hack/dockerfile/install/proxy.installer
       source-commit: 3ac297bc7fd0afec9051bbb47024c9bc1d75bf5b
       override-build: |
@@ -750,7 +750,7 @@ parts:
       - make
     docker-tini:
       plugin: cmake
-      source: https://github.com/krallin/tini.git
+      source: git@github.com:krallin/tini.git
       source-type: git
       # from https://github.com/docker/docker-ce/blob/v18.05.0-ce/components/engine/hack/dockerfile/install/tini.installer
       source-commit: 949e6facb77383876aeff8a6944dde66b3089574
@@ -763,12 +763,12 @@ parts:
     docker-compose:
       plugin: python
       python-version: python2
-      source: https://github.com/docker/compose.git
+      source: git@github.com:docker/compose.git
       source-tag: 1.22.0
       source-depth: 1
     docker-machine:
       plugin: make
-      source: https://github.com/docker/machine.git
+      source: git@github.com:docker/machine.git
       source-tag: v0.15.0
       source-depth: 1
       override-build: |
