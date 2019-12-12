@@ -565,7 +565,7 @@ parts:
         - $cni_conf
     kubelet:
       plugin: go
-      source: git@gitlab.com:arm-isg-edge/argus.git
+      source: git@github.com:armPelionEdge/argus.git
       source-branch: master
       go-importpath: k8s.io/kubernetes
       override-pull: |
@@ -577,7 +577,7 @@ parts:
         install -d go/pkg
         install -d go/src/k8s.io
         cd go/src/k8s.io
-        git clone git@gitlab.com:arm-isg-edge/argus.git kubernetes
+        git clone git@github.com:armPelionEdge/argus.git kubernetes
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_SRC}/go
         cd ${GOPATH}/src/k8s.io/kubernetes/hack/make-rules
