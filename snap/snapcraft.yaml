@@ -127,7 +127,7 @@ apps:
 parts:
     edge-core:
       plugin: cmake
-      source: git@github.com:ARMmbed/mbed-edge.git
+      source: https://github.com/ARMmbed/mbed-edge.git
       source-tag: 0.9.0
       build-packages:
         - build-essential
@@ -166,7 +166,7 @@ parts:
       build-packages:
         - python
         - build-essential
-      source: git@github.com:armPelionEdge/devicejs-ng.git
+      source: https://github.com/armPelionEdge/devicejs-ng.git
       source-commit: 5a6f1c38fcdaab4754af88f4ca7c71c293435e18
       stage: [ -deps/*, -bin/devicedb ]
       organize:
@@ -196,7 +196,7 @@ parts:
       build-packages:
         - python
         - build-essential
-      source: git@github.com:armPelionEdge/edge-node-modules.git
+      source: https://github.com/armPelionEdge/edge-node-modules.git
       source-commit: c3562b4285facf571ec5755a2f97ca9f2b313151
       override-build: |
         git am ${SNAPCRAFT_PROJECT_DIR}/patches/edge-node-modules/0001-Added-package.json.patch
@@ -215,7 +215,7 @@ parts:
         'core-interfaces/': wigwag/devicejs-core-modules/core-interfaces/
     deviceoswd:
       plugin: autotools
-      source: git@github.com:armPelionEdge/edgeos-wd.git
+      source: https://github.com/armPelionEdge/edgeos-wd.git
       source-commit: 1760a2a3cfa5e66d9a2283233b96d2ab8accb3fe
       build-packages:
         - libtool
@@ -263,7 +263,7 @@ parts:
       build-packages:
         - python
         - build-essential
-      source: git@github.com:armPelionEdge/edge-utils.git
+      source: https://github.com/armPelionEdge/edge-utils.git
       #TODO: move back to master branch SHA once branch non-root-identity makes it onto master
       source-commit: 858f1e206935f8e6fc6a4398ae24bbb72b049315
       override-build: |
@@ -378,7 +378,7 @@ parts:
         - $support
     dss:
       plugin: dump
-      source: git@github.com:armPelionEdge/edgeos-shell-scripts.git
+      source: https://github.com/armPelionEdge/edgeos-shell-scripts.git
       source-commit: 04db833a43b80ecdfae07fd388bbe4e242771f38
       organize:
         '*': wigwag/system/bin/
@@ -396,14 +396,14 @@ parts:
       build-packages:
         - python
         - build-essential
-      source: git@github.com:armPelionEdge/maestro.git
+      source: https://github.com/armPelionEdge/maestro.git
       source-commit: e5d0378ccca0535cdc1b4e58543a349ad0a5bfc6
       override-build: |
         rm -rf *
         TOP=`pwd`
         mkdir git
-        git clone git@github.com:armPelionEdge/maestro.git m
-        git clone git@github.com:armPelionEdge/rallypointwatchdogs.git wd
+        git clone https://github.com/armPelionEdge/maestro.git m
+        git clone https://github.com/armPelionEdge/rallypointwatchdogs.git wd
         S_WD="${TOP}/wd"
         S_M="${TOP}/m"
         cd $S_M
@@ -454,7 +454,7 @@ parts:
         export GOPATH="$WORKSPACE"
         export GOBIN="$WORKSPACE/bin"
         cd go-workspace/src/github.com/armPelionEdge
-        git clone git@github.com:armPelionEdge/maestro-shell.git
+        git clone https://github.com/armPelionEdge/maestro-shell.git
         cd maestro-shell
         go build
         cd $TOP
@@ -514,7 +514,7 @@ parts:
         - $etc
     cni:
       plugin: go
-      source: git@github.com:containernetworking/plugins.git
+      source: https://github.com/containernetworking/plugins.git
       source-commit: ec8f6c99d030bd75337ae8bfc62fc02cdc462528
       go-importpath: github.com/containernetworking/plugins
       override-pull: |
@@ -526,7 +526,7 @@ parts:
         install -d go/pkg
         install -d go/src/github.com/containernetworking
         cd go/src/github.com/containernetworking
-        git clone git@github.com:containernetworking/plugins.git
+        git clone https://github.com/containernetworking/plugins.git
         cd plugins
         git checkout ec8f6c99d030bd75337ae8bfc62fc02cdc462528
       override-build: |
@@ -600,7 +600,7 @@ parts:
       plugin: autotools
       configflags:
         - -disable-docs
-      source: git@github.com:stedolan/jq.git
+      source: https://github.com/stedolan/jq.git
       source-tag: jq-1.6
       build-packages:
         - libtool
@@ -608,7 +608,7 @@ parts:
         - bison
     curl:
       plugin: autotools
-      source: git@github.com:curl/curl.git
+      source: https://github.com/curl/curl.git
       source-tag: curl-7_65_3
       install-via: prefix
       build-packages:
@@ -630,7 +630,7 @@ parts:
       - config/daemon.json
     docker-docker:
       plugin: make
-      source: git@github.com:docker/docker-ce.git
+      source: https://github.com/docker/docker-ce.git
       source-tag: v18.06.1-ce
       source-depth: 1
       override-build: |
@@ -677,7 +677,7 @@ parts:
       - libltdl7
     # this part is so that things like `docker build -t foobar github.com/foo/bar` work
     docker-git:
-      source: git@github.com:git/git
+      source: https://github.com/git/git
       source-type: git
       source-tag: v2.19.0
       source-depth: 1
@@ -695,7 +695,7 @@ parts:
       - libcurl4-openssl-dev
     docker-containerd:
       plugin: make
-      source: git@github.com:containerd/containerd.git
+      source: https://github.com/containerd/containerd.git
       # from : https://github.com/docker/docker-ce/blob/v18.06.1-ce/components/engine/hack/dockerfile/install/containerd.installer
       source-commit: 468a545b9edcd5932818eb9de8e72413e616e86e
       override-build: |
@@ -715,7 +715,7 @@ parts:
       - make
     docker-runc:
       plugin: make
-      source: git@github.com:opencontainers/runc.git
+      source: https://github.com/opencontainers/runc.git
       # from https://github.com/docker/docker-ce/blob/v18.06.1-ce/components/engine/hack/dockerfile/install/runc.installer
       source-commit: 69663f0bd4b60df09991c08812a60108003fa340
       override-build: |
@@ -735,7 +735,7 @@ parts:
       - make
     docker-libnetwork:
       plugin: make
-      source: git@github.com:docker/libnetwork.git
+      source: https://github.com/docker/libnetwork.git
       # from https://github.com/docker/docker-ce/blob/v18.06.1-ce/components/engine/hack/dockerfile/install/proxy.installer
       source-commit: 3ac297bc7fd0afec9051bbb47024c9bc1d75bf5b
       override-build: |
@@ -755,7 +755,7 @@ parts:
       - make
     docker-tini:
       plugin: cmake
-      source: git@github.com:krallin/tini.git
+      source: https://github.com/krallin/tini.git
       source-type: git
       # from https://github.com/docker/docker-ce/blob/v18.05.0-ce/components/engine/hack/dockerfile/install/tini.installer
       source-commit: 949e6facb77383876aeff8a6944dde66b3089574
@@ -768,12 +768,12 @@ parts:
     docker-compose:
       plugin: python
       python-version: python2
-      source: git@github.com:docker/compose.git
+      source: https://github.com/docker/compose.git
       source-tag: 1.22.0
       source-depth: 1
     docker-machine:
       plugin: make
-      source: git@github.com:docker/machine.git
+      source: https://github.com/docker/machine.git
       source-tag: v0.15.0
       source-depth: 1
       override-build: |
