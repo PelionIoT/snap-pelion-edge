@@ -1,7 +1,6 @@
 pipeline {
     agent {
         dockerfile {
-            args '-v jenkins-data:/root'
             label 'master'
         }
     }
@@ -9,15 +8,31 @@ pipeline {
         MBED_CLOUD_DEV_CREDENTIALS_C = credentials('${mbed-cloud-dev-credentials-c}')
     }
     stages {
-        stage('Build') {
+        stage('Setup') {
             steps {
                 sh '''
                     snapcraft --version
-                    cp "${MBED_CLOUD_DEV_CREDENTIALS_C}" mbed_cloud_dev_credentials.c
+                    mkdir -p ~/.ssh; chmod 0700 ~/.ssh
+                    ssh-keyscan github.com >> ~/.ssh/known_hosts
                     apt-get update
+                '''
+            }
+        }
+        stage('Build') {
+            steps {
+                sshagent(credentials: ['c9c1171e-fac3-4ec9-99cc-1f8a351e71ae']) {
+                    sh '''
+                    cp "${MBED_CLOUD_DEV_CREDENTIALS_C}" mbed_cloud_dev_credentials.c
                     snapcraft
-                    ./scripts/install_check.sh prime/
                     '''
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                sh '''
+                    ./scripts/install_check.sh prime/
+                '''
             }
         }
     }

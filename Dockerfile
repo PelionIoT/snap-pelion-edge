@@ -3,7 +3,7 @@ FROM snapcore/snapcraft@sha256:a41ba76a5cf49ba43f269dc7bd68154db9526f699d8910716
 # Install dependencies
 RUN apt update
 RUN apt dist-upgrade --yes
-RUN apt install --yes curl jq squashfs-tools
+RUN apt install --yes curl jq squashfs-tools openssh-client
 
 # Grab the go snap from the stable channel and unpack it in the proper place
 RUN curl -L $(curl -H 'X-Ubuntu-Series: 16' 'https://api.snapcraft.io/api/v1/snaps/details/go?version=1.13.5' | jq '.download_url' -r) --output go.snap
