@@ -167,14 +167,14 @@ parts:
         - python
         - build-essential
       source: git@github.com:armPelionEdge/devicejs-ng.git
-      source-commit: 5a6f1c38fcdaab4754af88f4ca7c71c293435e18
+      source-branch: master
       stage: [ -deps/*, -bin/devicedb ]
       organize:
         '*': wigwag/devicejs-ng/
     fog-proxy:
       plugin: go
       source: git@github.com:armPelionEdge/fog-proxy.git
-      source-commit: c24c70b25de44a7a791ed31a9bf16b396055aa0f
+      source-branch: master
       go-importpath: github.com/armPelionEdge/fog-proxy
       override-build: |
         snapcraftctl build
@@ -186,7 +186,7 @@ parts:
     devicedb:
       plugin: go
       source: git@github.com:armPelionEdge/devicedb.git
-      source-commit: b093eef83f486078a8a20e94e63726beaf71816d
+      source-branch: master
       go-importpath: github.com/armPelionEdge/devicedb
       organize:
         'bin/*': wigwag/system/bin/
@@ -197,7 +197,7 @@ parts:
         - python
         - build-essential
       source: git@github.com:armPelionEdge/edge-node-modules.git
-      source-commit: c3562b4285facf571ec5755a2f97ca9f2b313151
+      source-branch: master
       override-build: |
         git am ${SNAPCRAFT_PROJECT_DIR}/patches/edge-node-modules/0001-Added-package.json.patch
         snapcraftctl build
@@ -216,7 +216,7 @@ parts:
     deviceoswd:
       plugin: autotools
       source: git@github.com:armPelionEdge/edgeos-wd.git
-      source-commit: 1760a2a3cfa5e66d9a2283233b96d2ab8accb3fe
+      source-branch: master
       build-packages:
         - libtool
         - m4
@@ -264,7 +264,8 @@ parts:
         - python
         - build-essential
       source: git@github.com:armPelionEdge/edge-utils.git
-      source-commit: 79d1d8a3af2d34a6b40279b315cd015c42f3d53e
+      #TODO: move back to master branch once change makes it onto master
+      source-branch: non-root-identity
       override-build: |
         cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/package.json .
         snapcraftctl build
@@ -378,14 +379,13 @@ parts:
     dss:
       plugin: dump
       source: git@github.com:armPelionEdge/edgeos-shell-scripts.git
-      source-commit: 04db833a43b80ecdfae07fd388bbe4e242771f38
+      source-branch: master
       organize:
         '*': wigwag/system/bin/
     openssl10:
       plugin: make
       make-install-var: "INSTALL_PREFIX"
       source: https://www.openssl.org/source/openssl-1.0.2s.tar.gz
-      source-checksum: md5/98ec4e085962689b91d25e1dcdfc14a2
       override-build: |
         ./config shared
         make depend
@@ -396,7 +396,7 @@ parts:
         - python
         - build-essential
       source: git@github.com:armPelionEdge/maestro.git
-      source-commit: e5d0378ccca0535cdc1b4e58543a349ad0a5bfc6
+      source-branch: master
       override-build: |
         rm -rf *
         TOP=`pwd`
@@ -514,7 +514,7 @@ parts:
     cni:
       plugin: go
       source: git@github.com:containernetworking/plugins.git
-      source-commit: ec8f6c99d030bd75337ae8bfc62fc02cdc462528
+      source-branch: master
       go-importpath: github.com/containernetworking/plugins
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
@@ -526,8 +526,6 @@ parts:
         install -d go/src/github.com/containernetworking
         cd go/src/github.com/containernetworking
         git clone git@github.com:containernetworking/plugins.git
-        cd plugins
-        git checkout ec8f6c99d030bd75337ae8bfc62fc02cdc462528
       override-build: |
         export GOFLAGS="${GOFLAGS} -mod=vendor"
         export GOPATH=${SNAPCRAFT_PART_SRC}/go
@@ -568,7 +566,7 @@ parts:
     kubelet:
       plugin: go
       source: git@github.com:armPelionEdge/argus.git
-      source-commit: 89ba7843747d9fc230cc06bc1f7d597e79ad56f8
+      source-branch: master
       go-importpath: k8s.io/kubernetes
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored depdnencies.
@@ -580,8 +578,6 @@ parts:
         install -d go/src/k8s.io
         cd go/src/k8s.io
         git clone git@github.com:armPelionEdge/argus.git kubernetes
-        cd kubernetes
-        git checkout 89ba7843747d9fc230cc06bc1f7d597e79ad56f8
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_SRC}/go
         cd ${GOPATH}/src/k8s.io/kubernetes/hack/make-rules
@@ -600,7 +596,7 @@ parts:
       configflags:
         - -disable-docs
       source: git@github.com:stedolan/jq.git
-      source-tag: jq-1.6
+      source-branch: jq-1.6
       build-packages:
         - libtool
         - flex
@@ -608,7 +604,7 @@ parts:
     curl:
       plugin: autotools
       source: git@github.com:curl/curl.git
-      source-tag: curl-7_65_3
+      source-branch: curl-7_65_3
       install-via: prefix
       build-packages:
         - libtool
