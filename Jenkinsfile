@@ -1,7 +1,7 @@
 pipeline {
     agent {
         dockerfile {
-            label 'master'
+            label 'docker'
         }
     }
     environment {
