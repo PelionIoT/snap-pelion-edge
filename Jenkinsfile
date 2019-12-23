@@ -14,6 +14,8 @@ pipeline {
                     snapcraft --version
                     mkdir -p ~/.ssh; chmod 0700 ~/.ssh
                     ssh-keyscan github.com >> ~/.ssh/known_hosts
+                    git config --global user.email "jenkins@localhost"
+                    git config --global user.name "Jenkins"
                     apt-get update
                 '''
             }
