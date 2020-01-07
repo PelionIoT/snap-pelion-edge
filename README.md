@@ -108,14 +108,6 @@ Install these if you're not using docker:
 
 1. Copy the `pelion-edge_<version>_<arch>.snap` package to the device.
 
-1. On your target device update the `/etc/hosts` file. Append these lines to the bottom:
-
-   ```
-   146.148.90.233 kaas-edge-nodes.arm.com
-   146.148.90.233 kaas-edge-admin.arm.com
-   146.148.90.233 fog-proxy.arm.com
-   ```
-
 1. Use the `snap` utility to install the snap package:
 
    ```bash
