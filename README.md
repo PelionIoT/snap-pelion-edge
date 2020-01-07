@@ -6,7 +6,7 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
 
 ### Build prerequisites
 
-- any OS which supports Docker
+- a Linux box with Docker configured (other operating systems may work but aren't supported)
 - git
 
 ### User account prerequisites
