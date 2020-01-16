@@ -1,19 +1,27 @@
-# Getting Started
-1. Make sure the prerequisites are met:
+# Getting started
 
-   1. Create a Pelion account: https://portal.mbedcloud.com
-   1. Download `kubectl` version `1.14.3`: https://kubernetes.io/docs/tasks/tools/install-kubectl/
-   1. You have installed the pelion-edge snap to an ubuntu-core 16 gateway or VM and ensured that it is registered to your Pelion account.
-1. Generate an API Key
+Prerequisites:
 
-   1. Log in to the Pelion portal at https://portal.mbedcloud.com
-   1. Navigate to the Access Management section in the menu on the left then click on API Keys.
-   1. Click on the New API Key button and wait for the dialog box to appear
-   1. Enter a name for your API key and select the Administrators group
-   1. Click Create API Key and copy the API key to your clipboard. It will be used in the next step: creating a kubeconfig file.
-1. Create A `kubeconfig` File
+- A [Pelion account](https://portal.mbedcloud.com).
+- [kubectl version `1.14.3`](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
+- You have installed the pelion-edge snap to an ubuntu-core 16 gateway or VM and ensured that it is registered to your Pelion account.
+   
+1. Generate an API key.
 
-   Most Kubernetes tools like `kubectl` require a `kubeconfig` file that contains cluster addresses and credentials for communicating with those clusters. Use this template to generate 
+   1. Log in to the [Pelion Portal](https://portal.mbedcloud.com).
+   1. Navigate to the Access Management section in the menu on the left.
+   1. Click on **API keys**.
+   1. Click on the **New API Key** button.
+   1. Wait for the dialog box to appear.
+   1. After the dialog box appears, enter a name for your API key.
+   1. Select the **Administrators** group.
+   1. Click **Create API Key**.
+   1. Copy the API key to your clipboard. You will use this in the next step: creating a kubeconfig file.
+   
+1. Create A `kubeconfig` file.
+
+   Most Kubernetes tools like `kubectl` require a `kubeconfig` file that contains cluster addresses and credentials for communicating with those clusters. Use this template to generate:
+   
    ```yaml
    apiVersion: v1
    clusters:
@@ -33,27 +41,30 @@
      user:
        token: YOUR API KEY HERE
    ```
-   Fill in your API key where it says "YOUR API KEY HERE". Put this file in your home directory under `~/.kube/config`. If you already have a kubeconfig file, you can merge the cluster, context, and user into that file. In order to select the `edge-k8s` context use the `kubectl config` command:
+   
+   Fill in your API key where it says **YOUR API KEY HERE**. Put this file in your home directory under `~/.kube/config`. If you already have a kubeconfig file, you can merge the cluster, context and user into that file. To select the `edge-k8s` context, use the `kubectl config` command:
+   
    ```bash
    $ kubectl config use-context edge-k8s
    ```
 
-1. Make sure `kubectl` can talk to `edge-k8s`
+1. Make sure `kubectl` can talk to `edge-k8s`.
 
-   1. List nodes in your account to see which gateways are up and running. Follow the guide on building and installing snap to an ubuntu-core VM if you don't already have a gateway running the kubernetes components.
+   1. List nodes in your account to see which gateways are up and running. Follow the guide on building and installing snap to an ubuntu-core VM if you don't already have a gateway running the kubernetes components:
+   
    ```bash
    $ kubectl get nodes
    NAME                               STATUS    ROLES    AGE    VERSION
    016f324f1753162e4903427d03c00000   Ready     <none>   7d7h 
    ```
+   
    You should see some output like this showing your gateways. Gateways that are running should be `Ready`.
 
-# Deploying A Pod
-This example illustrates how to deploy a basic `Pod` using `kubectl`
-and how to use the `kubectl logs` and `kubectl exec` command to inspect
-and interact with the `Pod`
-1. Copy this YAML to a file `pod.yaml` and
-   replace `nodeName` with your node's ID.
+## Deploying a pod
+
+This example illustrates how to deploy a basic `Pod` using `kubectl` and how to use the `kubectl logs` and `kubectl exec` command to inspect and interact with the `Pod`.
+
+1. Copy this YAML to a file `pod.yaml`, and replace `nodeName` with your node's ID:
 
    ```yaml
    apiVersion: v1
@@ -70,7 +81,9 @@ and interact with the `Pod`
        command: ["/bin/sh"]
        args: ["-c","echo 'hello'; sleep 6000000"]
    ```
-1. Deploy this Pod
+
+1. Deploy this Pod:
+
    ```
    $ kubectl create -f pod.yaml
    pod/test-pod created
@@ -81,12 +94,16 @@ and interact with the `Pod`
    NAME       READY   STATUS    RESTARTS   AGE
    test-pod   1/1     Running   0          85s
    ```
-1. View Logs
+
+1. View Logs:
+
    ```
    $ kubectl logs test-pod
    hello
    ```
-1. Execute Commands
+
+1. Execute commands:
+
    ```
    $ kubectl exec -it test-pod -- sh
    / # echo "hi"
@@ -97,12 +114,12 @@ and interact with the `Pod`
    $
    ```
 
-# Configuring A Pod
-ConfigMaps and Secrets can be used to configure Pods. In this example
-we create a ConfigMap and Secret and show how they can be mounted
-as volumes inside a Pod.
+## Configuring a pod
 
-1. Create a `ConfigMap` in `my-cm.yaml`
+You can use ConfigMaps and Secrets to configure Pods. This example creates a ConfigMap and Secret and shows how you can mount them as volumes inside a Pod.
+
+1. Create a `ConfigMap` in `my-cm.yaml`:
+
    ```yaml
    apiVersion: v1
    kind: ConfigMap
@@ -111,7 +128,9 @@ as volumes inside a Pod.
    data:
      example.txt: my config map
    ```
-1. Create a `Secret` in `my-secret.yaml`
+
+1. Create a `Secret` in `my-secret.yaml`:
+
    ```yaml
    apiVersion: v1
    kind: Secret
@@ -121,14 +140,18 @@ as volumes inside a Pod.
    data:
      example.txt: bXkgc2VjcmV0Cg==
    ```
-1. Use `kubectl` to create the `ConfigMap` and `Secret`
+
+1. Use `kubectl` to create the `ConfigMap` and `Secret`:
+
    ```
    $ kubectl create -f my-cm.yaml 
    configmap/my-cm created
    $ kubectl create -f my-secret.yaml 
    secret/my-secret created
    ```
-1. Create a `Pod` in `pod.yaml`
+
+1. Create a `Pod` in `pod.yaml`:
+
    ```yaml
    apiVersion: v1
    kind: Pod
@@ -159,15 +182,19 @@ as volumes inside a Pod.
        secret:
          secretName: my-secret
    ```
-1. Use `kubectl` to create the `Pod`
 
-1. View Logs
+1. Use `kubectl` to create the `Pod`.
+
+1. View Logs:
+
    ```
    $ kubectl logs test-pod
    my secret
    my config map
    ```
-1. Execute Commands
+
+1. Execute commands:
+
    ```
    $ kubectl exec -it test-pod -- sh
    / # ls /my_secret/example.txt 
@@ -181,12 +208,12 @@ as volumes inside a Pod.
    $
    ```
 
-# Service Discovery
-It's often the case that Pods represent different applications on a gateway that need to talk to each other. Rather than using a static
-IP address for one of the Pods, use a Pod's hostname when addressing
-it and use DNS for service discovery.
+## Service discovery
 
-1. Create test-pod
+Pods often represent different applications on a gateway that need to talk to one another. Rather than using a static IP address for one of the Pods, use a Pod's hostname when addressing it and use DNS for service discovery.
+
+1. Create test-pod:
+
    ```yaml
    apiVersion: v1
    kind: Pod
@@ -203,7 +230,9 @@ it and use DNS for service discovery.
        args: ["-c","echo 'hello'; sleep 6000000"]
      restartPolicy: Always
    ```
-1. Create nginx pod
+
+1. Create nginx pod:
+
    ```yaml
    apiVersion: v1
    kind: Pod
@@ -218,10 +247,8 @@ it and use DNS for service discovery.
      nodeName: 016ec82cae2500000000000100169037
      restartPolicy: Always
    ```
-1. Next execute a shell inside the `test-pod`. We can see that the
-   host name `nginx` resolves to the IP address of the nginx Pod. After
-   installing curl inside `test-pod` we can make an HTTP request to the
-   nginx Pod using a curl command.
+
+1. Execute a shell inside the `test-pod`. The host name `nginx` resolves to the IP address of the nginx Pod. After installing curl inside `test-pod`, you can make an HTTP request to the nginx Pod using a curl command:
    
    ```
    $ kubectl exec -it test-pod -- sh
@@ -278,9 +305,10 @@ it and use DNS for service discovery.
    / # exit
    ```
 
-# Supported Resources
-* DaemonSet
-* Nodes
-* Pods
-* ConfigMaps
-* Secrets
+## Supported resources
+
+- DaemonSet.
+- Nodes.
+- Pods.
+- ConfigMaps.
+- Secrets.
