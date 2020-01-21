@@ -122,7 +122,7 @@ apps:
         - network
         - home
         - network-bind
-    help:
+    docker-help:
       command: help
 parts:
     edge-core:
