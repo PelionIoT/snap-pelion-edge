@@ -289,9 +289,6 @@ parts:
         install -d ${SNAPCRAFT_PART_INSTALL}/etc/network
         install -d ${SNAPCRAFT_PART_INSTALL}/etc/udev
         install -d ${SNAPCRAFT_PART_INSTALL}/etc/udev/rules.d
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/devicejs
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs/conf
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs/devjs-usr/App
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/support
         install initscripts/UDEV/96-local.rules ${SNAPCRAFT_PART_INSTALL}/etc/udev/rules.d/96-local.rules
       organize:
@@ -318,11 +315,8 @@ parts:
           - etc/init.d/wwrelay
           - etc/network
           - etc/udev
-          - wigwag/etc/devicejs
         conf:
           - wigwag/wwrelay-utils/conf/*
-          - wigwag/devicejs/conf
-          - wigwag/devicejs/devjs-usr/App
         versions:
           - wigwag/etc/versions.json
         utils:
