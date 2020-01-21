@@ -45,6 +45,11 @@ apps:
       plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
+      passthrough:
+        restart-delay: 5s
+      restart-condition: always
+      daemon: simple
+      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
     help:
       command: cat ${SNAP}/help.md
     deviceoswd:
