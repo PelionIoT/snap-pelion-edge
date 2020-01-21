@@ -160,17 +160,6 @@ parts:
         - '*'
       prime:
         - -bin/go-build-helper.sh
-    devicejs-ng:
-      plugin: nodejs-improved
-      nodejs-package-manager: npm
-      build-packages:
-        - python
-        - build-essential
-      source: https://github.com/armPelionEdge/devicejs-ng.git
-      source-commit: 5a6f1c38fcdaab4754af88f4ca7c71c293435e18
-      stage: [ -deps/*, -bin/devicedb ]
-      organize:
-        '*': wigwag/devicejs-ng/
     fog-proxy:
       plugin: go
       source: git@github.com:armPelionEdge/fog-proxy.git
