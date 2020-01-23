@@ -204,8 +204,7 @@ parts:
         - python
         - build-essential
       source: https://github.com/armPelionEdge/edge-utils.git
-      #TODO: move back to master branch SHA once branch non-root-identity makes it onto master
-      source-commit: 858f1e206935f8e6fc6a4398ae24bbb72b049315
+      source-commit: 0fca1286b14647b9017aef68b966f4f3afd5ca37
       override-build: |
         cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/package.json .
         snapcraftctl build
