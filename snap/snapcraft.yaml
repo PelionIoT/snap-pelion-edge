@@ -61,13 +61,6 @@ apps:
       restart-condition: always
       daemon: simple
       plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, system-files, x11]
-    edgenet:
-      command: launch-edgenet.sh
-      daemon: simple
-      restart-condition: on-failure
-      passthrough:
-        restart-delay: 5s
-      plugs: [docker]
     fp-edge:
       passthrough:
         restart-delay: 5s
@@ -81,6 +74,7 @@ apps:
     kubelet:
       passthrough:
         restart-delay: 5s
+        after: [dockerd]
       restart-condition: always
       command: launch-kubelet.sh
       daemon: simple
