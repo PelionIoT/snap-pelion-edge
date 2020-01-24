@@ -1,5 +1,8 @@
 #!/bin/bash
 
+export PATH=${SNAP}/wigwag/system/bin:${PATH}
+export NODE_PATH=${SNAP}/wigwag/devicejs-core-modules/node_modules
+
 #NOTE: The following use of `false` will cause this subsequent while loop to
 # run its loop body. This implements a construct similar to C's `do { ... } while`.
 # This makes this shell script a bit hard to reason about, so if the loop body
