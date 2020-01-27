@@ -30,7 +30,7 @@ Prerequisites:
    
 1. Create A `kubeconfig` file.
 
-   Most Kubernetes tools like `kubectl` require a `kubeconfig` file that contains cluster addresses and credentials for communicating with those clusters.
+   Most Kubernetes tools, including `kubectl`, require a `kubeconfig` file that contains cluster addresses and credentials for communicating with those clusters.
    
    1. Use this template to generate a file:
    
