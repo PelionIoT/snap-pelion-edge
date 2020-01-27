@@ -4,7 +4,17 @@ Prerequisites:
 
 - A [Pelion account](https://portal.mbedcloud.com).
 - [kubectl version `1.14.3`](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
-- The pelion-edge snap installed to an ubuntu-core 16 gateway or VM and registered to your Pelion account.
+- The pelion-edge snap installed to an ubuntu-core 16 gateway or virtual machine (VM):
+   
+      ```bash
+      $ kubectl get nodes
+      NAME                               STATUS    ROLES    AGE    VERSION
+      016f324f1753162e4903427d03c00000   Ready     <none>   7d7h 
+      ```
+   
+   Output like this will show your gateways. Gateways that are running are `Ready`.
+   
+- The pelion-edge snap registered to your Pelion account.
    
 1. Generate an API key.
 
@@ -51,18 +61,7 @@ Prerequisites:
    $ kubectl config use-context edge-k8s
    ```
 
-1. Make sure `kubectl` can talk to `edge-k8s`.
-
-   1. List nodes in your account to see which gateways are connected.
-   1. If you don't already have a gateway running the Kubernetes components, follow the guide on building and installing snap to an ubuntu-core VM:
-   
-   ```bash
-   $ kubectl get nodes
-   NAME                               STATUS    ROLES    AGE    VERSION
-   016f324f1753162e4903427d03c00000   Ready     <none>   7d7h 
-   ```
-   
-   Output like this will show your gateways. Gateways that are running are `Ready`.
+1. Make sure `kubectl` can talk to `edge-k8s` by listing nodes in your account to see which gateways are connected.
 
 ## Deploying a pod
 
