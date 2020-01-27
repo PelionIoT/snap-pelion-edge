@@ -63,7 +63,7 @@ Prerequisites:
 
 1. Make sure `kubectl` can talk to `edge-k8s` by listing nodes in your account to see which gateways are connected.
 
-## Deploying a pod
+## Deploying a Pod
 
 This example illustrates how to deploy a basic `Pod` using `kubectl` and how to use the `kubectl logs` and `kubectl exec` command to inspect and interact with the `Pod`.
 
@@ -117,7 +117,7 @@ This example illustrates how to deploy a basic `Pod` using `kubectl` and how to 
    $
    ```
 
-## Configuring a pod
+## Configuring a Pod
 
 You can use ConfigMaps and Secrets to configure Pods. This example creates a ConfigMap and Secret and shows how you can mount them as volumes inside a Pod.
 
@@ -234,7 +234,7 @@ Pods often represent different applications on a gateway that need to talk to on
      restartPolicy: Always
    ```
 
-1. Create nginx pod:
+1. Create the nginx Pod:
 
    ```yaml
    apiVersion: v1
