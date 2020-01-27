@@ -4,7 +4,7 @@ Prerequisites:
 
 - A [Pelion account](https://portal.mbedcloud.com).
 - [kubectl version `1.14.3`](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
-- You have installed the pelion-edge snap to an ubuntu-core 16 gateway or VM and ensured that it is registered to your Pelion account.
+- The pelion-edge snap installed to an ubuntu-core 16 gateway or VM and registered to your Pelion account.
    
 1. Generate an API key.
 
@@ -20,7 +20,9 @@ Prerequisites:
    
 1. Create A `kubeconfig` file.
 
-   Most Kubernetes tools like `kubectl` require a `kubeconfig` file that contains cluster addresses and credentials for communicating with those clusters. Use this template to generate:
+   Most Kubernetes tools like `kubectl` require a `kubeconfig` file that contains cluster addresses and credentials for communicating with those clusters.
+   
+   1. Use this template to generate a file:
    
    ```yaml
    apiVersion: v1
@@ -42,7 +44,8 @@ Prerequisites:
        token: YOUR API KEY HERE
    ```
    
-   Fill in your API key where it says **YOUR API KEY HERE**. Put this file in your home directory under `~/.kube/config`. If you already have a kubeconfig file, you can merge the cluster, context and user into that file. To select the `edge-k8s` context, use the `kubectl config` command:
+   1. Fill in your API key where it says **YOUR API KEY HERE**.
+   1. Put this file in your home directory under `~/.kube/config`. If you already have a kubeconfig file, you can merge the cluster, context and user into that file. To select the `edge-k8s` context, use the `kubectl config` command:
    
    ```bash
    $ kubectl config use-context edge-k8s
@@ -50,7 +53,8 @@ Prerequisites:
 
 1. Make sure `kubectl` can talk to `edge-k8s`.
 
-   1. List nodes in your account to see which gateways are up and running. Follow the guide on building and installing snap to an ubuntu-core VM if you don't already have a gateway running the kubernetes components:
+   1. List nodes in your account to see which gateways are connected.
+   1. If you don't already have a gateway running the Kubernetes components, follow the guide on building and installing snap to an ubuntu-core VM:
    
    ```bash
    $ kubectl get nodes
@@ -58,7 +62,7 @@ Prerequisites:
    016f324f1753162e4903427d03c00000   Ready     <none>   7d7h 
    ```
    
-   You should see some output like this showing your gateways. Gateways that are running should be `Ready`.
+   Output like this will show your gateways. Gateways that are running are `Ready`.
 
 ## Deploying a pod
 
