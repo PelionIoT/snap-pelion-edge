@@ -38,7 +38,7 @@ Prerequisites:
    apiVersion: v1
    clusters:
    - cluster:
-       server: https://edge-k8s.mbedcloud.com
+       server: https://edge-k8s.mbedcloudstaging.net
      name: edge-k8s
    contexts:
    - context:
