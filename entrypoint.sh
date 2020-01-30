@@ -16,6 +16,9 @@ cp -f ${HOME}/.netrc /home/user/
 cp -f ${HOME}/.gitconfig /home/user/
 chown -R user:user /home/user/
 
+# Issue a warning if the ssh key has a password
+ssh-keygen -y -P "" -f ${HOME}/.ssh/id_rsa >/dev/null
+
 # Run the command as user
 export HOME=/home/user
 exec gosu user "$@"

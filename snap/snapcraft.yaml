@@ -1,11 +1,11 @@
 name: pelion-edge
 base: core
-version: "1.2"
+version: "1.4"
 summary: Pelion Edge
 description: Pelion Edge
 confinement: devmode
 grade: devel
-architectures: 
+architectures:
   - amd64
 
 plugs:
@@ -45,24 +45,18 @@ apps:
       plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
+      passthrough:
+        restart-delay: 5s
+      restart-condition: always
+      daemon: simple
+      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
     help:
       command: cat ${SNAP}/help.md
-    deviceoswd:
-      command: wigwag/system/bin/deviceOSWD -w 3000 -m 900 -s /var/lib/pelion-edge/deviceOSkeepalive
-      daemon: simple 
-      plugs: [network-bind]
     maestro:
-      command: wigwag/system/bin/maestro -config $SNAP/wigwag/wwrelay-utils/conf/maestro-conf/edge-config-dell5000-demo.yaml
+      command: wigwag/system/bin/maestro -config $SNAP_DATA/maestro-config.yaml
       environment:
         LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
       plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, system-files, x11]
-    edgenet:
-      command: launch-edgenet.sh
-      daemon: simple
-      restart-condition: on-failure
-      passthrough:
-        restart-delay: 5s
-      plugs: [docker]
     fp-edge:
       passthrough:
         restart-delay: 5s
@@ -76,6 +70,7 @@ apps:
     kubelet:
       passthrough:
         restart-delay: 5s
+        after: [dockerd]
       restart-condition: always
       command: launch-kubelet.sh
       daemon: simple
@@ -118,7 +113,7 @@ apps:
         - network
         - home
         - network-bind
-    help:
+    docker-help:
       command: help
 parts:
     edge-core:
@@ -129,7 +124,7 @@ parts:
         - build-essential
         - cmake
         - git
-      override-pull: | 
+      override-pull: |
         snapcraftctl pull
         git submodule update --init --recursive
         cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c
@@ -156,21 +151,10 @@ parts:
         - '*'
       prime:
         - -bin/go-build-helper.sh
-    devicejs-ng:
-      plugin: nodejs-improved
-      nodejs-package-manager: npm
-      build-packages:
-        - python
-        - build-essential
-      source: git@github.com:armPelionEdge/devicejs-ng.git
-      source-branch: master
-      stage: [ -deps/*, -bin/devicedb ]
-      organize:
-        '*': wigwag/devicejs-ng/
     fog-proxy:
       plugin: go
       source: git@github.com:armPelionEdge/fog-proxy.git
-      source-branch: master
+      source-commit: c24c70b25de44a7a791ed31a9bf16b396055aa0f
       go-importpath: github.com/armPelionEdge/fog-proxy
       override-build: |
         snapcraftctl build
@@ -182,206 +166,51 @@ parts:
     devicedb:
       plugin: go
       source: git@github.com:armPelionEdge/devicedb.git
-      source-branch: master
+      source-commit: b093eef83f486078a8a20e94e63726beaf71816d
       go-importpath: github.com/armPelionEdge/devicedb
       organize:
         'bin/*': wigwag/system/bin/
-    edge-node-modules:
-      plugin: nodejs-improved
-      nodejs-package-manager: npm
-      build-packages:
-        - python
-        - build-essential
-      source: git@github.com:armPelionEdge/edge-node-modules.git
-      source-branch: master
-      override-build: |
-        git am ${SNAPCRAFT_PROJECT_DIR}/patches/edge-node-modules/0001-Added-package.json.patch
-        snapcraftctl build
-      organize:
-        'DevStateManager/': wigwag/wigwag-core-modules/DevStateManager/
-        'LEDController/': wigwag/wigwag-core-modules/LEDController/
-        'RelayStatsSender/': wigwag/wigwag-core-modules/RelayStatsSender/
-        'VirtualDeviceDriver/': wigwag/wigwag-core-modules/VirtualDeviceDriver/
-        'onsite-enterprise-server/': wigwag/wigwag-core-modules/onsite-enterprise-server/
-        'relay-term/': wigwag/wigwag-core-modules/relay-term/
-        'rsmi/': wigwag/devicejs-core-modules/rsmi/
-        'zigbeeHA/': wigwag/devicejs-core-modules/zigbeeHA/
-        'node_modules/': wigwag/devicejs-core-modules/node_modules/
-        'maestroRunner/': wigwag/devicejs-core-modules/maestroRunner/
-        'core-interfaces/': wigwag/devicejs-core-modules/core-interfaces/
-    deviceoswd:
-      plugin: autotools
-      source: git@github.com:armPelionEdge/edgeos-wd.git 
-      source-branch: master
-      build-packages:
-        - libtool
-        - m4
-      override-build: |
-        cd deps
-        ./install-deps.sh
-        cd ..
-        make clean
-        make deviceOSWD-dummy
-        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_dummy
-        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD
-        make clean
-        make deviceOSWD-dummy-debug
-        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_dummy_debug
-        make clean
-        make deviceOSWD-a10-debug
-        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_a10_debug
-        make clean
-        make deviceOSWD-a10
-        make clean
-        make deviceOSWD-a10-relay
-        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_a10_relay
-        make clean
-        make deviceOSWD-a10-tiny841
-        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_a10_tiny841
-        make clean
-        make deviceOSWD-rpi-3bplus
-        install deviceOSWD ${SNAPCRAFT_PART_INSTALL}/deviceOSWD_rpi_3bplus
-        install -d ${SNAPCRAFT_PART_INSTALL}/etc/init.d
-        install ${SNAPCRAFT_PROJECT_DIR}/files-installed/deviceoswd/deviceOS-watchdog ${SNAPCRAFT_PART_INSTALL}/etc/init.d/deviceOS-watchdog
-      organize:
-        deviceOSWD: wigwag/system/bin/deviceOSWD
-        deviceOSWD_dummy: wigwag/system/bin/deviceOSWD_dummy
-        deviceOSWD_a10_debug: wigwag/system/bin/deviceOSWD_a10_debug
-        deviceOSWD_a10_relay: wigwag/system/bin/deviceOSWD_a10_relay
-        deviceOSWD_dummy_debug: wigwag/system/bin/deviceOSWD_dummy_debug
-        deviceOSWD_a10_tiny841: wigwag/system/bin/deviceOSWD_a10_tiny841
-      stage:
-        - etc/init.d/deviceOS-watchdog
-        - wigwag/system/bin/*
     wwrelay-utils:
       plugin: nodejs-improved
       nodejs-package-manager: npm
-      build-packages:
-        - python
-        - build-essential
-      source: git@github.com:armPelionEdge/edge-utils.git
-      #TODO: move back to master branch once change makes it onto master
-      source-branch: non-root-identity
-      override-build: |
+      source: https://github.com/armPelionEdge/edge-utils.git
+      source-commit: 0fca1286b14647b9017aef68b966f4f3afd5ca37
+      override-pull: |
+        snapcraftctl pull
         cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/package.json .
+      override-build: |
         snapcraftctl build
-        cd 6BSMD
-        make all
-        cd ../I2C
-        ../../npm/bin/npm install --production
-        cd ../GPIO
-        ../../npm/bin/npm install --production
-        make
-        cd ../slip-radio
-        ../../npm/bin/npm install --production
-        cd ../slipcomms
-        make
-        cd ..
-        install slipcomms/slipcomms ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs-core-modules/rsmi/bin/slipcomms-arm
-        cd cc2530prog
-        make
-        cd ..
-        install cc2530prog/cc2530prog ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs-core-modules/rsmi/bin/cc2530prog-arm
-        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/wwrelay etc/init.d/.
-        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/version.json wigwag/wwrelay-utils/conf/versions.json
-        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/version.json wigwag/etc/versions.json
-        install dev-tools/bin/ccommon.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/ccommon.sh
-        install dev-tools/bin/stopwatchdog.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/stopwatchdog
-        install dev-tools/scripts/restartjob.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/restartjob.sh
-        install GPIO/led.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/led
-        install GPIO/pinctrl.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/pinctrl
-        install GPIO/leddaemon ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/leddaemon
-        install DOGcontrol/dogProgrammer.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/dogProgrammer
-        install I2C/eetool.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/eetool
-        install -d ${SNAPCRAFT_PART_INSTALL}/etc/network
-        install -d ${SNAPCRAFT_PART_INSTALL}/etc/udev
-        install -d ${SNAPCRAFT_PART_INSTALL}/etc/udev/rules.d
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/devicejs
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs/conf
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs/devjs-usr/App
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/support
-        install initscripts/UDEV/96-local.rules ${SNAPCRAFT_PART_INSTALL}/etc/udev/rules.d/96-local.rules
+        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/versions.json
+        ../npm/bin/npm pack ./debug_scripts/get_new_gw_identity/developer_gateway_identity/
+        ../npm/bin/npm install developer_identity-*.tgz
+        cp -r node_modules ${SNAPCRAFT_PART_INSTALL}/
       organize:
-        conf: wigwag/wwrelay-utils/conf
-        6BSMD: wigwag/wwrelay-utils/6BSMD
-        common: wigwag/wwrelay-utils/common
-        slip-radio: wigwag/wwrelay-utils/slip-radio
-        .b: wigwag/wwrelay-utils/.b
-        initscripts: wigwag/wwrelay-utils/initscripts
-        GPIO: wigwag/wwrelay-utils/GPIO
-        I2C: wigwag/wwrelay-utils/I2C
+        node_modules: wigwag/devicejs-core-modules/node_modules
         debug_scripts: wigwag/wwrelay-utils/debug_scripts
-        dev-tools: wigwag/wwrelay-utils/dev-tools
-        I2C: wigwag/wwrelay-utils/I2C
+        bin: wigwag/system/bin
       filesets:
-        etc:
-          - etc/dnsmasq.conf
-          - etc/dnsmasq.d/*
-          - etc/modprobe.d/*
-          - etc/profile.d/wigwagpath.sh
-          - etc/init.d/devjssupport
-          - etc/init.d/relayterm
-          - etc/init.d/wwfunctions
-          - etc/init.d/wwrelay
-          - etc/network
-          - etc/udev
-          - wigwag/etc/devicejs
-        conf:
-          - wigwag/wwrelay-utils/conf/*
-          - wigwag/devicejs/conf
-          - wigwag/devicejs/devjs-usr/App
         versions:
           - wigwag/etc/versions.json
-        utils:
-          - wigwag/devicejs-core-modules/rsmi/bin/slipcomms-arm
-          - wigwag/devicejs-core-modules/rsmi/bin/cc2530prog-arm
-          - wigwag/wwrelay-utils/6BSMD/*
-          - wigwag/wwrelay-utils/common/*
-          - wigwag/wwrelay-utils/slip-radio/*
-          - wigwag/wwrelay-utils/.b
-          - wigwag/wwrelay-utils/initscripts/*
-          - wigwag/wwrelay-utils/GPIO/*
-          - wigwag/wwrelay-utils/I2C/*
-          - -wigwag/wwrelay-utils/GPIO/led.sh
-          - -wigwag/wwrelay-utils/GPIO/pinctrl.sh
-          - -wigwag/wwrelay-utils/GPIO/leddaemon
-          - -wigwag/wwrelay-utils/I2C/eetool.sh
-        debug:
-          - wigwag/wwrelay-utils/debug_scripts
-        devtools:
-          - wigwag/wwrelay-utils/dev-tools
-          - -wigwag/wwrelay-utils/dev-tools/bin/stopwatchdog.sh
-          - -wigwag/wwrelay-utils/dev-tools/bin/info.sh
-        system:
-          - wigwag/system/bin/ccommon.sh
-          - wigwag/system/bin/stopwatchdog
-          - wigwag/system/bin/restartjob.sh
-          - wigwag/system/bin/led
-          - wigwag/system/bin/pinctrl
-          - wigwag/system/bin/leddaemon
-          - wigwag/system/bin/dogProgrammer
-          - wigwag/system/bin/eetool
-        support:
-          - wigwag/support
-      stage:
-        - $etc
-        - $conf
+        node_modules:
+          - wigwag/devicejs-core-modules/node_modules
+        production:
+          - wigwag/wwrelay-utils/debug_scripts/create-new-eeprom-with-self-signed-certs.sh
+          - wigwag/system/bin/
+      prime:
         - $versions
-        - $utils
-        - $debug
-        - $devtools
-        - $system
-        - $support
+        - $node_modules
+        - $production
     dss:
       plugin: dump
-      source: git@github.com:armPelionEdge/edgeos-shell-scripts.git
-      source-branch: master
+      source: https://github.com/armPelionEdge/edgeos-shell-scripts.git
+      source-commit: 04db833a43b80ecdfae07fd388bbe4e242771f38
       organize:
         '*': wigwag/system/bin/
     openssl10:
       plugin: make
       make-install-var: "INSTALL_PREFIX"
       source: https://www.openssl.org/source/openssl-1.0.2s.tar.gz
+      source-checksum: md5/98ec4e085962689b91d25e1dcdfc14a2
       override-build: |
         ./config shared
         make depend
@@ -391,14 +220,14 @@ parts:
       build-packages:
         - python
         - build-essential
-      source: git@github.com:armPelionEdge/maestro.git
-      source-branch: master
+      source: https://github.com/armPelionEdge/maestro.git
+      source-commit: e5d0378ccca0535cdc1b4e58543a349ad0a5bfc6
       override-build: |
         rm -rf *
         TOP=`pwd`
         mkdir git
-        git clone git@github.com:armPelionEdge/maestro.git m
-        git clone git@github.com:armPelionEdge/rallypointwatchdogs.git wd
+        git clone https://github.com/armPelionEdge/maestro.git m
+        git clone https://github.com/armPelionEdge/rallypointwatchdogs.git wd
         S_WD="${TOP}/wd"
         S_M="${TOP}/m"
         cd $S_M
@@ -449,11 +278,11 @@ parts:
         export GOPATH="$WORKSPACE"
         export GOBIN="$WORKSPACE/bin"
         cd go-workspace/src/github.com/armPelionEdge
-        git clone git@github.com:armPelionEdge/maestro-shell.git
+        git clone https://github.com/armPelionEdge/maestro-shell.git
         cd maestro-shell
         go build
         cd $TOP
-        # Resume maestro install  
+        # Resume maestro install
         mv "${S_M}" go-workspace/src/github.com/armPelionEdge/maestro
         mv go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/maestroSpecs go-workspace/src/github.com/armPelionEdge/maestroSpecs
         mv go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/mustache go-workspace/src/github.com/armPelionEdge/mustache
@@ -509,8 +338,8 @@ parts:
         - $etc
     cni:
       plugin: go
-      source: git@github.com:containernetworking/plugins.git
-      source-branch: master
+      source: https://github.com/containernetworking/plugins.git
+      source-commit: ec8f6c99d030bd75337ae8bfc62fc02cdc462528
       go-importpath: github.com/containernetworking/plugins
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
@@ -521,7 +350,9 @@ parts:
         install -d go/pkg
         install -d go/src/github.com/containernetworking
         cd go/src/github.com/containernetworking
-        git clone git@github.com:containernetworking/plugins.git
+        git clone https://github.com/containernetworking/plugins.git
+        cd plugins
+        git checkout ec8f6c99d030bd75337ae8bfc62fc02cdc462528
       override-build: |
         export GOFLAGS="${GOFLAGS} -mod=vendor"
         export GOPATH=${SNAPCRAFT_PART_SRC}/go
@@ -561,8 +392,8 @@ parts:
         - $cni_conf
     kubelet:
       plugin: go
-      source: git@gitlab.com:arm-isg-edge/argus.git
-      source-branch: master
+      source: git@github.com:armPelionEdge/argus.git
+      source-commit: 89ba7843747d9fc230cc06bc1f7d597e79ad56f8
       go-importpath: k8s.io/kubernetes
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored depdnencies.
@@ -573,7 +404,9 @@ parts:
         install -d go/pkg
         install -d go/src/k8s.io
         cd go/src/k8s.io
-        git clone git@gitlab.com:arm-isg-edge/argus.git kubernetes
+        git clone git@github.com:armPelionEdge/argus.git kubernetes
+        cd kubernetes
+        git checkout 89ba7843747d9fc230cc06bc1f7d597e79ad56f8
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_SRC}/go
         cd ${GOPATH}/src/k8s.io/kubernetes/hack/make-rules
@@ -591,16 +424,16 @@ parts:
       plugin: autotools
       configflags:
         - -disable-docs
-      source: git@github.com:stedolan/jq.git
-      source-branch: jq-1.6
+      source: https://github.com/stedolan/jq.git
+      source-tag: jq-1.6
       build-packages:
         - libtool
         - flex
         - bison
     curl:
       plugin: autotools
-      source: git@github.com:curl/curl.git
-      source-branch: curl-7_65_3
+      source: https://github.com/curl/curl.git
+      source-tag: curl-7_65_3
       install-via: prefix
       build-packages:
         - libtool

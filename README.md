@@ -6,14 +6,8 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
 
 ### Build prerequisites
 
-- Ubuntu (or any Linux if using docker).
-- git.
-
-Install these if you're not using docker:
-
-- Snapcraft 3.6 or later.
-- build-essential.
-- cmake.
+- a Linux box with Docker configured (other operating systems may work but aren't supported)
+- git
 
 ### User account prerequisites
 
@@ -46,7 +40,7 @@ Install these if you're not using docker:
 
 1. Make sure your `~/.ssh/id_rsa.pub` key is registered with `github.com` and `gitlab.com`, and that they both exist in `known_hosts` (for example, by running `ssh -T git@github.com` and `ssh -T git@gitlab.com`).
 
-1. If you have Docker, you can now build with the snapcraft Docker image:
+1. Build with the snapcraft Docker image:
 
     ```bash
     docker build --no-cache -f Dockerfile --label snapcore/snapcraft --tag ${USER}/snapcraft:latest .
@@ -54,29 +48,6 @@ Install these if you're not using docker:
     ```
 
    Note: Running the build in Docker may contaminate your project folders with files owned by root and causes a *permission denied* error when you run the build outside of Docker. Run `sudo chown --changes --recursive $USER:$USER _project_folder_` to fix it.
-
-1. If you are not using Docker, install the snap development tools and other developer tools you might need (snapcraft, build-essential, git, nodejs, bzr and so on.) on your host system:
-
-    ```bash
-    sudo apt-get update && sudo apt-get upgrade
-    sudo apt-get install snapcraft build-essential git cmake
-    ```
-    
-    Note: When you execute snapcraft to build the package, snapcraft attempts to install additional packages listed under `build-packages` of each part in `snapcraft.yaml`. You may be prompted for a sudo password if these packages are not already installed on your development system.
-
-1. Compile your snap with `snapcraft` (you may have to type your GitHub credentials during compile):
-
-    ```bash
-    snapcraft
-    ```
-
-    Note: If you receive an error regarding `multipass`, build with the following options:
-    
-    ```bash
-    SNAPCRAFT_BUILD_ENVIRONMENT=host snapcraft --debug
-    ```
-    
-    This results in a new file `pelion-edge_<version>_<arch>.snap` in the local directory.
 
 ## Install and run Pelion Edge
 
@@ -169,8 +140,8 @@ After the snap is installed, Pelion Edge starts automatically:
 - To reset your local Pelion Cloud credentials, stop Pelion Edge, and run `pelion-edge.edge-core-reset-storage`:
 
     ```bash
-    snap stop pelion-edge
-    pelion-edge.edge-core-reset-storage
+    snap stop pelion-edge.edge-core
+    snap start pelion-edge.edge-core-reset-storage
     ```
 
 These are just convenient snap commands that run the binaries. The actual binaries are at `/snap/pelion-edge/current/`. Use the [Pelion Edge docs](https://github.com/armpelionedge/snap-pelion-edge#general-info-for-running-the-binaries) for information about running the binaries directly.
