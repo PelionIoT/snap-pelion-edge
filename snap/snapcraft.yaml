@@ -192,6 +192,7 @@ parts:
         node_modules: wigwag/devicejs-core-modules/node_modules
         debug_scripts: wigwag/wwrelay-utils/debug_scripts
         bin: wigwag/system/bin
+        conf: wigwag/wwrelay-utils/conf
       filesets:
         versions:
           - wigwag/etc/versions.json
@@ -200,10 +201,13 @@ parts:
         production:
           - wigwag/wwrelay-utils/debug_scripts/create-new-eeprom-with-self-signed-certs.sh
           - wigwag/system/bin/
+        conf:
+          - wigwag/wwrelay-utils/conf
       prime:
         - $versions
         - $node_modules
         - $production
+        - $conf
     dss:
       plugin: dump
       source: https://github.com/armPelionEdge/edgeos-shell-scripts.git

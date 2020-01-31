@@ -12,6 +12,7 @@ declare -a file_list=(
     'wigwag/system'
     'wigwag/system/bin'
     'wigwag/system/lib'
+    'wigwag/wwrelay-utils/conf'
     'wigwag/wwrelay-utils/debug_scripts'
     'etc/init.d/maestro.sh'
     'wigwag/etc/versions.json'
