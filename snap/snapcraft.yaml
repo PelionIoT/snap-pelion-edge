@@ -235,6 +235,7 @@ parts:
         TOP=`pwd`
         mkdir git
         git clone https://github.com/armPelionEdge/maestro.git m
+        git -C m checkout e5d0378ccca0535cdc1b4e58543a349ad0a5bfc6
         git clone https://github.com/armPelionEdge/rallypointwatchdogs.git wd
         S_WD="${TOP}/wd"
         S_M="${TOP}/m"
