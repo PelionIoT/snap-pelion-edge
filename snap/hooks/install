@@ -34,7 +34,7 @@ fi
 mkdir -p "$SNAP_DATA/etc/docker"
 
 if [ ! -f "$SNAP_DATA/maestro-config.yaml" ]; then
-    cp "$SNAP/wigwag/wwrelay-utils/conf/maestro-conf/edge-config-dell5000-demo-no-dhcp.yaml" "$SNAP_DATA/maestro-config.yaml"
+    cp "$SNAP/wigwag/wwrelay-utils/conf/maestro-conf/edge-config-dell5000-demo.yaml" "$SNAP_DATA/maestro-config.yaml"
 fi
 
 # disable auto-start on some services.
