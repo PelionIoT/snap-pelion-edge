@@ -130,7 +130,6 @@ parts:
         - git
       override-pull: |
         snapcraftctl pull
-        git submodule update --init --recursive
         cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c
         cp ${SNAPCRAFT_PROJECT_DIR}/cmake/target.cmake config/target.cmake
         cp ${SNAPCRAFT_PART_SRC}/cmake/toolchains/mcc-linux-x86.cmake config/toolchain.cmake
