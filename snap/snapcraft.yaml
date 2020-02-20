@@ -199,6 +199,29 @@ parts:
       go-importpath: github.com/armPelionEdge/devicedb
       organize:
         'bin/*': wigwag/system/bin/
+    edge-node-modules:
+      plugin: nodejs-improved
+      nodejs-package-manager: npm
+      build-packages:
+        - python
+        - build-essential
+      source: https://github.com/armPelionEdge/edge-node-modules.git
+      source-commit: c3562b4285facf571ec5755a2f97ca9f2b313151
+      override-build: |
+        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-node-modules/patches/0001-Added-package.json.patch
+        snapcraftctl build
+      organize:
+        'DevStateManager/': wigwag/wigwag-core-modules/DevStateManager/
+        'LEDController/': wigwag/wigwag-core-modules/LEDController/
+        'RelayStatsSender/': wigwag/wigwag-core-modules/RelayStatsSender/
+        'VirtualDeviceDriver/': wigwag/wigwag-core-modules/VirtualDeviceDriver/
+        'onsite-enterprise-server/': wigwag/wigwag-core-modules/onsite-enterprise-server/
+        'relay-term/': wigwag/wigwag-core-modules/relay-term/
+        'rsmi/': wigwag/devicejs-core-modules/rsmi/
+        'zigbeeHA/': wigwag/devicejs-core-modules/zigbeeHA/
+        'node_modules/': wigwag/devicejs-core-modules/node_modules/
+        'maestroRunner/': wigwag/devicejs-core-modules/maestroRunner/
+        'core-interfaces/': wigwag/devicejs-core-modules/core-interfaces/
     wwrelay-utils:
       plugin: nodejs-improved
       nodejs-package-manager: npm
