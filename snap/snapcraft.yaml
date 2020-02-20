@@ -119,7 +119,7 @@ parts:
     edge-core:
       plugin: cmake
       source: https://github.com/ARMmbed/mbed-edge.git
-      source-tag: 0.9.0
+      source-tag: 0.12.0
       build-packages:
         - build-essential
         - cmake
