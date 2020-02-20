@@ -193,23 +193,76 @@ parts:
     wwrelay-utils:
       plugin: nodejs-improved
       nodejs-package-manager: npm
+      build-packages:
+        - python
+        - build-essential
       source: https://github.com/armPelionEdge/edge-utils.git
       source-commit: b0ae52b99fb8b777e0bb7512ca7e868ba0dd84a3
       override-pull: |
         snapcraftctl pull
         cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/package.json .
       override-build: |
+        cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/package.json .
         snapcraftctl build
-        cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/versions.json
-        ../npm/bin/npm pack ./debug_scripts/get_new_gw_identity/developer_gateway_identity/
-        ../npm/bin/npm install developer_identity-*.tgz
-        cp -r node_modules ${SNAPCRAFT_PART_INSTALL}/
+        cd 6BSMD
+        make all
+        cd ../I2C
+        ../../npm/bin/npm install --production
+        cd ../GPIO
+        ../../npm/bin/npm install --production
+        make
+        cd ../slip-radio
+        ../../npm/bin/npm install --production
+        cd ../slipcomms
+        make
+        cd ..
+        install slipcomms/slipcomms ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs-core-modules/rsmi/bin/slipcomms-arm
+        cd cc2530prog
+        make
+        cd ..
+        install cc2530prog/cc2530prog ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs-core-modules/rsmi/bin/cc2530prog-arm
+        cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/wwrelay etc/init.d/.
+        cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/version.json wigwag/wwrelay-utils/conf/versions.json
+        cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/version.json wigwag/etc/versions.json
+        install dev-tools/bin/ccommon.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/ccommon.sh
+        install dev-tools/bin/stopwatchdog.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/stopwatchdog
+        install dev-tools/scripts/restartjob.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/restartjob.sh
+        install GPIO/led.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/led
+        install GPIO/pinctrl.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/pinctrl
+        install GPIO/leddaemon ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/leddaemon
+        install DOGcontrol/dogProgrammer.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/dogProgrammer
+        install I2C/eetool.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/eetool
+        install -d ${SNAPCRAFT_PART_INSTALL}/etc/network
+        install -d ${SNAPCRAFT_PART_INSTALL}/etc/udev
+        install -d ${SNAPCRAFT_PART_INSTALL}/etc/udev/rules.d
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/support
+        install initscripts/UDEV/96-local.rules ${SNAPCRAFT_PART_INSTALL}/etc/udev/rules.d/96-local.rules
       organize:
-        node_modules: wigwag/devicejs-core-modules/node_modules
+        conf: wigwag/wwrelay-utils/conf
+        6BSMD: wigwag/wwrelay-utils/6BSMD
+        common: wigwag/wwrelay-utils/common
+        slip-radio: wigwag/wwrelay-utils/slip-radio
+        .b: wigwag/wwrelay-utils/.b
+        initscripts: wigwag/wwrelay-utils/initscripts
+        GPIO: wigwag/wwrelay-utils/GPIO
+        I2C: wigwag/wwrelay-utils/I2C
         debug_scripts: wigwag/wwrelay-utils/debug_scripts
         bin: wigwag/system/bin
         conf: wigwag/wwrelay-utils/conf
       filesets:
+        etc:
+          - etc/dnsmasq.conf
+          - etc/dnsmasq.d/*
+          - etc/modprobe.d/*
+          - etc/profile.d/wigwagpath.sh
+          - etc/init.d/devjssupport
+          - etc/init.d/relayterm
+          - etc/init.d/wwfunctions
+          - etc/init.d/wwrelay
+          - etc/network
+          - etc/udev
+        conf:
+          - wigwag/wwrelay-utils/conf/*
         versions:
           - wigwag/etc/versions.json
         node_modules:
