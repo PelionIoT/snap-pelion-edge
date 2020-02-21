@@ -2,5 +2,5 @@
     "debug":            false,
     "log-level":        "error",
     "storage-driver":   "aufs",
-    "max-concurrent-downloads": "1"
+    "max-concurrent-downloads": 1
 }
