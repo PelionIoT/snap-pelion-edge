@@ -35,6 +35,15 @@ passthrough:
             bind: $SNAP_DATA/etc/docker
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
+    relay-term:
+      passthrough:
+        restart-delay: 5s
+      restart-condition: always
+      command: bin/node wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP_DATA/relayterm-config.json
+      daemon: simple
+      environment: 
+        NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
+      plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, system-files]
     edge-core:
       passthrough:
         restart-delay: 5s
