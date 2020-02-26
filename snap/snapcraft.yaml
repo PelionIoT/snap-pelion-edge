@@ -227,13 +227,13 @@ parts:
         - python
         - build-essential
       source: https://github.com/armPelionEdge/maestro.git
-      source-commit: c535ca244e27fefc9d72d218831cbd134fcf1d27
+      source-commit: 1a02359e8dfde85d39a61d60cb888aed905a31bc
       override-build: |
         rm -rf *
         TOP=`pwd`
         mkdir git
         git clone https://github.com/armPelionEdge/maestro.git m
-        git -C m checkout c535ca244e27fefc9d72d218831cbd134fcf1d27
+        git -C m checkout 1a02359e8dfde85d39a61d60cb888aed905a31bc
         git clone https://github.com/armPelionEdge/rallypointwatchdogs.git wd
         S_WD="${TOP}/wd"
         S_M="${TOP}/m"
