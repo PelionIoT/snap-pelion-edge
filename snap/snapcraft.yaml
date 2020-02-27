@@ -286,8 +286,9 @@ parts:
         export GOBIN="$WORKSPACE/bin"
         cd go-workspace/src/github.com/armPelionEdge
         git clone https://github.com/armPelionEdge/maestro-shell.git
-        git -C maestro-shell checkout 6961f98d2e95bde62ce26d0f18765ff523e09c2e
+        git -C maestro-shell checkout e75413b16977192dbc228c15ca7a0317104f02b5
         cd maestro-shell
+        ./build-deps.sh
         go build
         cd $TOP
         # Resume maestro install
