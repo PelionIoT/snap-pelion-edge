@@ -31,7 +31,7 @@ slots:
 passthrough:
     layout:
         /var/lib/pelion-edge:
-            bind: $SNAP_DATA/var/lib/pelion-edge
+            bind: $SNAP_DATA/userdata/pelion-edge
         /etc/docker:
             bind: $SNAP_DATA/etc/docker
 # List of applications (commands, binaries, daemons) in the snap.
