@@ -251,96 +251,53 @@ parts:
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install ${GOPATH}/bin/maestro-shell ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro-shell
     maestro:
-      plugin: autotools
+      plugin: go
+      source: https://github.com/armPelionEdge/maestro.git
+      source-commit: 1a02359e8dfde85d39a61d60cb888aed905a31bc
       build-packages:
         - python
         - build-essential
-      source: https://github.com/armPelionEdge/maestro.git
-      source-commit: 1a02359e8dfde85d39a61d60cb888aed905a31bc
+      override-pull: |
+        # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
+        # Create the go workspace. This is normally done by the plugin
+        install -d go
+        install -d go/src
+        install -d go/bin
+        install -d go/pkg
+        install -d go/src/github.com/armPelionEdge
+        cd go/src/github.com/armPelionEdge
+        git clone https://github.com/armPelionEdge/maestro.git
+        cd maestro
+        git checkout 1a02359e8dfde85d39a61d60cb888aed905a31bc
       override-build: |
-        rm -rf *
-        TOP=`pwd`
-        mkdir git
-        git clone https://github.com/armPelionEdge/maestro.git m
-        git -C m checkout 1a02359e8dfde85d39a61d60cb888aed905a31bc
-        git clone https://github.com/armPelionEdge/rallypointwatchdogs.git wd
-        S_WD="${TOP}/wd"
-        S_M="${TOP}/m"
-        cd $S_M
-        mkdir -p vendor/github.com/armPelionEdge/greasego/deps/lib
-        mkdir -p vendor/github.com/armPelionEdge/greasego/deps/include
-        mkdir -p vendor/github.com/armPelionEdge/greasego/deps/bin
-        cd vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/deps/
-        ./install-deps.sh
-        cd ..
-        rm -f *.o *.a
-        make libgrease.a-server
-        make libgrease.so.1
+        export GOPATH=${SNAPCRAFT_PART_BUILD}/go
+        # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
+        export GOBIN=${GOPATH}/bin
+        cd ${GOPATH}/src/github.com/armPelionEdge/maestro/
+        # Build maestro dependencies
+        ./build-deps.sh
+        # Build maestro
+        DEBUG=1 DEBUG2=1 ./build.sh
+        # Install maestro into GOPATH/bin
+        go install github.com/armPelionEdge/maestro
+
+        # build the grease_echo utility
+        cd ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/
         make grease_echo
         make standalone_test_logsink
-        GREASEGO=$S_M/vendor/github.com/armPelionEdge/greasego
-        if [ -e libgrease.so.1 ]; then
-        # migrate all of the greaselib dependencies up to the folder Go will use
-        cp -r deps/build/lib/* $GREASEGO/deps/lib
-        cp -r deps/build/include/* $GREASEGO/deps/include
-        cp $GREASEGO/deps/src/greaseLib/deps/libuv-v1.10.1/include/uv* $GREASEGO/deps/include
-        # move our binary into lib - static is all we use
-        cp libgrease.so.1 $GREASEGO/deps/lib
-        cp *.h $GREASEGO/deps/include
-        cd $GREASEGO/deps/lib
-        if [ ! -e libgrease.so ]; then
-          ln -s libgrease.so.1 libgrease.so
-        fi
-        fi
-        # NOTE: MUST INSTALL libgrease.so.1 to Yocto
-        cd $S_M/vendor/github.com/armPelionEdge/greasego
-        DEBUG=1 ./build.sh preprocess_only
-        rm -rf src
-        # remove the /vendor/maestroSpecs dir, b/c we want this to use the same folder
-        # as the plugins (watchdog, etc.)
-        cd $S_M
-        DEBUG=1 DEBUG2=1 ./build.sh preprocess_only
-        # wipe out the src directories, seems to cause confusion with Go compiler in
-        rm -rf src
-        # Yocto build
-        cd $TOP
-        mkdir -p go-workspace/bin
-        mkdir -p go-workspace/pkg
-        mkdir -p go-workspace/src
-        mkdir -p go-workspace/src/github.com/armPelionEdge
-        mv "${S_M}" go-workspace/src/github.com/armPelionEdge/maestro
-        mv "${S_WD}" go-workspace/src/github.com/armPelionEdge/rallypointwatchdogs
-        # do the actual build
-        S_SPECS="${TOP}/specs"
-        cd $TOP
-        export CGO_ENABLED=1
-        export GOPATH="${TOP}/go-workspace"
-        export GOBIN="${GOPATH}/bin"
-        cd "${GOPATH}"/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego
-        make clean
-        make bindings.a-debug
-        # when not doing a debug - get rid of the DEBUG vars
-        # On 'thud': for some reason the GOARCH is using the host not the target
-        export GOARCH=`echo $AR | awk -F '-' '{print $1}'`
-        go env
-        go build -o "${GOPATH}"/bin -tags debug -x github.com/armPelionEdge/maestro/maestro
-        cd "${GOPATH}"/src/github.com/armPelionEdge/rallypointwatchdogs
-        # TODO -  only build what we need for the platform
-        ./build.sh
-        cd $TOP
+        # Install maestro into the SNAPCRAFT_PART_INSTALL folder so that it is
+        # copied into the prime directory during the prime step
         install -d ${SNAPCRAFT_PART_INSTALL}/etc/init.d
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
         install ${SNAPCRAFT_PROJECT_DIR}/files-installed/maestro/maestro.sh ${SNAPCRAFT_PART_INSTALL}/etc/init.d/maestro.sh
-        install go-workspace/src/github.com/armPelionEdge/rallypointwatchdogs/rp100/rp100wd.so ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib/rp100wd.so
-        install go-workspace/src/github.com/armPelionEdge/rallypointwatchdogs/dummy/dummywd.so ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib/dummywd.so
-        install go-workspace/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
-        install go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/grease_echo ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/grease_echo
-        install go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/standalone_test_logsink ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/standalone_test_logsink
-        MAESTRO_LIBS="${TOP}/go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/lib"
+        install ${GOPATH}/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
+        install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/grease_echo ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/grease_echo
+        install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/standalone_test_logsink ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/standalone_test_logsink
+        LIBS_DIR="${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/lib"
         ALL_LIBS="libTW.a libprofiler.a libstacktrace.a libtcmalloc.la libtcmalloc_debug.a libtcmalloc_minimal.la libuv.a libgrease.so libprofiler.la libstacktrace.la libtcmalloc_and_profiler.a libtcmalloc_debug.la libtcmalloc_minimal_debug.a libgrease.so.1 libtcmalloc.a libtcmalloc_and_profiler.la  libtcmalloc_minimal.a libtcmalloc_minimal_debug.la libtcmalloc_minimal.so*"
         for f in $ALL_LIBS; do
-          install -m 0755 $MAESTRO_LIBS/$f ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
+          install -m 0755 $LIBS_DIR/$f ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
         done
       filesets:
         etc:
