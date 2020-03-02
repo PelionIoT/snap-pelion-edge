@@ -221,6 +221,35 @@ parts:
         ./config shared
         make depend
         snapcraftctl build
+    maestro-shell:
+      plugin: go
+      source: https://github.com/armPelionEdge/maestro-shell.git
+      source-commit: e75413b16977192dbc228c15ca7a0317104f02b5
+      override-pull: |
+        # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
+        # Create the go workspace. This is normally done by the plugin
+        install -d go
+        install -d go/src
+        install -d go/bin
+        install -d go/pkg
+        install -d go/src/github.com/armPelionEdge
+        cd go/src/github.com/armPelionEdge
+        git clone https://github.com/armPelionEdge/maestro-shell.git
+        cd maestro-shell
+        git checkout e75413b16977192dbc228c15ca7a0317104f02b5
+      override-build: |
+        export GOPATH=${SNAPCRAFT_PART_BUILD}/go
+        cd ${GOPATH}/src/github.com/armPelionEdge/maestro-shell/
+        # Build maestro-shell dependencies
+        ./build-deps.sh
+        # Build maestro-shell
+        go build github.com/armPelionEdge/maestro-shell
+        # Install maestro-shell into GOPATH/bin
+        go install github.com/armPelionEdge/maestro-shell
+        # Install maestro-shell into the SNAPCRAFT_PART_INSTALL folder so that it is
+        # copied into the prime directory during the prime step
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+        install ${GOPATH}/bin/maestro-shell ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro-shell
     maestro:
       plugin: autotools
       build-packages:
@@ -279,19 +308,6 @@ parts:
         mkdir -p go-workspace/pkg
         mkdir -p go-workspace/src
         mkdir -p go-workspace/src/github.com/armPelionEdge
-        # maestro-shell
-        WORKSPACE="`pwd`/go-workspace"
-        export CGO_ENABLED=1
-        export GOPATH="$WORKSPACE"
-        export GOBIN="$WORKSPACE/bin"
-        cd go-workspace/src/github.com/armPelionEdge
-        git clone https://github.com/armPelionEdge/maestro-shell.git
-        git -C maestro-shell checkout e75413b16977192dbc228c15ca7a0317104f02b5
-        cd maestro-shell
-        ./build-deps.sh
-        go build
-        cd $TOP
-        # Resume maestro install
         mv "${S_M}" go-workspace/src/github.com/armPelionEdge/maestro
         mv "${S_WD}" go-workspace/src/github.com/armPelionEdge/rallypointwatchdogs
         # do the actual build
@@ -326,8 +342,6 @@ parts:
         for f in $ALL_LIBS; do
           install -m 0755 $MAESTRO_LIBS/$f ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
         done
-        # maestro-shell installs
-        install go-workspace/src/github.com/armPelionEdge/maestro-shell/maestro-shell ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro-shell
       filesets:
         etc:
           - etc/init.d/maestro.sh
