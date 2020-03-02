@@ -292,28 +292,22 @@ parts:
         cd $TOP
         # Resume maestro install
         mv "${S_M}" go-workspace/src/github.com/armPelionEdge/maestro
-        mv go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/maestroSpecs go-workspace/src/github.com/armPelionEdge/maestroSpecs
-        mv go-workspace/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/mustache go-workspace/src/github.com/armPelionEdge/mustache
-        rm -rf "${S_WD}/vendor/github.com/armPelionEdge/maestroSpecs"
         mv "${S_WD}" go-workspace/src/github.com/armPelionEdge/rallypointwatchdogs
         # do the actual build
         S_SPECS="${TOP}/specs"
         cd $TOP
-        WORKSPACE="`pwd`/go-workspace"
         export CGO_ENABLED=1
-        export GOPATH="$WORKSPACE"
-        export GOBIN="$WORKSPACE/bin"
-        cd go-workspace/src
-        cd github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego
+        export GOPATH="${TOP}/go-workspace"
+        export GOBIN="${GOPATH}/bin"
+        cd "${GOPATH}"/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego
         make clean
         make bindings.a-debug
         # when not doing a debug - get rid of the DEBUG vars
         # On 'thud': for some reason the GOARCH is using the host not the target
         export GOARCH=`echo $AR | awk -F '-' '{print $1}'`
         go env
-        cd "$WORKSPACE"/bin
-        go build -tags debug -x github.com/armPelionEdge/maestro/maestro
-        cd "$WORKSPACE"/src/github.com/armPelionEdge/rallypointwatchdogs
+        go build -o "${GOPATH}"/bin -tags debug -x github.com/armPelionEdge/maestro/maestro
+        cd "${GOPATH}"/src/github.com/armPelionEdge/rallypointwatchdogs
         # TODO -  only build what we need for the platform
         ./build.sh
         cd $TOP
