@@ -34,8 +34,6 @@ passthrough:
             bind: $SNAP_DATA/var/lib/pelion-edge
         /etc/docker:
             bind: $SNAP_DATA/etc/docker
-        /userdata:
-            bind: $SNAP_DATA/userdata
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
     edge-core:
