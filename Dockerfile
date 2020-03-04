@@ -1,4 +1,4 @@
-FROM snapcore/snapcraft@sha256:a41ba76a5cf49ba43f269dc7bd68154db9526f699d8910716213ef2acd8ce425
+FROM snapcore/snapcraft@sha256:33f891e3c7ad6981b217460e2e903fabbfd4b9db4dced14f1ad982c4529130cf
 
 # Install dependencies
 RUN apt update
