@@ -24,19 +24,24 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     git clone https://github.com/armpelionedge/snap-pelion-edge
     cd snap-pelion-edge
     ```
+1. Setup Device certificates:
+ 
+	Currently the build is configured for factory provisioning.  Documentation on the choices for certificate configuration modes can be found at [Configuring Edge Build](https://github.com/ARMmbed/mbed-edge#configuring-edge-build) .
 
-1. Generate a device certificate from the Device Management Portal:
+	If you wish to configure for developer mode:
+   1. Change the definitions of DEVELOPER_MODE and FACTORY_MODE in `snap/snapcraft.yaml` to DEVELOPER_MODE=ON and FACTORY_MODE=OFF
+   1. Generate a device certificate from the Device Management Portal:
    
-   1. Log in to the [Device Management Portal](https://portal.mbedcloud.com/login), and select **Device identity > Certificates**.
-   1. If you don't have a certificate, select **New certificate > Create a developer certificate**.
-   1. When you have a certificate, and open its panel.
-   1. On this panel, click **Download Developer C file** to receive `mbed_cloud_dev_credentials.c`.
+      1. Log in to the [Device Management Portal](https://portal.mbedcloud.com/login), and select **Device identity > Certificates**.
+      1. If you don't have a certificate, select **New certificate > Create a developer certificate**.
+      1. When you have a certificate, and open its panel.
+      1. On this panel, click **Download Developer C file** to receive `mbed_cloud_dev_credentials.c`.
 
-1. Copy `mbed_cloud_dev_credentials.c` to the `snap-pelion-edge` directory:
+   1. Copy `mbed_cloud_dev_credentials.c` to the `snap-pelion-edge` directory:
 
-    ```bash
-    cp /path/to/mbed_cloud_dev_credentials.c /path/to/snap-pelion-edge/.
-    ```
+        ```bash
+        cp /path/to/mbed_cloud_dev_credentials.c /path/to/snap-pelion-edge/.
+        ```
 
 1. Make sure your `~/.ssh/id_rsa.pub` key is registered with `github.com` and `gitlab.com`, and that they both exist in `known_hosts` (for example, by running `ssh -T git@github.com` and `ssh -T git@gitlab.com`).
 
