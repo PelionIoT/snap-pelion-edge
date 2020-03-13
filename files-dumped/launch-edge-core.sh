@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# before we do anything, call the fake bootloader
+./edge-core-bootloader.sh
+
 # SNAP_DATA: /var/snap/pelion-edge/current/
 CONF_FILE=${SNAP_DATA}/edge-core.conf
 
