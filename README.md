@@ -1,5 +1,7 @@
 # snap-pelion-edge
 
+*Do not merge this change*
+
 This repository contains snapcraft packaging for Pelion Edge. This lets you run Pelion Edge on Ubuntu.
 
 ## Prerequisites
@@ -13,7 +15,7 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
 
 1. [A Pelion Cloud account](https://os.mbed.com/account/signup/).
 1. [Access to Pelion Cloud](https://console.mbed.com/cloud-registration).
-1. An [Ubuntu SSO account](https://login.ubuntu.com/). This is required for an Ubuntu Core installation. 
+1. An [Ubuntu SSO account](https://login.ubuntu.com/). This is required for an Ubuntu Core installation.
 1. An SSH key [uploaded into your Ubuntu SSO account](https://login.ubuntu.com/ssh-keys) so you can SSH into your Ubuntu SSO account. Please see the [Ubuntu instructions](https://help.ubuntu.com/community/SSH/OpenSSH/Keys) for more information about generating an SSH key on your computer.
 
 ## Build Pelion Edge
@@ -26,7 +28,7 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     ```
 
 1. Generate a device certificate from the Device Management Portal:
-   
+
    1. Log in to the [Device Management Portal](https://portal.mbedcloud.com/login), and select **Device identity > Certificates**.
    1. If you don't have a certificate, select **New certificate > Create a developer certificate**.
    1. When you have a certificate, and open its panel.
@@ -61,7 +63,7 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
 
 1. Press enter.
 
-1. Select **Start** to begin configuring your network and an administrator account. 
+1. Select **Start** to begin configuring your network and an administrator account.
 
 1. Follow the instructions on the screen; you will be asked to configure your network and enter your Ubuntu SSO credentials.
 
@@ -92,15 +94,15 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
    ```bash
    sudo snap install --devmode pelion-edge_<version>_<arch>.snap
    ```
-   
+
    If you see the following message:
-   
+
    ```bash
     error: cannot find signatures with metadata for snap
     ```
-   
+
    add the `--devmode` option
-   
+
    ```bash
     sudo snap install --devmode pelion-edge_<version>_<arch>.snap
     ```
@@ -112,31 +114,31 @@ After the snap is installed, Pelion Edge starts automatically:
     ```bash
     systemctl status snap.pelion-edge.edge-core
     ```
-    
+
 - Use one of the following commands to start Pelion Edge:
 
     ```bash
     snap start pelion-edge
     ```
-    
+
     or
-    
+
     ```bash
     systemctl start snap.pelion-edge.edge-core
     ```
-    
+
 - Use one of the following command to stop Pelion Edge:
 
     ```bash
     snap stop pelion-edge
     ```
-    
+
     or
-    
+
     ```bash
     systemctl stop snap.pelion-edge.edge-core
     ```
-    
+
 - To reset your local Pelion Cloud credentials, stop Pelion Edge, and run `pelion-edge.edge-core-reset-storage`:
 
     ```bash
@@ -151,27 +153,27 @@ These are just convenient snap commands that run the binaries. The actual binari
 Log files are captured by snap and are available with the following commands:
 
 - To dump the whole log:
-   
+
    ``` bash
    snap logs -n=all pelion-edge.edge-core
    ```
-   
+
 - To follow the log (print new lines as they come in):
-   
+
    ``` bash
    snap logs -f pelion-edge.edge-core
    ```
-   
+
    Alternatively, you can use `journalctl`.
 
 - To dump the whole log:
-   
+
    ```bash
    journalctl -u snap.pelion-edge.edge-core -a
    ```
-   
+
 - To follow the log (print new lines as they come in):
-   
+
    ```bash
    journalctl -u snap.pelion-edge.edge-core -f
    ```
@@ -203,7 +205,7 @@ sudo pelion-edge.edge-core-reset-storage
 
 ### Edge startup errors
 
-If you see the following error when starting Edge core, you are probably attempting to start Edge core while running on a LiveUSB or LiveCD Ubuntu system: 
+If you see the following error when starting Edge core, you are probably attempting to start Edge core while running on a LiveUSB or LiveCD Ubuntu system:
 
 ```
 /snap/core/current/usr/lib/snapd/snap-confine: error while loading shared libraries:
