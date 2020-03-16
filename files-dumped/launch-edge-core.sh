@@ -16,4 +16,5 @@ if [ -f "${CONF_FILE}" ]; then
     ARGS="${ARGS} $(cat "${CONF_FILE}")"
 fi
 
-exec ${SNAP}/wigwag/mbed/edge-core ${ARGS}
+# add ${SNAP} to PATH edge-core can run the factory reset script: edge-core-factory-reset
+exec env PATH=${PATH}:${SNAP} ${SNAP}/wigwag/mbed/edge-core ${ARGS}
