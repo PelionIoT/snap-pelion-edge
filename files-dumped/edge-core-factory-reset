@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# This is present on some, but not all gateways, and is where logs are persisted.
+rm -f /var/log/syslog*
