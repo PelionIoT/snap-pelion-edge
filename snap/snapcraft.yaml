@@ -126,7 +126,11 @@ parts:
         - git
       override-pull: |
         snapcraftctl pull
-        cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c
+        # mbed_cloud_dev_credentials.c should only exist if DEVELOPER_MODE=ON below
+        # update_default_resources.c should only exist if DEVELOPER_MODE=OFF below
+        # Piping to true allows the cp to not fail when the file is not present
+        cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c || true
+        cp ${SNAPCRAFT_PROJECT_DIR}/update_default_resources.c config/update_default_resources.c || true
         cp ${SNAPCRAFT_PROJECT_DIR}/cmake/target.cmake config/target.cmake
         cp ${SNAPCRAFT_PART_SRC}/cmake/toolchains/mcc-linux-x86.cmake config/toolchain.cmake
         sed -i 's!/dev/random!/dev/urandom!' lib/mbed-cloud-client/mbed-client-pal/Source/Port/Reference-Impl/OS_Specific/Linux/Board_Specific/TARGET_x86_x64/pal_plat_x86_x64.c
@@ -136,8 +140,8 @@ parts:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=INFO
         - -DFIRMWARE_UPDATE=OFF
-        - -DDEVELOPER_MODE=ON
-        - -DFACTORY_MODE=OFF
+        - -DDEVELOPER_MODE=OFF
+        - -DFACTORY_MODE=ON
         - -DBYOC_MODE=OFF
         - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
       override-build: |
