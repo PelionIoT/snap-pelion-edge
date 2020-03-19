@@ -57,7 +57,7 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
 
     ```bash
     docker build --no-cache -f Dockerfile --label snapcore/snapcraft --tag ${USER}/snapcraft:latest .
-    docker run --rm -v "$PWD":/build -w /build -v ${HOME}/.ssh:/root/.ssh -v ${HOME}/.gitconfig:/root/.gitconfig ${USER}/snapcraft:latest snapcraft --debug
+    docker run --rm -v "$PWD":/build -w /build -v ${HOME}/.ssh:/root/.ssh -v ${HOME}/.gitconfig:/root/.gitconfig ${USER}/snapcraft:latest bash -c "sudo apt-get update && snapcraft --debug"
     ```
 
    Note: Running the build in Docker may contaminate your project folders with files owned by root and causes a *permission denied* error when you run the build outside of Docker. Run `sudo chown --changes --recursive $USER:$USER _project_folder_` to fix it.
