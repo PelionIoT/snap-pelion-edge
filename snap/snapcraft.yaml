@@ -42,7 +42,7 @@ apps:
       restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
-      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
+      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files, snapd-control]
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
       passthrough:
@@ -116,6 +116,12 @@ apps:
     docker-help:
       command: help
 parts:
+    snap:
+      plugin: nil
+      stage-packages:
+        - snapd
+      organize:
+        usr/bin/snap: bin/snap
     edge-core:
       plugin: cmake
       source: https://github.com/ARMmbed/mbed-edge.git

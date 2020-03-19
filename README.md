@@ -118,6 +118,11 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     sudo snap install --devmode pelion-edge_<version>_<arch>.snap
     ```
 
+1. Hookup the snapd-control daemon
+
+    ```bash
+    sudo snap connect pelion-edge:snapd-control :snapd-control
+    ```
 ## Run Pelion Edge
 
 After the snap is installed, Pelion Edge starts automatically:
