@@ -241,3 +241,96 @@ Run the following script from the home directory in your build environment:
 ```
 
 The `prime/` parameter is the search folder. You can swap this out for your root directory if you are running this script on the install machine.
+
+
+## Update Pelion Edge
+
+This section describes how to configure the Pelion Edge edge-core service to support firmware updates, also known as FOTA, and how to create a firmware update package that can be pushed down to a device through a Pelion Cloud Firmware Update Campaign.
+
+In order for a device to support updates, the edge-core service in the Pelion Edge snap must be configured at build time with the FIRMWARE_UPDATE=ON compile flag.  Once Pelion Edge is built with firmware update support enabled and is installed onto the device, Pelion Edge boots and registers with Pelion Cloud.  A firmware update campaign targeting any registered device can be initiated in the Pelion Cloud portal, where a firmware update package is pushed down to a device which then unpacks the firmware update package and applies the updates within it.
+
+### Enable Firmware Updates
+
+To configure edge-core to support updates, locate the `edge-core` component in the `parts` section of `snapcraft.yaml` and set the config flag `FIRMWARE_UPDATE=ON` as follows:
+
+```
+parts:
+    edge-core:
+      ...
+      configflags:
+        - -DFIRMWARE_UPDATE=ON
+```
+
+Edge-core must also be provisioned with an update certificate used to verify that a downloaded firmware package came from a trusted source.  See this README under the Build Pelion Edge section for instructions on how to provision an update certificate to a device.
+
+### Generate A Firmware Update Package
+
+A firmware update package is a tar.gz containing at minimum a bash script called `runme.sh` and a version file called `platform_version`.  The logic for performing an update of system components including the Pelion Edge snap itself is implemented by `runme.sh`.
+
+It is the job of runme.sh to call `snap install` on any snaps contained within the firmware update package, and to perform any other duties related to upgrading system packages in relation to the current update campaign.
+
+Here is an example runme.sh:
+```bash
+#!/bin/bash
+
+snap install --devmode pelion-edge_1.0_amd64.snap
+
+cp platform_version ${SNAP_DATA}/etc/
+```
+
+The above example runme.sh assumes a firmware update tar.gz with the following contents:
+```
+$ tar -tzf firmware-update.tar.gz
+./
+./platform_version
+./runme.sh
+./pelion-edge_1.0_amd64.snap
+```
+
+#### How To Create firmware-update.tar.gz
+1. Create a folder to hold the contents of a firmware update package
+    * This repo's `update/` folder can be used as a skeleton
+1. Build or gather updated snap packages
+    * This includes the Pelion Edge snap itself plus any other snap packages that need to be updated on the remote device
+1. Copy the updated snap(s) into the update folder
+1. Modify the example update/runme.sh with any needed changes and copy it into the update folder
+    * For example, add instructions to run `snap install` on each snap you intend to update
+1. Modify the example update/platform_version with the new version and copy it into the update folder
+    * Note the version should be a single string that encompasses all software packages being managed by this firmware update mechanism, and not necessarily limited to the version of the Pelion Edge snap itself.
+1. Create the firmware update package tar.gz from the contents of the update folder, which must contain at least the upgrade script `runme.sh` and the new version file `platform_version`, and optionally any updated software packages.
+	```bash
+	tar -czf firmware-update.tar.gz -C update/ .
+	```
+
+### Initiate A Firmware Update Campaign
+1. Upload `firmware-update.tar.gz` to Pelion Cloud
+    1. Log on to the Pelion Cloud Portal
+    1. From the left navigation pane, navigate to Firmware Update->Images
+    1. Click the `+ Upload Image` button
+    1. Follow the instructions on the screen to upload the tar.gz
+    1. After uploading the file, the portal displays a URL from which the tar.gz can be downloaded.
+
+1. Create a firmware update manifest
+    1. Use the manifest-tool utility to create a manifest file for your firmware update tar.gz
+    ```bash
+        manifest-tool create -u <firmware.url> -p <firmware-update.tar.gz> -o manifest
+    ```
+    * `firmware.url` is the URL of firmware-update-tar.gz as shown in Pelion Portal.  Devices will use this URL to download the firmware update image.
+    * `firmware-update.tar.gz` is the firmware update package tar.gz file.  A hash is calculated from the firmware update tar.gz.
+
+1. Upload the firmware update manifest to Pelion Cloud
+    1. From the left navigation pane, navigate to Firmware Update->Manifests
+    1. Click the `+ Upload Manifest` button
+    1. Follow the instructions on the screen to upload the manifest file
+
+1. Create a device filter to select a set of registered devices that should receive the firmware update package
+    1. From the left navigation pane, navigate to Device directory->Devices
+    1. See the online arm Pelion Device Management documentation about device attributes and filters for more details on this step
+
+1. Create the campaign
+    1. From the left navigation pane, navigate to Firmware Update->Update campaigns
+    1. Click the `+ New Campaign` button
+    1. Provide an optional Name and Description
+    1. Under the `Manifest` heading, select the manifest file uploaded earlier
+    1. Select the filter that targets the devices that should receive this firmware update package
+    1. Click 'Finish' to start the campaign
