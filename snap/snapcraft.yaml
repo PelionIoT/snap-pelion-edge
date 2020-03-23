@@ -146,8 +146,8 @@ parts:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=INFO
         - -DFIRMWARE_UPDATE=OFF
-        - -DDEVELOPER_MODE=OFF
-        - -DFACTORY_MODE=ON
+        - -DDEVELOPER_MODE=ON
+        - -DFACTORY_MODE=OFF
         - -DBYOC_MODE=OFF
         - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
       override-build: |
