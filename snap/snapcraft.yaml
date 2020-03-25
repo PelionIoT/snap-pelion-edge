@@ -2,7 +2,7 @@ name: pelion-edge
 base: core
 version: "1.10.0"
 summary: Pelion Edge
-description: Pelion Edge - BTC
+description: Pelion Edge - HW CaaS Dev
 confinement: devmode
 grade: devel
 architectures:
@@ -39,11 +39,11 @@ apps:
       passthrough:
         restart-delay: 5s
       restart-condition: always
-      command: bin/node wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP_DATA/relayterm-config.json
+      command: bin/node $SNAP/wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP_DATA/relayterm-config.json
       daemon: simple
       environment: 
         NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
-      plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, system-files]
+      plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, system-files, snapd-control, shutdown, network-manager, modem-manager]
     edge-core:
       passthrough:
         restart-delay: 5s
@@ -135,6 +135,19 @@ parts:
     identity:
       plugin: dump
       source: files/identity/
+    nmcli:
+      plugin: nil
+      stage-packages:
+        - network-manager
+        - libslang2
+      organize:
+        usr/bin/nmcli: bin/nmcli
+    mmcli:
+      plugin: nil
+      stage-packages:
+        - modemmanager
+      organize:
+        usr/bin/mmcli: bin/mmcli
     snap:
       plugin: nil
       stage-packages:
@@ -291,8 +304,8 @@ parts:
         GPIO: wigwag/wwrelay-utils/GPIO
         I2C: wigwag/wwrelay-utils/I2C
         debug_scripts: wigwag/wwrelay-utils/debug_scripts
-        bin: wigwag/system/bin
-        conf: wigwag/wwrelay-utils/conf
+        dev-tools: wigwag/wwrelay-utils/dev-tools
+        I2C: wigwag/wwrelay-utils/I2C
       filesets:
         etc:
           - etc/dnsmasq.conf
@@ -309,18 +322,46 @@ parts:
           - wigwag/wwrelay-utils/conf/*
         versions:
           - wigwag/etc/versions.json
-        node_modules:
-          - wigwag/devicejs-core-modules/node_modules
-        production:
-          - wigwag/wwrelay-utils/debug_scripts/create-new-eeprom-with-self-signed-certs.sh
-          - wigwag/system/bin/
-        conf:
-          - wigwag/wwrelay-utils/conf
-      prime:
-        - $versions
-        - $node_modules
-        - $production
+        utils:
+          - wigwag/devicejs-core-modules/rsmi/bin/slipcomms-arm
+          - wigwag/devicejs-core-modules/rsmi/bin/cc2530prog-arm
+          - wigwag/wwrelay-utils/6BSMD/*
+          - wigwag/wwrelay-utils/common/*
+          - wigwag/wwrelay-utils/slip-radio/*
+          - wigwag/wwrelay-utils/.b
+          - wigwag/wwrelay-utils/initscripts/*
+          - wigwag/wwrelay-utils/GPIO/*
+          - wigwag/wwrelay-utils/I2C/*
+          - -wigwag/wwrelay-utils/GPIO/led.sh
+          - -wigwag/wwrelay-utils/GPIO/pinctrl.sh
+          - -wigwag/wwrelay-utils/GPIO/leddaemon
+          - -wigwag/wwrelay-utils/I2C/eetool.sh
+        debug:
+          - wigwag/wwrelay-utils/debug_scripts
+        devtools:
+          - wigwag/wwrelay-utils/dev-tools
+          - -wigwag/wwrelay-utils/dev-tools/bin/stopwatchdog.sh
+          - -wigwag/wwrelay-utils/dev-tools/bin/info.sh
+        system:
+          - wigwag/system/bin/ccommon.sh
+          - wigwag/system/bin/stopwatchdog
+          - wigwag/system/bin/restartjob.sh
+          - wigwag/system/bin/led
+          - wigwag/system/bin/pinctrl
+          - wigwag/system/bin/leddaemon
+          - wigwag/system/bin/dogProgrammer
+          - wigwag/system/bin/eetool
+        support:
+          - wigwag/support
+      stage:
+        - $etc
         - $conf
+        - $versions
+        - $utils
+        - $debug
+        - $devtools
+        - $system
+        - $support
     dss:
       plugin: dump
       source: https://github.com/armPelionEdge/edgeos-shell-scripts.git
@@ -507,6 +548,11 @@ parts:
         install -m 0755 ../../_output/bin/kubelet ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/kubelet
         install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-kubelet.sh ${SNAPCRAFT_PART_INSTALL}/
         install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-edgenet.sh ${SNAPCRAFT_PART_INSTALL}/
+      stage:
+        - wigwag/system/bin/kubelet
+        - wigwag/system/var/lib/kubelet/kubeconfig
+        - launch-kubelet.sh
+        - launch-edgenet.sh
       stage-packages: [coreutils, iptables, systemd]
     jq:
       plugin: autotools
