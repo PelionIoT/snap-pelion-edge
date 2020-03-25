@@ -1,6 +1,6 @@
 #!/bin/bash
-EDGE_K8S_ADDRESS=$(jq -r .edgek8sServicesAddress ${SNAP_DATA}/var/lib/edge_gw_identity/identity.json)
-GATEWAYS_ADDRESS=$(jq -r .gatewayServicesAddress ${SNAP_DATA}/var/lib/edge_gw_identity/identity.json)
+EDGE_K8S_ADDRESS=$(jq -r .edgek8sServicesAddress ${SNAP_DATA}/userdata/edge_gw_identity/identity.json)
+GATEWAYS_ADDRESS=$(jq -r .gatewayServicesAddress ${SNAP_DATA}/userdata/edge_gw_identity/identity.json)
 EDGE_PROXY_URI_RELATIVE_PATH=$(jq -r .edge_proxy_uri_relative_path ${SNAP_DATA}/fp-edge.conf.json)
 
 exec ${SNAP}/wigwag/system/bin/fp-edge \
