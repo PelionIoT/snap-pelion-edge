@@ -41,6 +41,8 @@
 #define MBED_CLIENT_TCP_KEEPALIVE_INTERVAL 60
 #define MBED_CLIENT_TCP_KEEPALIVE_TIME 60
 
+#define PLATFORM_VERSION_FILE "/var/snap/snap-pelion-edge/current/etc/platform_version"
+
 /* turn on reboot external function */
 #define PAL_USE_APPLICATION_REBOOT 1
 
