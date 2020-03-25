@@ -6,8 +6,8 @@
 
 # SNAP_DATA: /var/snap/pelion-edge/current/
 # path copied from snap-pelion-edge/snap/hooks/install
-UPGRADE_DIR=${SNAP_DATA}/upgrades
-UPGRADE_TGZ=${UPGRADE_DIR}/upgrade.tar.gz
+UPGRADE_DIR="${SNAP_DATA}/upgrades"
+UPGRADE_TGZ="${UPGRADE_DIR}/upgrade.tar.gz"
 UPGRADE_WORKDIR=/tmp/pelion-edge-upgrade/
 
 echo "Checking for ${UPGRADE_TGZ}"
@@ -26,3 +26,4 @@ if [ -e "${UPGRADE_TGZ}" ]; then
 	rm "${UPGRADE_TGZ}"
 	rm -rf "${UPGRADE_WORKDIR}"
 fi
+echo "Platform version is $(cat ${SNAP_DATA}/etc/platform_version)"

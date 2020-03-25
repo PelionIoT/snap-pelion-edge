@@ -297,6 +297,7 @@ $ tar -tzf firmware-update.tar.gz
     * For example, add instructions to run `snap install` on each snap you intend to update
 1. Modify the example update/platform_version with the new version and copy it into the update folder
     * Note the version should be a single string that encompasses all software packages being managed by this firmware update mechanism, and not necessarily limited to the version of the Pelion Edge snap itself.
+    * The initial platform version (used by a system that has never been updated) is taken at build time from the `update/platform_version` file in this repo.
 1. Create the firmware update package tar.gz from the contents of the update folder, which must contain at least the upgrade script `runme.sh` and the new version file `platform_version`, and optionally any updated software packages.
 	```bash
 	tar -czf firmware-update.tar.gz -C update/ .

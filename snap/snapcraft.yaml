@@ -153,6 +153,7 @@ parts:
       override-build: |
         snapcraftctl build
         install bin/edge-core ${SNAPCRAFT_PART_INSTALL}
+        install ${SNAPCRAFT_PROJECT_DIR}/update/platform_version ${SNAPCRAFT_PART_INSTALL}
       organize:
         'edge-core': wigwag/mbed/
     files:
