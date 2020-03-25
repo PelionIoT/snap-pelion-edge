@@ -7,5 +7,6 @@
 
 void pal_plat_osApplicationReboot(void)
 {
-    printf("hello\n");
+    printf("Restarting edge..\n");
+    exit(0);
 }
