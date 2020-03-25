@@ -255,6 +255,9 @@ Run the following script from the home directory in your build environment:
 
 The `prime/` parameter is the search folder. You can swap this out for your root directory if you are running this script on the install machine.
 
+## RelayTerm
+
+For more information on relayTerm, see the `docs` folder
 
 ## Update Pelion Edge
 
