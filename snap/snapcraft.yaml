@@ -116,6 +116,12 @@ apps:
     docker-help:
       command: help
 parts:
+    help:
+      plugin: dump
+      source: files/help/
+    identity:
+      plugin: dump
+      source: files/identity/
     snap:
       plugin: nil
       stage-packages:
@@ -135,18 +141,16 @@ parts:
         # mbed_cloud_dev_credentials.c should only exist if DEVELOPER_MODE=ON below
         # update_default_resources.c should only exist if DEVELOPER_MODE=OFF below
         # Piping to true allows the cp to not fail when the file is not present
-        cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_client_user_config.h config/mbed_cloud_client_user_config.h || true
-        cp ${SNAPCRAFT_PROJECT_DIR}/sotp_fs_linux.h config/sotp_fs_linux.h || true
-        cp ${SNAPCRAFT_PROJECT_DIR}/osreboot.c edge-core/osreboot.c || true
         cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c || true
         cp ${SNAPCRAFT_PROJECT_DIR}/update_default_resources.c config/update_default_resources.c || true
-        cp ${SNAPCRAFT_PROJECT_DIR}/cmake/target.cmake config/target.cmake
+        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/mbed_cloud_client_user_config.h config/mbed_cloud_client_user_config.h
+        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/sotp_fs_linux.h config/sotp_fs_linux.h
+        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/osreboot.c edge-core/osreboot.c
+        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/cmake/target.cmake config/target.cmake
         cp ${SNAPCRAFT_PART_SRC}/cmake/toolchains/mcc-linux-x86.cmake config/toolchain.cmake
         sed -i 's!/dev/random!/dev/urandom!' lib/mbed-cloud-client/mbed-client-pal/Source/Port/Reference-Impl/OS_Specific/Linux/Board_Specific/TARGET_x86_x64/pal_plat_x86_x64.c
         sed -i 's!\(MAX_RECONNECT_TIMEOUT\).*!\1 60!' lib/mbed-cloud-client/mbed-client/mbed-client/m2mconstants.h
-        git am ${SNAPCRAFT_PROJECT_DIR}/files-installed/0001-Read-platform-version-file-into-LWM2M-resource-10252.patch
-        #copy the edge reset code 
-        
+        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Read-platform-version-file-into-LWM2M-resource-10252.patch
       configflags:
         - -DCMAKE_BUILD_TYPE=Debug
         - -DTRACE_LEVEL=DEBUG
@@ -158,16 +162,13 @@ parts:
       override-build: |
         snapcraftctl build
         install bin/edge-core ${SNAPCRAFT_PART_INSTALL}
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/config/edge-core.conf ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_activate.sh ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-bootloader.sh ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-factory-reset ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/launch-edge-core.sh ${SNAPCRAFT_PART_INSTALL}/
       organize:
         'edge-core': wigwag/mbed/
-    files:
-      plugin: dump
-      source: files-dumped/
-      stage:
-        - bin/*
-        - '*'
-      prime:
-        - -bin/go-build-helper.sh
     fog-proxy:
       plugin: go
       source: git@github.com:armPelionEdge/fog-proxy.git
@@ -176,10 +177,10 @@ parts:
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+        install ${SNAPCRAFT_PROJECT_DIR}/files/fog-proxy/config/fp-edge.conf.json ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/fog-proxy/scripts/launch-fp-edge.sh ${SNAPCRAFT_PART_INSTALL}/
       organize:
         bin/fp-edge: wigwag/system/bin/fp-edge
-      stage:
-        - wigwag/system/bin/fp-edge
     devicedb:
       plugin: go
       source: git@github.com:armPelionEdge/devicedb.git
@@ -194,10 +195,10 @@ parts:
       source-commit: 54fac76dc9d913551b813f172716d5dfab7f2b61
       override-pull: |
         snapcraftctl pull
-        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/package.json .
+        cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/package.json .
       override-build: |
         snapcraftctl build
-        cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/versions.json
+        cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/versions.json
         ../npm/bin/npm pack ./debug_scripts/get_new_gw_identity/developer_gateway_identity/
         ../npm/bin/npm install developer_identity-*.tgz
         cp -r node_modules ${SNAPCRAFT_PART_INSTALL}/
@@ -305,7 +306,7 @@ parts:
         install -d ${SNAPCRAFT_PART_INSTALL}/etc/init.d
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
-        install ${SNAPCRAFT_PROJECT_DIR}/files-installed/maestro/maestro.sh ${SNAPCRAFT_PART_INSTALL}/etc/init.d/maestro.sh
+        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/maestro.sh ${SNAPCRAFT_PART_INSTALL}/etc/init.d/maestro.sh
         install ${GOPATH}/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
         install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/grease_echo ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/grease_echo
         install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/standalone_test_logsink ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/standalone_test_logsink
@@ -365,12 +366,12 @@ parts:
 
         cd ${SNAPCRAFT_PART_SRC}
 
-        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/c2d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d
-        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/c2d-inner ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d-inner
+        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files/cni/c2d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d
+        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files/cni/c2d-inner ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d-inner
 
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d
-        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/10-c2d.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/10-c2d.conf
-        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files-installed/cni/99-loopback.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/99-loopback.conf
+        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files/cni/10-c2d.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/10-c2d.conf
+        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files/cni/99-loopback.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/99-loopback.conf
       filesets:
         cni_bin:
           - wigwag/system/opt/cni/bin/*
@@ -403,11 +404,10 @@ parts:
 
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/var/lib/kubelet
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
-        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files-installed/kubelet/kubeconfig ${SNAPCRAFT_PART_INSTALL}/wigwag/system/var/lib/kubelet/kubeconfig
+        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/config/kubeconfig ${SNAPCRAFT_PART_INSTALL}/wigwag/system/var/lib/kubelet/kubeconfig
         install -m 0755 ../../_output/bin/kubelet ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/kubelet
-      stage:
-        - wigwag/system/bin/kubelet
-        - wigwag/system/var/lib/kubelet/kubeconfig
+        install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-kubelet.sh ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-edgenet.sh ${SNAPCRAFT_PART_INSTALL}/
       stage-packages: [coreutils, iptables, systemd]
     jq:
       plugin: autotools
@@ -428,7 +428,7 @@ parts:
         - libtool
     docker-wrapper-scripts:
       plugin: dump
-      source: docker/
+      source: files/docker/
       stage-packages:
       - mount
       stage:
@@ -437,7 +437,6 @@ parts:
       - config/daemon.json
       prime:
       - -bin/prep-docker-build.sh
-      - -bin/go-build-helper.sh
       - -patches/*
       - bin/*
       - config/daemon.json
@@ -457,7 +456,7 @@ parts:
         . "$SNAPCRAFT_STAGE/bin/prep-docker-build.sh"
 
         # setup the go build environment for docker-ce
-        . $SNAPCRAFT_STAGE/bin/go-build-helper.sh
+        . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
         gopartbootstrap github.com/docker/docker-ce
 
         # build the dockerd binary
@@ -513,7 +512,7 @@ parts:
       source-commit: 468a545b9edcd5932818eb9de8e72413e616e86e
       override-build: |
         # setup the go build environment for containerd
-        . $SNAPCRAFT_STAGE/bin/go-build-helper.sh
+        . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
         gopartbootstrap github.com/containerd/containerd
 
         make GIT_COMMIT= GIT_BRANCH= LDFLAGS=
@@ -533,7 +532,7 @@ parts:
       source-commit: 69663f0bd4b60df09991c08812a60108003fa340
       override-build: |
         # setup the go build environment for runc
-        . $SNAPCRAFT_STAGE/bin/go-build-helper.sh
+        . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
         gopartbootstrap github.com/opencontainers/runc
 
         make BUILDTAGS='seccomp apparmor selinux' COMMIT=
@@ -553,7 +552,7 @@ parts:
       source-commit: 3ac297bc7fd0afec9051bbb47024c9bc1d75bf5b
       override-build: |
         # setup the go build environment for libnetwork
-        . $SNAPCRAFT_STAGE/bin/go-build-helper.sh
+        . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
         gopartbootstrap github.com/docker/libnetwork
 
         make build-local
@@ -591,7 +590,7 @@ parts:
       source-depth: 1
       override-build: |
         # setup the go build environment for docker machine
-        . $SNAPCRAFT_STAGE/bin/go-build-helper.sh
+        . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
         gopartbootstrap github.com/docker/machine
 
         make build
