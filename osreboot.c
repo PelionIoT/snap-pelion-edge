@@ -1,12 +1,9 @@
-#include "pal.h"
+#include "mbed-trace/mbed_trace.h"
 #include <stdlib.h>
-#include <string.h>
-#include "pal_plat_rtos.h"
-#include "mbed.h"
-#include "entropy_poll.h"
+#define TRACE_GROUP "serv"
 
 void pal_plat_osApplicationReboot(void)
 {
-    printf("Restarting edge..\n");
-    exit(0);
+    tr_warn("Restarting edge..\n");
+    exit(-666);
 }
