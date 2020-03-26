@@ -136,6 +136,7 @@ parts:
         # update_default_resources.c should only exist if DEVELOPER_MODE=OFF below
         # Piping to true allows the cp to not fail when the file is not present
         cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_client_user_config.h config/mbed_cloud_client_user_config.h || true
+        cp ${SNAPCRAFT_PROJECT_DIR}/sotp_fs_linux.h config/sotp_fs_linux.h || true
         cp ${SNAPCRAFT_PROJECT_DIR}/osreboot.c edge-core/osreboot.c || true
         cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c || true
         cp ${SNAPCRAFT_PROJECT_DIR}/update_default_resources.c config/update_default_resources.c || true
@@ -148,7 +149,6 @@ parts:
       configflags:
         - -DCMAKE_BUILD_TYPE=Debug
         - -DTRACE_LEVEL=DEBUG
-        - -DPAL_USE_APPLICATION_REBOOT=1
         - -DFIRMWARE_UPDATE=OFF
         - -DDEVELOPER_MODE=ON
         - -DFACTORY_MODE=OFF

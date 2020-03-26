@@ -43,10 +43,5 @@
 
 #define PLATFORM_VERSION_FILE "/var/snap/pelion-edge/current/etc/platform_version"
 
-/* turn on reboot external function */
-#define PAL_USE_APPLICATION_REBOOT 1
-
-void pal_plat_osApplicationReboot(void);
-
 #endif /* MBED_CLIENT_USER_CONFIG_H */
 
