@@ -1,6 +1,6 @@
 name: pelion-edge
 base: core
-version: "1.7.0"
+version: "1.8.0"
 summary: Pelion Edge
 description: Pelion Edge - HW CaaS Dev
 confinement: devmode
@@ -42,7 +42,7 @@ apps:
       restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
-      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
+      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files, snapd-control]
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
       passthrough:
@@ -116,6 +116,12 @@ apps:
     docker-help:
       command: help
 parts:
+    snap:
+      plugin: nil
+      stage-packages:
+        - snapd
+      organize:
+        usr/bin/snap: bin/snap
     edge-core:
       plugin: cmake
       source: https://github.com/ARMmbed/mbed-edge.git
@@ -126,12 +132,17 @@ parts:
         - git
       override-pull: |
         snapcraftctl pull
-        cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c
+        # mbed_cloud_dev_credentials.c should only exist if DEVELOPER_MODE=ON below
+        # update_default_resources.c should only exist if DEVELOPER_MODE=OFF below
+        # Piping to true allows the cp to not fail when the file is not present
+        cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c || true
+        cp ${SNAPCRAFT_PROJECT_DIR}/update_default_resources.c config/update_default_resources.c || true
         cp ${SNAPCRAFT_PROJECT_DIR}/cmake/target.cmake config/target.cmake
         cp ${SNAPCRAFT_PART_SRC}/cmake/toolchains/mcc-linux-x86.cmake config/toolchain.cmake
         sed -i 's!/dev/random!/dev/urandom!' lib/mbed-cloud-client/mbed-client-pal/Source/Port/Reference-Impl/OS_Specific/Linux/Board_Specific/TARGET_x86_x64/pal_plat_x86_x64.c
         sed -i 's!\(MBED_CLOUD_CLIENT_LIFETIME\).*!\1 600!' config/mbed_cloud_client_user_config.h
         sed -i 's!\(MAX_RECONNECT_TIMEOUT\).*!\1 60!' lib/mbed-cloud-client/mbed-client/mbed-client/m2mconstants.h
+        git am ${SNAPCRAFT_PROJECT_DIR}/files-installed/0001-Read-platform-version-file-into-LWM2M-resource-10252.patch
       configflags:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=INFO
@@ -156,7 +167,7 @@ parts:
     fog-proxy:
       plugin: go
       source: git@github.com:armPelionEdge/fog-proxy.git
-      source-commit: ae0e1a185dbacbc3b3c937161ce24b64b023433a
+      source-commit: 8e5cd30b070c6ad7d5696a7d1a5a00a11d258681
       go-importpath: github.com/armPelionEdge/fog-proxy
       override-build: |
         snapcraftctl build
@@ -176,7 +187,7 @@ parts:
       plugin: nodejs-improved
       nodejs-package-manager: npm
       source: https://github.com/armPelionEdge/edge-utils.git
-      source-commit: fa2a5d0f75d7c520ba8bb14469b1f9212e8ed8b9
+      source-commit: 54fac76dc9d913551b813f172716d5dfab7f2b61
       override-pull: |
         snapcraftctl pull
         cp ${SNAPCRAFT_PROJECT_DIR}/files-installed/wwrelay-utils/package.json .

@@ -6,6 +6,7 @@ pipeline {
     }
     environment {
         MBED_CLOUD_DEV_CREDENTIALS_C = credentials('${mbed-cloud-dev-credentials-c}')
+        UPDATE_DEFAULT_RESOURCES_C = credentials('${update-default-resources-c}')
     }
     stages {
         stage('Setup') {
@@ -25,6 +26,7 @@ pipeline {
                 sshagent(credentials: ['c9c1171e-fac3-4ec9-99cc-1f8a351e71ae']) {
                     sh '''
                     cp "${MBED_CLOUD_DEV_CREDENTIALS_C}" mbed_cloud_dev_credentials.c
+                    cp "${UPDATE_DEFAULT_RESOURCES_C}" update_default_resources.c
                     snapcraft
                     '''
                 }
