@@ -1,4 +1,4 @@
-From 0f724ab5a39ed59ee4980e9fec0a9b91c483df98 Mon Sep 17 00:00:00 2001
+From 0143662ed59911328edae27e3be5ba3e9d70de6d Mon Sep 17 00:00:00 2001
 From: Michael Ray <mjray@umich.edu>
 Date: Wed, 25 Mar 2020 14:20:17 -0500
 Subject: [PATCH] Read platform version file into LWM2M resource /10252/0/6
@@ -9,11 +9,11 @@ If macro PLATFORM_VERSION_FILE is not found, use /etc/platform_version file
 If the file does not exist at all, version becomes -1 which was default
 before this change
 ---
- .../lwm2m-mbed/source/FirmwareUpdateResource.cpp        | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ .../lwm2m-mbed/source/FirmwareUpdateResource.cpp        | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
 diff --git a/lib/mbed-cloud-client/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp b/lib/mbed-cloud-client/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp
-index 1f50abd..4c45c04 100644
+index 1f50abd..5325299 100644
 --- a/lib/mbed-cloud-client/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp
 +++ b/lib/mbed-cloud-client/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp
 @@ -49,6 +49,10 @@
@@ -27,15 +27,14 @@ index 1f50abd..4c45c04 100644
  namespace FirmwareUpdateResource {
  
  /* send delayed response */
-@@ -209,6 +213,19 @@ void FirmwareUpdateResource::Initialize(void)
+@@ -209,8 +213,19 @@ void FirmwareUpdateResource::Initialize(void)
                  resourceVersion = updateInstance->create_dynamic_resource(
                                        RESOURCE_VALUE(6), "PkgVersion", M2MResourceInstance::STRING, true);
                  if (resourceVersion) {
 +                    FILE *fp = fopen(PLATFORM_VERSION_FILE, "r");
 +                    if (fp) {
-+                        char buffer[32] = "missingnewline";
-+                        /* Newline required at end of file for fgets to read
-+                           Strip out the new line since we don't want it in the LWM2M object */
++                        char buffer[32] = "0.0.0";
++                        /* Strip out the newline if exists since we don't want it in the LWM2M object */
 +                        if (fgets(buffer, sizeof(buffer), fp) && buffer[strlen(buffer) - 1] == '\n') {
 +                            buffer[strlen(buffer)-1] = 0;
 +                        }
@@ -45,8 +44,10 @@ index 1f50abd..4c45c04 100644
 +                        resourceVersion->set_value(defaultVersion, sizeof(defaultVersion) - 1);
 +                    }
                      resourceVersion->set_operation(M2MBase::GET_ALLOWED);
-                     resourceVersion->set_value(defaultVersion, sizeof(defaultVersion) - 1);
+-                    resourceVersion->set_value(defaultVersion, sizeof(defaultVersion) - 1);
                      resourceVersion->publish_value_in_registration_msg(true);
+                     resourceVersion->set_auto_observable(true);
+                 }
 -- 
 2.10.1.windows.1
 
