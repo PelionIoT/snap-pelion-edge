@@ -5,7 +5,7 @@ EDGE_PROXY_URI_RELATIVE_PATH=$(jq -r .edge_proxy_uri_relative_path ${SNAP_DATA}/
 
 exec ${SNAP}/wigwag/system/bin/fp-edge \
     -proxy-uri=${EDGE_K8S_ADDRESS} \
-    -tunnel-uri=wss://${GATEWAYS_ADDRESS#"https://"}$EDGE_PROXY_URI_RELATIVE_PATH \
+    -tunnel-uri=ws://${GATEWAYS_ADDRESS#"https://"}$EDGE_PROXY_URI_RELATIVE_PATH \
     -cert-strategy=tpm \
     -cert-strategy-options=socket=/tmp/edge.sock \
     -cert-strategy-options=path=/1/pt \
