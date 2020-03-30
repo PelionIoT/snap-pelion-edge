@@ -2,3 +2,8 @@
 
 # This is present on some, but not all gateways, and is where logs are persisted.
 rm -f /var/log/syslog*
+
+# Stop and remove all existing docker containers and images
+docker stop $(docker ps -a -q)
+docker rm -f $(docker ps -a -q)
+docker rmi -f $(docker images -q)
