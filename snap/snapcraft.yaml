@@ -162,14 +162,17 @@ parts:
         - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
       override-build: |
         snapcraftctl build
-        install bin/edge-core ${SNAPCRAFT_PART_INSTALL}
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
+        install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/config/edge-core.conf ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_activate.sh ${SNAPCRAFT_PART_INSTALL}/
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-bootloader.sh ${SNAPCRAFT_PART_INSTALL}/
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-factory-reset ${SNAPCRAFT_PART_INSTALL}/
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/launch-edge-core.sh ${SNAPCRAFT_PART_INSTALL}/
-      organize:
-        'edge-core': wigwag/mbed/
+        # install the generic update scripts
+        install ${SNAPCRAFT_PART_SRC}/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/scripts/arm_update_cmdline.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
+        install ${SNAPCRAFT_PART_SRC}/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/scripts/generic/*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
+        # override one of the generic update scripts with our own
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_activate.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
     fog-proxy:
       plugin: go
       source: git@github.com:armPelionEdge/fog-proxy.git
