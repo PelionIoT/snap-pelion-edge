@@ -155,7 +155,7 @@ parts:
       configflags:
         - -DCMAKE_BUILD_TYPE=Debug
         - -DTRACE_LEVEL=DEBUG
-        - -DFIRMWARE_UPDATE=OFF
+        - -DFIRMWARE_UPDATE=ON
         - -DDEVELOPER_MODE=ON
         - -DFACTORY_MODE=OFF
         - -DBYOC_MODE=OFF
