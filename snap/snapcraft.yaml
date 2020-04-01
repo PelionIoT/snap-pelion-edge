@@ -170,10 +170,9 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-factory-reset ${SNAPCRAFT_PART_INSTALL}/
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/launch-edge-core.sh ${SNAPCRAFT_PART_INSTALL}/
         # install the generic update scripts
-        install ${SNAPCRAFT_PART_SRC}/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/scripts/arm_update_cmdline.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
         install ${SNAPCRAFT_PART_SRC}/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/scripts/generic/*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
-        # override one of the generic update scripts with our own
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_activate.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
+        # override the generic update scripts with our own
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
     fog-proxy:
       plugin: go
       source: git@github.com:armPelionEdge/fog-proxy.git
