@@ -240,7 +240,7 @@ parts:
     maestro-shell:
       plugin: go
       source: https://github.com/armPelionEdge/maestro-shell.git
-      source-commit: e75413b16977192dbc228c15ca7a0317104f02b5
+      source-commit: e06b5e28d6beb46577710331168a84687bb4b370
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
         # Create the go workspace. This is normally done by the plugin
@@ -252,7 +252,7 @@ parts:
         cd go/src/github.com/armPelionEdge
         git clone https://github.com/armPelionEdge/maestro-shell.git
         cd maestro-shell
-        git checkout e75413b16977192dbc228c15ca7a0317104f02b5
+        git checkout e06b5e28d6beb46577710331168a84687bb4b370
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         cd ${GOPATH}/src/github.com/armPelionEdge/maestro-shell/
@@ -269,7 +269,7 @@ parts:
     maestro:
       plugin: go
       source: https://github.com/armPelionEdge/maestro.git
-      source-commit: 641ee8d4b7388b1ca4d6e2feb3431e2cb16e3750
+      source-commit: d6ab0da4238bb4d8b767db3f70af71db909fae1c
       build-packages:
         - python
         - build-essential
@@ -284,7 +284,7 @@ parts:
         cd go/src/github.com/armPelionEdge
         git clone https://github.com/armPelionEdge/maestro.git
         cd maestro
-        git checkout 641ee8d4b7388b1ca4d6e2feb3431e2cb16e3750
+        git checkout d6ab0da4238bb4d8b767db3f70af71db909fae1c
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
