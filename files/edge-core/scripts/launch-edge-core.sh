@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# make sure the PAL_FS_MOUNT_POINT_PRIMARY directory exists so it can be populated
+# with mcc_config
+if [ ! -d ${SNAP_DATA}/userdata/mbed ]; then
+    mkdir -p ${SNAP_DATA}/userdata/mbed
+fi
+
 # before we start edge-core, call the fake bootloader to apply any existing updates
 ${SNAP}/edge-core-bootloader.sh
 
