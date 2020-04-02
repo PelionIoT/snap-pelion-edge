@@ -152,7 +152,7 @@ parts:
         sed -i 's!\(MAX_RECONNECT_TIMEOUT\).*!\1 60!' lib/mbed-cloud-client/mbed-client/mbed-client/m2mconstants.h
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Read-platform-version-file-into-LWM2M-resource-10252.patch
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-PELEDGE19-1193-Call-a-script-on-factory-reset.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-PATCH-Update-update-script-source-locations.patch
+        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-use-customized-edge-core-update-scripts.patch
       configflags:
         - -DCMAKE_BUILD_TYPE=Debug
         - -DTRACE_LEVEL=DEBUG
