@@ -6,7 +6,7 @@
 # The tarball signature and integrity info are handled by the update client
 # before this script is called.
 
-. arm_update_cmdline.sh
+. $(dirname "$0")/arm_update_cmdline.sh
 
 mkdir -p "$UPGRADE_DIR"
 
