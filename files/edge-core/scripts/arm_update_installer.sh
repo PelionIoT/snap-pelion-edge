@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # ----------------------------------------------------------------------------
 # Copyright 2016-2017 ARM Ltd.
 #
@@ -25,6 +25,7 @@
 # OFFSET
 # SIZE
 #
-. ./arm_update_cmdline.sh
+
+. $(dirname "$0")/arm_update_cmdline.sh
 
 exit 0
