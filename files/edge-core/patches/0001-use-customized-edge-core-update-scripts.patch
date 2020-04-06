@@ -1,4 +1,4 @@
-From ea8488972fb0cb9586ff96686afde4effe084ad7 Mon Sep 17 00:00:00 2001
+From 6696df8a7c633ec64f902a10bf1b05947c0fa095 Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Thu, 2 Apr 2020 16:37:10 -0500
 Subject: [PATCH] use customized edge-core update scripts
@@ -8,7 +8,7 @@ Subject: [PATCH] use customized edge-core update scripts
  1 file changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c b/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c
-index 1d1228b..7eb6c24 100644
+index 1d1228b..872f101 100644
 --- a/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c
 +++ b/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c
 @@ -121,7 +121,7 @@ arm_ucp_worker_t arm_uc_worker_parameters_details = {
@@ -16,7 +16,7 @@ index 1d1228b..7eb6c24 100644
  
  arm_ucp_worker_t arm_uc_worker_parameters_active_details = {
 -    .command = "../../../arm_update_active_details.sh",
-+    .command = "./arm_update_active_details.sh",
++    .command = "/snap/pelion-edge/current/wigwag/mbed/arm_update_active_details.sh",
      .header   = 1,
      .firmware = 0,
      .location = 0,
@@ -25,7 +25,7 @@ index 1d1228b..7eb6c24 100644
  
  arm_ucp_worker_t arm_uc_worker_parameters_activate = {
 -    .command = "../../../arm_update_activate.sh",
-+    .command = "./arm_update_activate.sh",
++    .command = "/snap/pelion-edge/current/wigwag/mbed/arm_update_activate.sh",
      .header   = 1,
      .firmware = 1,
      .location = 0,
@@ -34,7 +34,7 @@ index 1d1228b..7eb6c24 100644
  
  arm_ucp_worker_t arm_uc_worker_parameters_installer = {
 -    .command = "../../../arm_update_installer.sh",
-+    .command = "./arm_update_installer.sh",
++    .command = "/snap/pelion-edge/current/wigwag/mbed/arm_update_installer.sh",
      .header   = 1,
      .firmware = 0,
      .location = 0,
