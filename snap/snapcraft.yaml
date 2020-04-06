@@ -202,6 +202,7 @@ parts:
         cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/package.json .
       override-build: |
         snapcraftctl build
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
         cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/versions.json
         ../npm/bin/npm pack ./debug_scripts/get_new_gw_identity/developer_gateway_identity/
         ../npm/bin/npm install developer_identity-*.tgz
