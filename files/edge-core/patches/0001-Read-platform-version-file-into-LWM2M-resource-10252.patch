@@ -1,19 +1,26 @@
-From 0143662ed59911328edae27e3be5ba3e9d70de6d Mon Sep 17 00:00:00 2001
+From 2239106554f652ff302685f5388383dc3e77d7dd Mon Sep 17 00:00:00 2001
 From: Michael Ray <mjray@umich.edu>
 Date: Wed, 25 Mar 2020 14:20:17 -0500
-Subject: [PATCH] Read platform version file into LWM2M resource /10252/0/6
+Subject: [PATCH] Read platform version file into LWM2M resource /10252/0/10
 
 Check for a file specified in macro PLATFORM_VERSION_FILE
 If macro PLATFORM_VERSION_FILE is not found, use /etc/platform_version file
 
 If the file does not exist at all, version becomes -1 which was default
 before this change
+
+Note: /10252/0/6 is the package version, which is required to be  set
+to the timestamp in the  manifest during a firmware update.
+
+Originally, we wanted to use this LWM2M resource to store the version,
+but a FOTA would not complete without setting it to the expected time
+(named hash in the resource name)
 ---
- .../lwm2m-mbed/source/FirmwareUpdateResource.cpp        | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ .../source/FirmwareUpdateResource.cpp         | 28 ++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
 diff --git a/lib/mbed-cloud-client/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp b/lib/mbed-cloud-client/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp
-index 1f50abd..5325299 100644
+index 1f50abd..c7f3313 100644
 --- a/lib/mbed-cloud-client/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp
 +++ b/lib/mbed-cloud-client/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp
 @@ -49,6 +49,10 @@
@@ -27,10 +34,29 @@ index 1f50abd..5325299 100644
  namespace FirmwareUpdateResource {
  
  /* send delayed response */
-@@ -209,8 +213,19 @@ void FirmwareUpdateResource::Initialize(void)
+@@ -88,6 +92,7 @@ static M2MResource *resourceState = NULL;
+ static M2MResource *resourceResult = NULL;
+ static M2MResource *resourceName = NULL;
+ static M2MResource *resourceVersion = NULL;
++static M2MResource *resourcePlatVersion = NULL;
+ 
+ /* function pointers to callback functions */
+ static void (*externalPackageCallback)(const uint8_t *buffer, uint16_t length) = NULL;
+@@ -209,12 +214,33 @@ void FirmwareUpdateResource::Initialize(void)
                  resourceVersion = updateInstance->create_dynamic_resource(
                                        RESOURCE_VALUE(6), "PkgVersion", M2MResourceInstance::STRING, true);
                  if (resourceVersion) {
+-                    resourceVersion->set_operation(M2MBase::GET_ALLOWED);
+                     resourceVersion->set_value(defaultVersion, sizeof(defaultVersion) - 1);
++                    resourceVersion->set_operation(M2MBase::GET_ALLOWED);
+                     resourceVersion->publish_value_in_registration_msg(true);
+                     resourceVersion->set_auto_observable(true);
+                 }
+ 
++                /* Create Platform Version resource /10252/0/10 */
++                resourcePlatVersion = updateInstance->create_dynamic_resource(
++                                      RESOURCE_VALUE(10), "PlatVersion", M2MResourceInstance::STRING, true);
++                if (resourcePlatVersion) {
 +                    FILE *fp = fopen(PLATFORM_VERSION_FILE, "r");
 +                    if (fp) {
 +                        char buffer[32] = "0.0.0";
@@ -38,16 +64,19 @@ index 1f50abd..5325299 100644
 +                        if (fgets(buffer, sizeof(buffer), fp) && buffer[strlen(buffer) - 1] == '\n') {
 +                            buffer[strlen(buffer)-1] = 0;
 +                        }
-+                        resourceVersion->set_value((uint8_t*)buffer, strlen(buffer));
++                        resourcePlatVersion->set_value((uint8_t*)buffer, strlen(buffer));
 +                        fclose(fp);
 +                    } else {
-+                        resourceVersion->set_value(defaultVersion, sizeof(defaultVersion) - 1);
++                        resourcePlatVersion->set_value(defaultVersion, sizeof(defaultVersion) - 1);
 +                    }
-                     resourceVersion->set_operation(M2MBase::GET_ALLOWED);
--                    resourceVersion->set_value(defaultVersion, sizeof(defaultVersion) - 1);
-                     resourceVersion->publish_value_in_registration_msg(true);
-                     resourceVersion->set_auto_observable(true);
-                 }
++                    resourcePlatVersion->set_operation(M2MBase::GET_ALLOWED);
++                    resourcePlatVersion->publish_value_in_registration_msg(true);
++                    resourcePlatVersion->set_auto_observable(true);
++                }
++
+ #if !defined(ARM_UC_PROFILE_MBED_CLIENT_LITE) || (ARM_UC_PROFILE_MBED_CLIENT_LITE == 0)
+                 /* Create Update resource /10252/0/9 */
+                 resourceUpdate = updateInstance->create_dynamic_resource(
 -- 
-2.10.1.windows.1
+2.21.0
 
