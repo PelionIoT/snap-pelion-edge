@@ -267,7 +267,9 @@ Edge-core must also be provisioned with an update certificate used to verify tha
 
 A firmware update package is a tar.gz containing at minimum a bash script called `runme.sh` and a version file called `platform_version`.  The logic for performing an update of system components including the Pelion Edge snap itself is implemented by `runme.sh`.
 
-It is the job of runme.sh to call `snap install` on any snaps contained within the firmware update package, and to perform any other duties related to upgrading system packages in relation to the current update campaign.
+platform_version should contain a single text string representing the combined versions of the software running on the device that is managed through this firmware update mechanism.  This version string is reported to Pelion Cloud under LwM2M resource ID /10252/0/6 "PkgVersion".
+
+It is the job of runme.sh to call `snap install` on any snaps contained within the firmware update package, and to perform any other duties related to upgrading system packages in relation to the current update campaign.  Important: Make sure this shell script has execute privileges `chmod a+x runme.sh` otherwise the firmware update will fail.
 
 Here is an example runme.sh:
 ```bash
@@ -297,6 +299,7 @@ $ tar -tzf firmware-update.tar.gz
     * For example, add instructions to run `snap install` on each snap you intend to update
 1. Modify the example update/platform_version with the new version and copy it into the update folder
     * Note the version should be a single string that encompasses all software packages being managed by this firmware update mechanism, and not necessarily limited to the version of the Pelion Edge snap itself.
+    * Make sure the script has execute privileges `chmod a+x runme.sh`
 1. Create the firmware update package tar.gz from the contents of the update folder, which must contain at least the upgrade script `runme.sh` and the new version file `platform_version`, and optionally any updated software packages.
 	```bash
 	tar -czf firmware-update.tar.gz -C update/ .
