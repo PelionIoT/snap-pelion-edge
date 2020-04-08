@@ -10,7 +10,7 @@
 
 mkdir -p "$UPGRADE_DIR"
 
-# copy header if present
+# copy header to location to be applied by bootloader
 [ -n "$HEADER" ] && cp "$HEADER" "$UPGRADE_HDR"
-# copy firmware if present
+# copy firmware to location to be applied by bootloader
 [ -n "$FIRMWARE" ] && cp "$FIRMWARE" "$UPGRADE_TGZ"

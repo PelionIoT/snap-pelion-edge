@@ -9,6 +9,9 @@ UPGRADE_DIR="${SNAP_DATA}/upgrades"
 UPGRADE_TGZ="${UPGRADE_DIR}/upgrade.tar.gz"
 UPGRADE_HDR="${UPGRADE_DIR}/header.bin"
 
+ACTIVE_DIR="${SNAP_DATA}/userdata/mbed"
+ACTIVE_HDR="${ACTIVE_DIR}/header.bin"
+
 # The following variables may be provided in the environment, or overridden
 # by command line arguments. See example with full set of scripts in
 # mbed-edge/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/scripts/generic/
