@@ -13,7 +13,6 @@ function update() {
 
 function post_update() {
     echo "START post-update"
-    cp platform_version ${SNAP_DATA}/etc/
     echo "END post-update"
 }
 
