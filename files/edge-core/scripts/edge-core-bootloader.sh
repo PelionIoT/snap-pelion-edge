@@ -17,17 +17,22 @@ if [ -e "${UPGRADE_TGZ}" ]; then
 	#TODO: verify the firmware tarball signature & integrity
 	mkdir -p "${UPGRADE_WORKDIR}"
 	tar -xzf "${UPGRADE_TGZ}" -C "${UPGRADE_WORKDIR}"
+	# remove the upgrade tar file so that we don't fall into an upgrade loop
+	rm "${UPGRADE_TGZ}"
 	pushd "${UPGRADE_WORKDIR}"
 	if [ -x runme.sh ]; then
+		# copy the firmware header to persistent storage for later
+		# use by the arm_update_active_details.sh script
+		# we do this first because we might not return from runme.sh
+		cp "${UPGRADE_HDR}" "${ACTIVE_HDR}"
 		./runme.sh
-        # copy the firmware header to persistent storage for later
-        # use by the arm_update_active_details.sh script
-        cp "${UPGRADE_HDR}" "${ACTIVE_HDR}"
 	else
 		echo "ERROR: upgrade.tar.gz did not contain runme.sh"
 	fi
 	popd
-	# remove the file so that we don't fall into an upgrade loop
-	rm "${UPGRADE_TGZ}"
-	rm -rf "${UPGRADE_WORKDIR}"
+fi
+
+if [ -d "${UPGRADE_WORKDIR}" ]; then
+	echo "Cleaning up upgrade workdir ${UPGRADE_WORKDIR}"
+    rm -rf "${UPGRADE_WORKDIR}"
 fi
