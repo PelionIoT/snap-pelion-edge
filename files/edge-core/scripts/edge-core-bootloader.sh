@@ -28,12 +28,14 @@ if [ -e "${UPGRADE_TGZ}" ]; then
 	else
 		echo "ERROR: upgrade.tar.gz did not contain platform_version"
 		# return success to allow edge-core to continue booting
-		return 0
+		exit 0
 	fi
 	if [ -x runme.sh ]; then
-		./runme.sh
+		./runme.sh || exit $?
 	else
 		echo "ERROR: upgrade.tar.gz did not contain runme.sh"
+		# return success to allow edge-core to continue booting
+		exit 0
 	fi
 	popd
 fi
