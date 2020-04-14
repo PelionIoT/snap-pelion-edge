@@ -267,7 +267,7 @@ Edge-core must also be provisioned with an update certificate used to verify tha
 
 A firmware update package is a tar.gz containing at minimum a bash script called `runme.sh` and a version file called `platform_version`.  The logic for performing an update of system components including the Pelion Edge snap itself is implemented by `runme.sh`.
 
-platform_version should contain a single text string representing the combined versions of the software running on the device that is managed through this firmware update mechanism.  This version string is reported to Pelion Cloud under LwM2M resource ID /10252/0/6 "PkgVersion".
+platform_version should contain a single text string representing the combined versions of the software running on the device that is managed through this firmware update mechanism.  This version string is reported to Pelion Cloud under LwM2M resource ID /10252/0/10 "PkgVersion".
 
 It is the job of runme.sh to call `snap install` on any snaps contained within the firmware update package, and to perform any other duties related to upgrading system packages in relation to the current update campaign.  Important: Make sure this shell script has execute privileges `chmod a+x runme.sh` otherwise the firmware update will fail.
 
