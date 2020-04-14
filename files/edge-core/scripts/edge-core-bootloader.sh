@@ -14,31 +14,39 @@ UPGRADE_WORKDIR=/tmp/pelion-edge-upgrade/
 ACTIVE_HDR=${SNAP_DATA}/userdata/mbed/header.bin
 ACTIVE_VER=${SNAP_DATA}/etc/platform_version
 
-echo "Checking for ${UPGRADE_TGZ}"
-if [ -e "${UPGRADE_TGZ}" ]; then
-	mkdir -p "${UPGRADE_WORKDIR}"
-	tar -xzf "${UPGRADE_TGZ}" -C "${UPGRADE_WORKDIR}"
-	# remove the upgrade tgz file so that we don't fall into an upgrade loop
-	rm "${UPGRADE_TGZ}"
-	pushd "${UPGRADE_WORKDIR}"
-	# copy the new version file to the upgrade folder to be copied
-	# into its final destination after the upgrade finishes
-	if [ -e platform_version ]; then
-		cp platform_version "${UPGRADE_VER}"
-	else
-		echo "ERROR: upgrade.tar.gz did not contain platform_version"
-		# return success to allow edge-core to continue booting
-		exit 0
+function try_upgrade()
+{
+	let retval=0
+	echo "Checking for ${UPGRADE_TGZ}"
+	if [ -e "${UPGRADE_TGZ}" ]; then
+		mkdir -p "${UPGRADE_WORKDIR}"
+		tar -xzf "${UPGRADE_TGZ}" -C "${UPGRADE_WORKDIR}"
+		# remove the upgrade tgz file so that we don't fall into an upgrade loop
+		rm "${UPGRADE_TGZ}"
+		pushd "${UPGRADE_WORKDIR}"
+		# copy the new version file to the upgrade folder to be copied
+		# into its final destination after the upgrade finishes
+		if [ -e platform_version ]; then
+			cp platform_version "${UPGRADE_VER}"
+			if [ -x runme.sh ]; then
+				echo "edge-core-bootloader.sh: Running runme.sh" | systemd-cat -p info -t FOTA
+				./runme.sh 2>&1 | systemd-cat -p info -t FOTA
+				retval=$?
+			else
+				echo "ERROR: upgrade.tar.gz did not contain runme.sh"
+				retval=1
+			fi
+		else
+			echo "ERROR: upgrade.tar.gz did not contain platform_version"
+			retval=1
+		fi
+		popd
 	fi
-	if [ -x runme.sh ]; then
-		./runme.sh || exit $?
-	else
-		echo "ERROR: upgrade.tar.gz did not contain runme.sh"
-		# return success to allow edge-core to continue booting
-		exit 0
-	fi
-	popd
-fi
+	return $retval
+}
+
+# If the upgrade fails for any reason, we ignore the new user version string
+try_upgrade || rm -f "${UPGRADE_VER}"
 
 if [ -e "${UPGRADE_HDR}" ]; then
 	# copy the firmware header to persistent storage for later
@@ -56,3 +64,6 @@ if [ -d "${UPGRADE_WORKDIR}" ]; then
 	echo "Deleting the upgrade workdir ${UPGRADE_WORKDIR}"
 	rm -rf "${UPGRADE_WORKDIR}"
 fi
+
+# return success to allow edge-core to continue booting
+exit 0
