@@ -3,6 +3,8 @@
 # This is present on some, but not all gateways, and is where logs are persisted.
 rm -f /var/log/syslog*
 
+rm -f ${SNAP_DATA}/userdata/edge_gw_identity/identity.json
+
 # Stop and remove all existing docker containers and images
 docker stop $(docker ps -a -q) || true
 docker system prune --volumes -a -f || true
