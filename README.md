@@ -267,17 +267,15 @@ Edge-core must also be provisioned with an update certificate used to verify tha
 
 A firmware update package is a tar.gz containing at minimum a bash script called `runme.sh` and a version file called `platform_version`.  The logic for performing an update of system components including the Pelion Edge snap itself is implemented by `runme.sh`.
 
-platform_version should contain a single text string representing the combined versions of the software running on the device that is managed through this firmware update mechanism.  This version string is reported to Pelion Cloud under LwM2M resource ID /10252/0/10 "PkgVersion".
+platform_version should contain a single text string representing the combined versions of the software running on the device that is managed through this firmware update mechanism.  This version string is reported to Pelion Cloud under LwM2M resource ID /10252/0/10 "PlatVersion".
 
-It is the job of runme.sh to call `snap install` on any snaps contained within the firmware update package, and to perform any other duties related to upgrading system packages in relation to the current update campaign.  Important: Make sure this shell script has execute privileges `chmod a+x runme.sh` otherwise the firmware update will fail.
+It is the job of runme.sh to call `snap install` on any snaps contained within the firmware update package, and to perform any other duties related to upgrading system packages in relation to the current update campaign.  The platform_version file is installed automatically by the edge-core bootloader script and doesn't need to be explicitly handled by the runme.sh.
 
 Here is an example runme.sh:
 ```bash
 #!/bin/bash
 
 snap install --devmode pelion-edge_1.0_amd64.snap
-
-cp platform_version ${SNAP_DATA}/etc/
 ```
 
 The above example runme.sh assumes a firmware update tar.gz with the following contents:
@@ -288,6 +286,26 @@ $ tar -tzf firmware-update.tar.gz
 ./runme.sh
 ./pelion-edge_1.0_amd64.snap
 ```
+
+#### Important Notes Regarding runme.sh
+1. Make sure the script has execute privileges `chmod a+x runme.sh` otherwise the firmware update will fail.
+1. If the pelion-edge snap itself is being upgraded, it is recommended to upgrade it in its own update campaign, i.e., it is the only snap file in the firmware update tar.gz.  If it must be bundled with other snaps, or if the runme.sh performs other tasks, make sure that pelion-edge is updated last in the runme.sh because any commands in runme.sh that occur after `snap install pelion-edge` will not be executed due to the manner in which snapd performs snap updates.
+
+For example, do this:
+```
+snap ack curl.assert
+snap install curl.snap
+snap install --devmode pelion-edge_amd64.snap
+```
+
+not this:
+```
+snap install --devmode pelion-edge_amd64.snap
+snap ack curl.assert
+snap install curl.snap
+```
+Any code that occurs after `snap install pelion-edge` will not be executed, so in this case the curl snap and assertion will not be installed.
+
 
 #### How To Create firmware-update.tar.gz
 1. Create a folder to hold the contents of a firmware update package
