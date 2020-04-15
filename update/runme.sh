@@ -1,4 +1,6 @@
 #!/bin/bash
+set -eux
+
 
 function pre_update() {
     echo "START pre-update"

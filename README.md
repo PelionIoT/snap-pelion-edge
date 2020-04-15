@@ -274,6 +274,7 @@ It is the job of runme.sh to call `snap install` on any snaps contained within t
 Here is an example runme.sh:
 ```bash
 #!/bin/bash
+set -eux
 
 snap install --devmode pelion-edge_1.0_amd64.snap
 ```
