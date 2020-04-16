@@ -7,7 +7,6 @@ confinement: devmode
 grade: devel
 architectures:
   - amd64
-
 plugs:
     system-files:
         read: [/proc, /etc]
@@ -201,7 +200,7 @@ parts:
       plugin: nodejs-improved
       nodejs-package-manager: npm
       source: https://github.com/armPelionEdge/edge-utils.git
-      source-commit: b0ae52b99fb8b777e0bb7512ca7e868ba0dd84a3
+      source-commit: 5983c377755a542d1f8c0557075c3d3dfe998f44
       override-pull: |
         snapcraftctl pull
         cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/package.json .
