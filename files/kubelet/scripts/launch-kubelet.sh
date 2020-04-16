@@ -1,5 +1,5 @@
 
-DEVICE_ID=`jq -r .deviceID ${SNAP_DATA}/var/lib/edge_gw_identity/identity.json`
+DEVICE_ID=`jq -r .deviceID ${SNAP_DATA}/userdata/edge_gw_identity/identity.json`
 if [ $? -ne 0 ]; then
     echo "Unable to extract device ID from identity.json"
     exit 1
