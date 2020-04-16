@@ -295,6 +295,7 @@ parts:
         git clone https://github.com/armPelionEdge/maestro.git
         cd maestro
         git checkout d6ab0da4238bb4d8b767db3f70af71db909fae1c
+        git am patches/0001-PATCH-Fake-devicedb-running-on-local-machine.patch
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
