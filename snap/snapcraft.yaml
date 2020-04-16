@@ -65,7 +65,7 @@ apps:
       daemon: simple
       plugs: [network-bind]
     identity:
-      command: launch-pelion-identity.sh $SNAP/wigwag $SNAP_DATA/var/lib
+      command: launch-pelion-identity.sh $SNAP $SNAP_DATA
       daemon: simple
     kubelet:
       passthrough:
