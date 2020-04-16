@@ -40,4 +40,3 @@ fi
 # disable auto-start on some services.
 # as of snapcraft v3.8, services can't be configured to be disabled by default
 # in snapcraft.yaml and must instead be disabled in the install hook.
-snapctl stop --disable pelion-edge.edge-core-reset-storage
