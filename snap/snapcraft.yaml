@@ -406,7 +406,7 @@ parts:
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_SRC}/go
         cd ${GOPATH}/src/k8s.io/kubernetes/hack/make-rules
-        ./build.sh cmd/kubelet
+        KUBE_VERBOSE=0 ./build.sh cmd/kubelet
 
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/var/lib/kubelet
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
