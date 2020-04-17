@@ -299,7 +299,7 @@ parts:
         # Build maestro dependencies
         ./build-deps.sh
         # Build maestro
-        DEBUG=1 DEBUG2=1 ./build.sh
+        DEBUG=0 DEBUG2=0 ./build.sh
         # Install maestro into GOPATH/bin
         go install github.com/armPelionEdge/maestro
 
