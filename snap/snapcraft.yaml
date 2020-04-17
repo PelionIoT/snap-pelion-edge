@@ -155,8 +155,8 @@ parts:
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-use-customized-edge-core-update-scripts.patch
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-fix-calculation-of-remaining-buffer-size-when-callin.patch
       configflags:
-        - -DCMAKE_BUILD_TYPE=Debug
-        - -DTRACE_LEVEL=DEBUG
+        - -DCMAKE_BUILD_TYPE=Release
+        - -DTRACE_LEVEL=WARN
         - -DFIRMWARE_UPDATE=ON
         - -DDEVELOPER_MODE=ON
         - -DFACTORY_MODE=OFF
