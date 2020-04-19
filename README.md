@@ -302,7 +302,7 @@ platform_version should contain a single text string representing the combined v
     ```
     Any code that occurs after `snap install pelion-edge` will not be executed, so in this case the curl snap and assertion will not be installed.
 
-#### To create a `firmware-update.tar.gz` package:
+#### To create a firmware update tar.gz package:
 
 1. Create a folder to hold the contents of the firmware update package.
 
@@ -320,7 +320,7 @@ platform_version should contain a single text string representing the combined v
 
     The version must be a single string that encompasses all software packages being managed by this firmware update mechanism, and not necessarily limited to the Pelion Edge snap version.
 
-1. Create the `firmware-update.tar.gz` package from the contents of the `update/` folder:
+1. Create the firmware update tar.gz package from the contents of the `update/` folder:
 
   	```bash
   	tar -czf firmware-update.tar.gz -C update/ .
@@ -334,7 +334,7 @@ You can initiate a firmware update campaign targeting any registered device from
 
 **To initiate a firmware update campaign:**
 
-1. Upload the `firmware-update.tar.gz` package to Pelion Device Management:
+1. Upload the firmware update tar.gz package to Pelion Device Management:
 
     1. Log in to Device Management Portal.
     1. From the left navigation pane, select **Firmware Update** > **Images**.
@@ -345,13 +345,13 @@ You can initiate a firmware update campaign targeting any registered device from
 
 1. Create a firmware update manifest:
 
-    1. Use the manifest-tool utility to create a manifest file for your `firmware-update.tar.gz` package:
+    1. Use the manifest-tool utility to create a manifest file for your firmware update tar.gz package:
 
         ```bash
         manifest-tool create -u <firmware.url> -p <firmware-update.tar.gz> -o manifest
         ```
         Where:
-        * `<firmware.url>` is the URL of `firmware-update-tar.gz`, as shown in Device Management Portal. Devices use this URL to download the firmware update image.
+        * `<firmware.url>` is the URL of the firmware update tar.gz package, as shown in Device Management Portal. Devices use this URL to download the firmware update image.
         * `<firmware-update.tar.gz>` is the firmware update package tar.gz file. The manifest-tool utility calculates a hash from the firmware update tar.gz.
 
 1. Upload the firmware update manifest to Device Management:
