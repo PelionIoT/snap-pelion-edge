@@ -171,8 +171,8 @@ After the snap is installed, Pelion Edge starts automatically:
 - To reset your local Device Management credentials, stop Pelion Edge, and run `pelion-edge.edge-core-reset-storage`:
 
     ```bash
-    snap stop pelion-edge.edge-core
-    snap start pelion-edge.edge-core-reset-storage
+    snap stop pelion-edge
+    pelion-edge.edge-core-reset-storage
     ```
 
 These are just convenient snap commands that run the binaries. The actual binaries are at `/snap/pelion-edge/current/`. Use the [Pelion Edge docs](https://github.com/armpelionedge/snap-pelion-edge#general-info-for-running-the-binaries) for information about running the binaries directly.
