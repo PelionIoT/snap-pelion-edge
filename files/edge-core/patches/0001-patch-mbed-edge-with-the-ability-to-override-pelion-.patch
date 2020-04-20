@@ -49,7 +49,7 @@ index 8121042..5676b2b 100644
 +*  But, its application's responsibility to ensure that the provided port is open on server side to accept incoming CoAP
 +*  connection.
 +*/
-+//#define MBED_CLOUD_CLIENT_CUSTOM_URI_PORT              5684
++#define MBED_CLOUD_CLIENT_CUSTOM_URI_PORT              443
 +
 +
  #include "MbedCloudClientConfigCheck.h"
