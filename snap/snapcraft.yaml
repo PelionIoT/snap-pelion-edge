@@ -184,12 +184,9 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
     fog-proxy:
       plugin: go
-      source: git@github.com:armPelionEdge/fog-proxy.git
-      source-commit: 8e5cd30b070c6ad7d5696a7d1a5a00a11d258681
-      go-importpath: github.com/armPelionEdge/fog-proxy
-      override-pull: |
-        snapcraftctl pull
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/fog-proxy/patches/0001-HACK-wait-for-the-rpc-client-to-call-PT-Register.patch
+      source: git@github.com:armPelionEdge/fog-proxy-edge.git
+      source-commit: 5113986edae55a83e1b6cda7b8c1e27793ce83a5
+      go-importpath: github.com/armPelionEdge/fog-proxy-edge
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
