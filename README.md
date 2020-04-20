@@ -46,20 +46,23 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
       1. On this panel, click **Download Developer C file** to receive `mbed_cloud_dev_credentials.c`.
       1. Copy `mbed_cloud_dev_credentials.c` to the `snap-pelion-edge` directory:
 
-        ```bash
-        cp /path/to/mbed_cloud_dev_credentials.c /path/to/snap-pelion-edge/.
-        ```
+          ```bash
+          cp /path/to/mbed_cloud_dev_credentials.c /path/to/snap-pelion-edge/.
+          ```
 
-    * [Production Mode] Generate a production certificate using the [manifest-tool](https://github.com/armmbed/manifest-tool)
-
+    * [Production Mode] Do not use the device certificate from the Device Management Portal. Turn off by:
+      
       1. Change the definitions of `DEVELOPER_MODE` and `FACTORY_MODE` in `snap/snapcraft.yaml` to `DEVELOPER_MODE=OFF` and `FACTORY_MODE=ON`
-      1. Install the manifest-tool: `pip install manifest-tool`
-      1. Obtain an API key from the [Pelion Edge Access Management Portal](https://portal-os2.mbedcloudstaging.net/access/keys/list)
-      1. Generate a production certificate called `update_default_resources.c` using the manifest-tool:
 
-        ```bash
-        manifest-tool init -a <api-key> --vendor-id 42fa7b48-1a65-43aa-890f-8c704daade54 --class-id 42fa7b48-1a65-43aa-890f-8c704daade54 --force
-        ```
+1. Generate additional certificates using the [manifest-tool](https://github.com/armmbed/manifest-tool)
+
+    1. Install the manifest-tool: `pip install manifest-tool`
+    1. Obtain an API key from the [Pelion Edge Access Management Portal](https://portal-os2.mbedcloudstaging.net/access/keys/list)
+    1. Generate a production certificate called `update_default_resources.c` using the manifest-tool:
+
+      ```bash
+      manifest-tool init -a <api-key> --vendor-id 42fa7b48-1a65-43aa-890f-8c704daade54 --class-id 42fa7b48-1a65-43aa-890f-8c704daade54 --force
+      ```
 
 1. Make sure your `~/.ssh/id_rsa.pub` key is registered with `github.com` and `gitlab.com`, and that they both exist in `known_hosts` (for example, by running `ssh -T git@github.com` and `ssh -T git@gitlab.com`).
 
