@@ -264,7 +264,7 @@ This section explains how to:
 
 A firmware update package is a tar.gz file containing at minimum a bash script, called `runme.sh`, and a version file, called `platform_version`.
 
-The `runme.sh` script implements the logic for performing an update of system components. The script calls `snap install` on any snaps contained within the firmware update package, and performs all upgrades to system packages required for the current update campaign.
+The `runme.sh` script implements the logic for performing an update of system components. The script calls `snap install` on any snaps contained within the firmware update package, and performs any other tasks required for the current update campaign.
 
 platform_version should contain a single text string representing the combined versions of the software running on the device that is managed through this firmware update mechanism.  This version string is reported to Pelion Cloud under LwM2M resource ID /-/0/10 "PlatVersion".
 
@@ -332,6 +332,8 @@ Device Management pushes your firmware update package down to a defined set of d
 
 You can initiate a firmware update campaign targeting any registered device from Device Management Portal.
 
+<span class="notes">**Note:** You can also initiate a firmware update campaign using the APIs, [as explained in the Pelion Device Management online documentation](https://www.pelion.com/docs/device-management/current/updating-firmware/update-api-tutorial.html).</span>
+
 **To initiate a firmware update campaign:**
 
 1. Upload the firmware update tar.gz package to Pelion Device Management:
@@ -362,7 +364,15 @@ You can initiate a firmware update campaign targeting any registered device from
 
 1. Create a device filter to select a set of registered devices that should receive the firmware update package:
     1. From the left navigation pane, select **Device directory** > **Devices**.
-    1. See the [online Pelion Device Management documentation about device attributes and filters](https://www.pelion.com/docs/device-management/current/device-management/device-filters-and-attributes.html) for more details on this step.
+    1. In the grey bar above the list of devices, click the arrow next to **Filters**.
+    1. Choose an attribute and operator, and give a value, such as **Device ID**.
+        * To combine multiple attributes in one filter, click **Add another**.
+        * To use a raw string instead, click **Advanced view**.
+    1. Click **Save**.
+
+        This opens the **Filter name** popup window.
+    1. Give your filter a name.
+    1. Click **Save filter**.
 
 1. Create the campaign:
 
