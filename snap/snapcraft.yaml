@@ -279,7 +279,6 @@ parts:
         make
         cd ..
         install cc2530prog/cc2530prog ${SNAPCRAFT_PART_INSTALL}/wigwag/devicejs-core-modules/rsmi/bin/cc2530prog-arm
-        cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/wwrelay etc/init.d/.
         cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/version.json wigwag/wwrelay-utils/conf/versions.json
         install dev-tools/bin/ccommon.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/ccommon.sh
         install dev-tools/bin/stopwatchdog.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/stopwatchdog
