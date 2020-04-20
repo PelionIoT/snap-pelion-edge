@@ -1,0 +1,60 @@
+From 9098972843ef21c3d4522465b2f9c039a895675e Mon Sep 17 00:00:00 2001
+From: Nic Costa <nic.costa@gmail.com>
+Date: Mon, 20 Apr 2020 14:58:16 -0500
+Subject: [PATCH] patch mbed-edge with the ability to override pelion port
+
+This is optional MACRO and is not set by default. This implies that
+if application wants the client to connect on any other CoAP port then
+provided through factory or developer provisioned URI port they can
+override that port number.
+
+But, its application's responsibility to ensure that the provided port
+is open on server side to accept incoming CoAP connection.
+---
+ .../mbed-client/source/m2minterfaceimpl.cpp           |  5 +++++
+ .../mbed-cloud-client/MbedCloudClientConfig.h         | 11 +++++++++++
+ 2 files changed, 16 insertions(+)
+
+diff --git a/lib/mbed-cloud-client/mbed-client/source/m2minterfaceimpl.cpp b/lib/mbed-cloud-client/mbed-client/source/m2minterfaceimpl.cpp
+index 6a35231..b8998dc 100644
+--- a/lib/mbed-cloud-client/mbed-client/source/m2minterfaceimpl.cpp
++++ b/lib/mbed-cloud-client/mbed-client/source/m2minterfaceimpl.cpp
+@@ -946,8 +946,13 @@ void M2MInterfaceImpl::process_address(const String& server_address, String& ip_
+     int colonFound = server_address.find_last_of(':'); //10
+     if(colonFound != -1) {
+         ip_address = server_address.substr(0,colonFound);
++#ifndef MBED_CLOUD_CLIENT_CUSTOM_URI_PORT
+         port = atoi(server_address.substr(colonFound+1,
+                                          server_address.size()-ip_address.size()).c_str());
++#else
++        port = MBED_CLOUD_CLIENT_CUSTOM_URI_PORT;
++        tr_info("Using custom URI port %d", port);
++#endif
+         colonFound = ip_address.find_last_of(']');
+         if(ip_address.compare(0,1,"[") == 0) {
+             if(colonFound == -1) {
+diff --git a/lib/mbed-cloud-client/mbed-cloud-client/MbedCloudClientConfig.h b/lib/mbed-cloud-client/mbed-cloud-client/MbedCloudClientConfig.h
+index 8121042..5676b2b 100644
+--- a/lib/mbed-cloud-client/mbed-cloud-client/MbedCloudClientConfig.h
++++ b/lib/mbed-cloud-client/mbed-cloud-client/MbedCloudClientConfig.h
+@@ -119,6 +119,17 @@
+ #define MBED_CLOUD_CLIENT_LISTEN_PORT               0
+ #endif
+ 
++/**
++* \def MBED_CLOUD_CLIENT_CUSTOM_URI_PORT
++*
++* \brief This is optional MACRO and is not set by default. This implies that if application wants the client to connect
++* on any other CoAP port then provided through factory or developer provisioned URI port they can override that port number.
++*  But, its application's responsibility to ensure that the provided port is open on server side to accept incoming CoAP
++*  connection.
++*/
++//#define MBED_CLOUD_CLIENT_CUSTOM_URI_PORT              5684
++
++
+ #include "MbedCloudClientConfigCheck.h"
+ 
+ #endif // MBED_CLOUD_CLIENT_CONFIG_H
+-- 
+2.21.0 (Apple Git-122)
+
