@@ -25,7 +25,7 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     cd snap-pelion-edge
     ```
 
-1. To support firmware updates - also known as Firmware Over-the-Air (FOTA) - locate the `edge-core` component in the `parts` section of `snapcraft.yaml` and set `FIRMWARE_UPDATE=ON`:
+1. To support firmware updates - also known as Firmware Over-the-Air (FOTA) - locate the `edge-core` component in the `parts` section of `snap/snapcraft.yaml` and set `FIRMWARE_UPDATE=ON`:
 
     ```
     parts:
