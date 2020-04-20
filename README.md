@@ -269,24 +269,28 @@ A firmware update package is a tar.gz file containing at minimum a bash script, 
 
 The `runme.sh` script implements the logic for performing an update of system components. The script calls `snap install` on any snaps contained within the firmware update package, and performs any other tasks required for the current update campaign.
 
-platform_version should contain a single text string representing the combined versions of the software running on the device that is managed through this firmware update mechanism.  This version string is reported to Pelion Cloud under LwM2M resource ID /-/0/10 "PlatVersion".
+platform_version should contain a single text string representing the combined versions of the software running on the device that is managed through this firmware update mechanism.  This version string is reported to Pelion Cloud under LwM2M resource ID `/10252/0/10` - `PlatVersion`.
+
+Example runme.sh script:
+
+```bash
+#!/bin/bash
+set -eux
+
+snap install --devmode pelion-edge_1.0_amd64.snap
+```
+
+This example `runme.sh` script assumes a firmware update tar.gz with the following contents:
+
+```bash
+$ tar -tzf firmware-update.tar.gz`
+./
+./platform_version
+./runme.sh
+./pelion-edge_1.0_amd64.snap
+```
 
 #### Important Notes Regarding runme.sh
-1. Example runme.sh script:
-    ```bash
-    #!/bin/bash
-    set -eux
-
-    snap install --devmode pelion-edge_1.0_amd64.snap
-    ```
-1. This example `runme.sh` script assumes a firmware update tar.gz with the following contents:
-    ```bash
-    $ tar -tzf firmware-update.tar.gz`
-    ./
-    ./platform_version
-    ./runme.sh
-    ./pelion-edge_1.0_amd64.snap
-    ```
 1. Make sure the script has execute privileges `chmod a+x runme.sh` otherwise the firmware update will fail.
 1. If the pelion-edge snap itself is being upgraded, it is recommended to upgrade it in its own update campaign, i.e., it is the only snap file in the firmware update tar.gz.  If it must be bundled with other snaps, or if the runme.sh performs other tasks, make sure that pelion-edge is updated last in the runme.sh because any commands in runme.sh that occur after `snap install pelion-edge` will not be executed due to the manner in which snapd performs snap updates.
 
