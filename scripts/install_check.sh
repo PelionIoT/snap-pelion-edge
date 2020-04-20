@@ -79,8 +79,6 @@ declare -a file_list=(
     'wigwag/system/bin/standalone_test_logsink'
     'wigwag/system/bin/stopwatchdog'
     'wigwag/system/bin/maestro'
-    'wigwag/system/lib/dummywd.so'
-    'wigwag/system/lib/rp100wd.so'
     'wigwag/wwrelay-utils/conf/versions.json'
     'wigwag/system/bin/fp-edge'
 )
