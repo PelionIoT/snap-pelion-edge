@@ -297,15 +297,16 @@ parts:
         cd maestro
         git checkout d6ab0da4238bb4d8b767db3f70af71db909fae1c
         git am patches/0001-PATCH-Fake-devicedb-running-on-local-machine.patch
+        git am ${SNAPCRAFT_PROJECT_DIR}/files/maestro/patches/0001-allow-DEBUG-build-flag-override-from-environment.patch
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
         export GOBIN=${GOPATH}/bin
         cd ${GOPATH}/src/github.com/armPelionEdge/maestro/
         # Build maestro dependencies
-        ./build-deps.sh
+        DEBUG= ./build-deps.sh
         # Build maestro
-        DEBUG=0 DEBUG2=0 ./build.sh
+        DEBUG= DEBUG2= ./build.sh
         # Install maestro into GOPATH/bin
         go install github.com/armPelionEdge/maestro
 
