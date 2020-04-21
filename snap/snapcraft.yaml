@@ -182,11 +182,8 @@ parts:
     fog-proxy:
       plugin: go
       source: git@github.com:armPelionEdge/fog-proxy.git
-      source-commit: e21961c5ead59ae24ca813484e8967bcb74d889c
+      source-commit: 9eb83a24b44386ff963c99470c38eb7c56f95e9a
       go-importpath: github.com/armPelionEdge/fog-proxy
-      override-pull: |
-        snapcraftctl pull
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/fog-proxy/patches/0001-HACK-wait-for-the-rpc-client-to-call-PT-Register.patch
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
