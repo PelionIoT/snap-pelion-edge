@@ -48,7 +48,7 @@ apps:
     help:
       command: cat ${SNAP}/help.md
     maestro:
-      command: wigwag/system/bin/maestro -config $SNAP_DATA/maestro-config.yaml
+      command: launch-maestro.sh
       environment:
         LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
       passthrough:
@@ -318,10 +318,10 @@ parts:
         make standalone_test_logsink
         # Install maestro into the SNAPCRAFT_PART_INSTALL folder so that it is
         # copied into the prime directory during the prime step
+        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
         install -d ${SNAPCRAFT_PART_INSTALL}/etc/init.d
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/maestro.sh ${SNAPCRAFT_PART_INSTALL}/etc/init.d/maestro.sh
         install ${GOPATH}/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
         install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/grease_echo ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/grease_echo
         install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/standalone_test_logsink ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/standalone_test_logsink
@@ -331,8 +331,6 @@ parts:
           install -m 0755 $LIBS_DIR/$f ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
         done
       filesets:
-        etc:
-          - etc/init.d/maestro.sh
         bin:
           - wigwag/system/bin/*
         lib:
@@ -340,7 +338,6 @@ parts:
       stage:
         - $lib
         - $bin
-        - $etc
     cni:
       plugin: go
       source: https://github.com/containernetworking/plugins.git
