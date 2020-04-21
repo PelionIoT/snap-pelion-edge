@@ -205,7 +205,7 @@ parts:
       plugin: nodejs-improved
       nodejs-package-manager: npm
       source: https://github.com/armPelionEdge/edge-utils.git
-      source-commit: 5983c377755a542d1f8c0557075c3d3dfe998f44
+      source-commit: f7b2faf04d28251afa22e21a1c843f6be82d086f
       override-pull: |
         snapcraftctl pull
         cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/package.json .
