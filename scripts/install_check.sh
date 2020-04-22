@@ -45,7 +45,6 @@ declare -a file_list=(
     'etc/dnsmasq.conf'
     'etc/dnsmasq.d/dnsmasq.conf'
     'etc/init.d/devjssupport'
-    'etc/init.d/maestro.sh'
     'etc/init.d/relayterm'
     'etc/init.d/wwfunctions'
     'etc/init.d/wwrelay'
