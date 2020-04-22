@@ -75,6 +75,12 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
 
    Note: Running the build in Docker may contaminate your project folders with files owned by root and causes a *permission denied* error when you run the build outside of Docker. Run `sudo chown --changes --recursive $USER:$USER _project_folder_` to fix it.
 
+   Note: If you are doing incremental builds, when cleaning a snap with manual override sections which use git commands, you must clean `docker-git` as well, otherwise you'll get template and https helper errors when building. Here is how you rebuild `edge-core`:
+
+    ```bash
+    docker run --rm -v "$PWD":/build -w /build -v ${HOME}/.ssh:/root/.ssh -v ${HOME}/.gitconfig:/root/.gitconfig ${USER}/snapcraft:latest bash -c "sudo apt-get update && snapcraft clean edge-core docker-git && snapcraft --debug"
+    ```
+
 ## Install and run Pelion Edge
 
 ### Install on Ubuntu Core 16
