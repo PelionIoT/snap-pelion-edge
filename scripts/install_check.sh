@@ -14,7 +14,6 @@ declare -a file_list=(
     'wigwag/system/lib'
     'wigwag/wwrelay-utils/conf'
     'wigwag/wwrelay-utils/debug_scripts'
-    'etc/init.d/maestro.sh'
     'wigwag/etc/versions.json'
     'wigwag/system/bin/devicedb'
     'wigwag/system/bin/grease_echo'
