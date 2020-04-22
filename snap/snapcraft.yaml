@@ -183,7 +183,7 @@ parts:
       configflags:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
-        - -DFIRMWARE_UPDATE=ON
+        - -DFIRMWARE_UPDATE=OFF
         - -DDEVELOPER_MODE=ON
         - -DFACTORY_MODE=OFF
         - -DBYOC_MODE=OFF
@@ -521,7 +521,7 @@ parts:
     kubelet:
       plugin: go
       source: git@github.com:armPelionEdge/argus.git
-      source-commit: f017d212db4f63d23fc8401ce5ccba4dcb67f3ee
+      source-commit: a9d3b05045789d2f82ceddd0bbef3cef28e9a618
       go-importpath: k8s.io/kubernetes
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored depdnencies.
@@ -534,7 +534,7 @@ parts:
         cd go/src/k8s.io
         git clone git@github.com:armPelionEdge/argus.git kubernetes
         cd kubernetes
-        git checkout f017d212db4f63d23fc8401ce5ccba4dcb67f3ee
+        git checkout a9d3b05045789d2f82ceddd0bbef3cef28e9a618
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_SRC}/go
         cd ${GOPATH}/src/k8s.io/kubernetes/hack/make-rules
