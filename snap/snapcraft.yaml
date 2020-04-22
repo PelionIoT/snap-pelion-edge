@@ -335,6 +335,7 @@ parts:
       stage:
         - $lib
         - $bin
+        - launch-maestro.sh
     cni:
       plugin: go
       source: https://github.com/containernetworking/plugins.git
