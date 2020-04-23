@@ -228,7 +228,7 @@ parts:
         - python
         - build-essential
       source: https://github.com/armPelionEdge/edge-node-modules.git
-      source-commit: c3562b4285facf571ec5755a2f97ca9f2b313151
+      source-commit: a70efd3dd4c35904937c2707403313cc3023b025
       override-build: |
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-node-modules/patches/0001-Added-package.json.patch
         snapcraftctl build
@@ -251,7 +251,7 @@ parts:
         - python
         - build-essential
       source: https://github.com/armPelionEdge/edge-utils.git
-      source-commit: f7b2faf04d28251afa22e21a1c843f6be82d086f
+      source-commit: 5a69a2922c65634d91cd7cc40ffa02da8733ed9f
       override-pull: |
         snapcraftctl pull
         cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/package.json .
