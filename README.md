@@ -408,3 +408,12 @@ You can initiate a firmware update campaign targeting any registered device from
     1. From the **Manifest** dropdown list, select the manifest file uploaded earlier.
     1. From the **Filter** dropdown list, select the filter that targets the devices you need to update.
     1. Click **Finish** to start the campaign.
+
+### Using port 443 
+
+To use port 443 for the for Pelion-Cloud connection:
+
+1. Edit your mbed_cloud_dev_credentials.c
+    1. Find a line like: ``` const char MBED_CLOUD_DEV_BOOTSTRAP_SERVER_URI[] = "coaps://<URL_ADDRESS>:5684?aid=0171136b8b040efaa44517e000000000"; ``` 
+    1. Change the ``` <URL_ADDRESS>:5684 ``` to ``` <URL_ADDRESS>:443 ```
+1. Do a clean build following the instruction above in this readme.
