@@ -3,7 +3,7 @@ base: core
 version: "1.12.1"
 summary: Pelion Edge
 description: Pelion Edge
-confinement: devmode
+confinement: classic
 grade: devel
 architectures:
   - amd64
@@ -383,6 +383,7 @@ parts:
         ./config shared
         make depend
         snapcraftctl build
+      build-attributes: [no-patchelf]
     maestro-shell:
       plugin: go
       source: https://github.com/armPelionEdge/maestro-shell.git
