@@ -10,3 +10,4 @@ snap stop pelion-edge.kubelet || true
 docker stop $(docker ps -a -q) || true
 docker system prune --volumes -a -f || true
 
+rm -rf ${SNAP_DATA}/userdata/edge_gw_identity/.ssl
