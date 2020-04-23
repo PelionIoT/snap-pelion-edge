@@ -3,13 +3,14 @@ base: core
 version: "1.13.1"
 summary: Pelion Edge
 description: Pelion Edge
-confinement: devmode
+confinement: strict
 grade: devel
 architectures:
   - amd64
 plugs:
     system-files:
-        read: [/proc, /etc]
+        read: [/proc, /etc, /run, /sys, /var/lib]
+        write: [/proc, /etc, /run, /var/lib]
     home:
         read: all
     support:
@@ -19,6 +20,7 @@ plugs:
         privileged-containers: true
     docker-cli:
         interface: docker
+    network:
 slots:
     docker-daemon:
         interface: docker
@@ -31,8 +33,14 @@ passthrough:
     layout:
         /var/lib/pelion-edge:
             bind: $SNAP_DATA/var/lib/pelion-edge
+        /var/lib/dockershim:
+            bind: $SNAP_DATA/var/lib/dockershim
         /etc/docker:
             bind: $SNAP_DATA/etc/docker
+        /var/log/pods:
+            bind: $SNAP_COMMON/var/log/pods
+        /var/log/containers:
+            bind: $SNAP_COMMON/var/log/containers
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
     relay-term:
@@ -41,16 +49,16 @@ apps:
       restart-condition: always
       command: bin/node $SNAP/wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP_DATA/relayterm-config.json
       daemon: simple
-      environment: 
+      environment:
         NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
-      plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, system-files, snapd-control, shutdown, network-manager, modem-manager]
+      plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, system-files, snapd-control, shutdown, network-manager, modem-manager, log-observe]
     edge-core:
       passthrough:
         restart-delay: 5s
       restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
-      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files, snapd-control]
+      plugs: [shutdown, hardware-observe, network-bind, network-control, network-observe, system-files, snapd-control]
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
       plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
@@ -71,7 +79,7 @@ apps:
         restart-delay: 5s
       restart-condition: always
       daemon: simple
-      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, system-files, x11]
+      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, system-files, x11]
     maestro-shell:
       command: wigwag/system/bin/maestro-shell
       environment:
@@ -83,10 +91,11 @@ apps:
       restart-condition: always
       command: launch-fp-edge.sh
       daemon: simple
-      plugs: [network-bind]
+      plugs: [network-bind, network-control]
     identity:
       command: launch-pelion-identity.sh $SNAP $SNAP_DATA
       daemon: simple
+      plugs: [network]
     kubelet:
       passthrough:
         restart-delay: 5s
@@ -94,7 +103,23 @@ apps:
       restart-condition: always
       command: launch-kubelet.sh
       daemon: simple
-      plugs: [block-devices, bluetooth-control, docker, firewall-control, kubernetes-support, mount-observe, netlink-audit, netlink-connector, network-control, process-control, system-files, system-observe, system-trace]
+      plugs:
+        - block-devices
+        - bluetooth-control
+        - docker
+        - firewall-control
+        - kubernetes-support
+        - log-observe
+        - mount-observe
+        - netlink-audit
+        - netlink-connector
+        - network-bind
+        - network-control
+        - process-control
+        - support
+        - system-files
+        - system-observe
+        - system-trace
     docker:
       command: docker
       aliases:
@@ -118,6 +143,8 @@ apps:
         - support
         - privileged
         - home
+        - kernel-module-observe
+        - system-files
       slots:
         - docker-daemon
     compose:
@@ -562,11 +589,8 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-kubelet.sh ${SNAPCRAFT_PART_INSTALL}/
         install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-edgenet.sh ${SNAPCRAFT_PART_INSTALL}/
       stage:
-        - wigwag/system/bin/kubelet
-        - wigwag/system/var/lib/kubelet/kubeconfig
-        - launch-kubelet.sh
-        - launch-edgenet.sh
-      stage-packages: [coreutils, iptables, systemd]
+        - -usr/share/*
+      stage-packages: [coreutils, iptables, systemd, util-linux]
     jq:
       plugin: autotools
       configflags:

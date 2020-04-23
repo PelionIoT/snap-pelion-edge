@@ -12,7 +12,7 @@ if [ $? -ne 0 ]; then
 fi
 
 exec ${SNAP}/wigwag/system/bin/kubelet \
-    --root-dir=${SNAP_DATA}/var/lib/kubelet \
+    --root-dir=${SNAP_COMMON}/var/lib/kubelet \
     --fail-swap-on=false \
     --image-pull-progress-deadline=2m \
     --hostname-override=${DEVICE_ID} \
