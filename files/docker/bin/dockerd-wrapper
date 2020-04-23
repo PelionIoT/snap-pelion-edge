@@ -54,6 +54,14 @@ workaround_lp1606510
 
 workaround_apparmor_profile_reload
 
+PIDFILE=$SNAP_DATA/run/docker.pid
+if [ -f "$PIDFILE" ]; then
+	rm -rf $SNAP_DATA/run/docker.pid
+	echo "deleting the docker.pid file"
+else
+	echo "docker.pid file does not exist"
+fi
+
 exec dockerd \
 	-G $default_socket_group \
 	--exec-root="$SNAP_DATA/run/docker" \
