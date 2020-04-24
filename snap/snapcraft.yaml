@@ -164,8 +164,8 @@ parts:
         - git
       override-pull: |
         snapcraftctl pull
-        # mbed_cloud_dev_credentials.c should only exist if DEVELOPER_MODE=ON below
-        # update_default_resources.c should only exist if DEVELOPER_MODE=OFF below
+        # mbed_cloud_dev_credentials.c is required if DEVELOPER_MODE=ON
+        # update_default_resources.c is required if DEVELOPER_MODE=ON && FIRMWARE_UPDATE=ON
         # Piping to true allows the cp to not fail when the file is not present
         cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c || true
         cp ${SNAPCRAFT_PROJECT_DIR}/update_default_resources.c config/update_default_resources.c || true
