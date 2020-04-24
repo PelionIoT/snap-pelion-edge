@@ -372,15 +372,15 @@ You can initiate a firmware update campaign targeting any registered device from
 1. Create a firmware update manifest:
 
     1. Gather the update certificate, private key, and manifest_tool.json file created by `manifest-tool init` in the Build Pelion Edge section of this README, which includes `.update-certificates/default.der`, `.update-certificates/default.key.pem` and `.manifest_tool.json`.  Copy these files to the directory where you are preparing the firmware update to be used in the following step.
-    1. Use the manifest-tool utility to create a manifest file for your firmware update tar.gz package.  The manifest-toll utility requires the files certificate and manifest_tool.json copied in the previous step.
+    1. Use the manifest-tool utility to create a manifest file for your firmware update tar.gz package.  The manifest-tool utility requires the files certificate and manifest_tool.json copied in the previous step.
 
         ```bash
         manifest-tool create -u <firmware.url> -p <firmware-update.tar.gz> -o manifest
         ```
         * `<firmware.url>` is the URL of the firmware update tar.gz package, as shown in Device Management Portal. Devices use this URL to download the firmware update image.
         * `<firmware-update.tar.gz>` is the firmware update package tar.gz file. The manifest-tool utility calculates a hash from the firmware update tar.gz.
-        * make sure `.manifest_tool.json` is in the local directory
-        * make sure `.update-certificates/` folder is in the local directory
+        * make sure `.manifest_tool.json` is in the current directory
+        * make sure `.update-certificates/` folder is in the current directory
 
 1. Upload the firmware update manifest to Device Management:
 
