@@ -51,18 +51,26 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
           ```
 
     * [Production Mode] Do not use the device certificate from the Device Management Portal. Turn off by:
-      
+
       1. Change the definitions of `DEVELOPER_MODE` and `FACTORY_MODE` in `snap/snapcraft.yaml` to `DEVELOPER_MODE=OFF` and `FACTORY_MODE=ON`
+      1. Follow the documentation for [Factory Provisioning](https://www.pelion.com/docs/device-management-provision/1.2/introduction/index.html)
+      1. Make sure to specify the `class-id` and `vendor-id` values in `fcu.yml` as specified in the next section.
+      1. If enabling firmware updates, make sure to set `update-auth-certificate-file` in `fcu.yml` to the path of the firmware update certificate `default.der` created in the next section.
 
-1. Generate additional certificates using the [manifest-tool](https://github.com/armmbed/manifest-tool)
+1. Generate firmware update certificates using the [manifest-tool](https://github.com/armmbed/manifest-tool)
 
+    1. Check that support for firmware updates is enabled in `snap/snapcraft.yaml` with `FIRMWARE_UPDATE=ON`
     1. Install the manifest-tool: `pip install manifest-tool`
     1. Obtain an API key from the [Pelion Edge Access Management Portal](https://portal-os2.mbedcloudstaging.net/access/keys/list)
-    1. Generate a production certificate called `update_default_resources.c` using the manifest-tool:
+    1. Generate certificates using the manifest-tool:
 
       ```bash
       manifest-tool init -a <api-key> --vendor-id 42fa7b48-1a65-43aa-890f-8c704daade54 --class-id 42fa7b48-1a65-43aa-890f-8c704daade54 --force
       ```
+      This operation creates the following files:
+      1. `update_default_resources.c` required when DEVELOPER_MODE=ON
+      1. `.manifest_tool.json` required when creating a manifest file for firmware updates.  See the Update Pelion Edge section for more info.
+      1. `.update-certificates/` folder containing `default.der` and `default.key.pem`, required when creating a manifest file for firmware updates and for factory provisioning when FACTORY_MODE=ON.
 
 1. Make sure your `~/.ssh/id_rsa.pub` key is registered with `github.com` and `gitlab.com`, and that they both exist in `known_hosts` (for example, by running `ssh -T git@github.com` and `ssh -T git@gitlab.com`).
 
@@ -363,14 +371,16 @@ You can initiate a firmware update campaign targeting any registered device from
 
 1. Create a firmware update manifest:
 
-    1. Use the manifest-tool utility to create a manifest file for your firmware update tar.gz package:
+    1. Gather the update certificate, private key, and manifest_tool.json file created by `manifest-tool init` in the Build Pelion Edge section of this README, which includes `.update-certificates/default.der`, `.update-certificates/default.key.pem` and `.manifest_tool.json`.  Copy these files to the directory where you are preparing the firmware update to be used in the following step.
+    1. Use the manifest-tool utility to create a manifest file for your firmware update tar.gz package.  The manifest-tool utility requires the files certificate and manifest_tool.json copied in the previous step.
 
         ```bash
         manifest-tool create -u <firmware.url> -p <firmware-update.tar.gz> -o manifest
         ```
-        Where:
         * `<firmware.url>` is the URL of the firmware update tar.gz package, as shown in Device Management Portal. Devices use this URL to download the firmware update image.
         * `<firmware-update.tar.gz>` is the firmware update package tar.gz file. The manifest-tool utility calculates a hash from the firmware update tar.gz.
+        * make sure `.manifest_tool.json` is in the current directory
+        * make sure `.update-certificates/` folder is in the current directory
 
 1. Upload the firmware update manifest to Device Management:
 
