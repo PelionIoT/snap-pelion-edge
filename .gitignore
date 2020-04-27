@@ -1,6 +1,7 @@
 *.snap
 *.pyc
 mbed_cloud_dev_credentials.c
+update_default_resources.c
 parts/*
 prime/*
 snap/.snapcraft/
