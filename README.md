@@ -130,7 +130,7 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
 1. Use the `snap` utility to install the snap package:
 
    ```bash
-   sudo snap install --devmode pelion-edge_<version>_<arch>.snap
+   sudo snap install pelion-edge_<version>_<arch>.snap
    ```
 
    If you see the following message:
@@ -139,16 +139,19 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     error: cannot find signatures with metadata for snap
     ```
 
-   add the `--devmode` option
+   add the `--dangerous` option
 
    ```bash
-    sudo snap install --devmode pelion-edge_<version>_<arch>.snap
+    sudo snap install --dangerous pelion-edge_<version>_<arch>.snap
     ```
 
-1. Hookup the snapd-control daemon
+1. Hookup the following connections
 
     ```bash
     sudo snap connect pelion-edge:snapd-control :snapd-control
+    sudo snap connect pelion-edge:modem-manager modem-manager:service
+    sudo snap connect pelion-edge:network-manager network-manager:service
+    sudo snap connect pelion-edge:network-control :network-control
     ```
 ## Run Pelion Edge
 
