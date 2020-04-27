@@ -87,6 +87,7 @@ apps:
     identity:
       command: launch-pelion-identity.sh $SNAP $SNAP_DATA
       daemon: simple
+      plugs: [network]
     kubelet:
       passthrough:
         restart-delay: 5s
