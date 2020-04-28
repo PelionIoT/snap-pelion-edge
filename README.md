@@ -152,6 +152,10 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     sudo snap connect pelion-edge:modem-manager modem-manager:service
     sudo snap connect pelion-edge:network-manager network-manager:service
     sudo snap connect pelion-edge:network-control :network-control
+    sudo snap connect pelion-edge:privileged :docker-support
+    sudo snap connect pelion-edge:support :docker-support
+    sudo snap connect pelion-edge:firewall-control :firewall-control
+    sudo snap connect pelion-edge:docker-cli pelion-edge:docker-daemon
     ```
 ## Run Pelion Edge
 
