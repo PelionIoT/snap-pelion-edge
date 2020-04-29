@@ -34,6 +34,8 @@ passthrough:
             bind: $SNAP_DATA/var/lib/pelion-edge
         /var/lib/kubelet:
             bind: $SNAP_DATA/var/lib/kubelet
+        /var/lib/dockershim:
+            bind: $SNAP_DATA/var/lib/dockershim
         /etc/docker:
             bind: $SNAP_DATA/etc/docker
 # List of applications (commands, binaries, daemons) in the snap.
@@ -560,10 +562,7 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-kubelet.sh ${SNAPCRAFT_PART_INSTALL}/
         install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-edgenet.sh ${SNAPCRAFT_PART_INSTALL}/
       stage:
-        - wigwag/system/bin/kubelet
-        - wigwag/system/var/lib/kubelet/kubeconfig
-        - launch-kubelet.sh
-        - launch-edgenet.sh
+        - -usr/share/*
       stage-packages: [coreutils, iptables, systemd]
     jq:
       plugin: autotools
