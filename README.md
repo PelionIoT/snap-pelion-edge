@@ -159,6 +159,7 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     sudo snap connect pelion-edge:log-observe :log-observe
     sudo snap connect pelion-edge:system-files :system-files
     sudo snap connect pelion-edge:kernel-module-observe :kernel-module-observe
+    sudo snap connect pelion-edge:system-trace :system-trace
     ```
 ## Run Pelion Edge
 
