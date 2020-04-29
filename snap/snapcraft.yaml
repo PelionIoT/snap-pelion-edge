@@ -9,7 +9,8 @@ architectures:
   - amd64
 plugs:
     system-files:
-        read: [/proc, /etc]
+        read: [/proc, /etc, /run]
+        write: [/proc, /etc, /run]
     home:
         read: all
     support:

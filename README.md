@@ -156,6 +156,8 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     sudo snap connect pelion-edge:support :docker-support
     sudo snap connect pelion-edge:firewall-control :firewall-control
     sudo snap connect pelion-edge:docker-cli pelion-edge:docker-daemon
+    sudo snap connect pelion-edge:log-observe :log-observe
+    sudo snap connect pelion-edge:system-files :system-files
     ```
 ## Run Pelion Edge
 
