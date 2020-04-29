@@ -120,6 +120,8 @@ apps:
         - support
         - privileged
         - home
+        - kernel-module-observe
+        - system-files
       slots:
         - docker-daemon
     compose:
