@@ -9,7 +9,7 @@ architectures:
   - amd64
 plugs:
     system-files:
-        read: [/proc, /etc, /run]
+        read: [/proc, /etc, /run, /sys]
         write: [/proc, /etc, /run]
     home:
         read: all
@@ -32,6 +32,8 @@ passthrough:
     layout:
         /var/lib/pelion-edge:
             bind: $SNAP_DATA/var/lib/pelion-edge
+        /var/lib/kubelet:
+            bind: $SNAP_DATA/var/lib/kubelet
         /etc/docker:
             bind: $SNAP_DATA/etc/docker
 # List of applications (commands, binaries, daemons) in the snap.
