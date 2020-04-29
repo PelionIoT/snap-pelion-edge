@@ -100,7 +100,7 @@ apps:
       restart-condition: always
       command: launch-kubelet.sh
       daemon: simple
-      plugs: [block-devices, bluetooth-control, docker, firewall-control, kubernetes-support, mount-observe, netlink-audit, netlink-connector, network-control, process-control, system-files, system-observe, system-trace]
+      plugs: [block-devices, bluetooth-control, docker, firewall-control, kubernetes-support, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, process-control, system-files, system-observe, system-trace]
     docker:
       command: docker
       aliases:
