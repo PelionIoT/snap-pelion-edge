@@ -6,11 +6,11 @@ Prerequisites:
 - [kubectl version `1.14.3`](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
 - The pelion-edge snap installed to an ubuntu-core 16 gateway or virtual machine (VM):
    
-      ```bash
-      $ kubectl get nodes
-      NAME                               STATUS    ROLES    AGE    VERSION
-      016f324f1753162e4903427d03c00000   Ready     <none>   7d7h 
-      ```
+  ```bash
+  $ kubectl get nodes
+  NAME                               STATUS    ROLES    AGE    VERSION
+  016f324f1753162e4903427d03c00000   Ready     <none>   7d7h
+  ```
    
    Output like this will show your gateways. Gateways that are running are `Ready`.
    
