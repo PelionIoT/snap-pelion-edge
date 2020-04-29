@@ -35,6 +35,8 @@ passthrough:
             bind: $SNAP_DATA/var/lib/pelion-edge
         /var/lib/dockershim:
             bind: $SNAP_DATA/var/lib/dockershim
+        /var/lib/kubelet:
+            bind: $SNAP_DATA/var/lib/kubelet
         /etc/docker:
             bind: $SNAP_DATA/etc/docker
         /var/log/pods:
