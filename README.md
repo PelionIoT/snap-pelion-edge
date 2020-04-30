@@ -160,6 +160,17 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     sudo snap connect pelion-edge:system-files :system-files
     sudo snap connect pelion-edge:kernel-module-observe :kernel-module-observe
     sudo snap connect pelion-edge:system-trace :system-trace
+    sudo snap connect pelion-edge:system-observe :system-observe
+    sudo snap connect pelion-edge:account-control :account-control
+    sudo snap connect pelion-edge:block-devices :block-devices
+    sudo snap connect pelion-edge:bluetooth-control :bluetooth-control
+    sudo snap connect pelion-edge:hardware-observe :hardware-observe
+    sudo snap connect pelion-edge:kubernetes-support :kubernetes-support
+    sudo snap connect pelion-edge:mount-observe :mount-observe
+    sudo snap connect pelion-edge:netlink-audit :netlink-audit
+    sudo snap connect pelion-edge:netlink-connector :netlink-connector
+    sudo snap connect pelion-edge:network-observe :network-observe
+    sudo snap connect pelion-edge:process-control :process-control
     ```
 ## Run Pelion Edge
 
