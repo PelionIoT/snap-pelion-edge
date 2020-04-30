@@ -140,6 +140,7 @@ parts:
       stage-packages:
         - network-manager
         - libslang2
+        - libatm1
       organize:
         usr/bin/nmcli: bin/nmcli
     mmcli:
