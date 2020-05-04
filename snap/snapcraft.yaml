@@ -224,7 +224,7 @@ parts:
     devicedb:
       plugin: go
       source: git@github.com:armPelionEdge/devicedb.git
-      source-commit: b093eef83f486078a8a20e94e63726beaf71816d
+      source-commit: a4ee46f3d9bc58b694e7563502142dfe265110cb
       go-importpath: github.com/armPelionEdge/devicedb
       organize:
         'bin/*': wigwag/system/bin/
