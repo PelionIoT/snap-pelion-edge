@@ -56,6 +56,13 @@ apps:
       plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
     help:
       command: cat ${SNAP}/help.md
+    devicedb:
+      command: wigwag/system/bin/devicedb start -conf $SNAP_DATA/wigwag/etc/devicejs/devicedb.yaml
+      passthrough:
+        restart-delay: 5s
+      restart-condition: always
+      daemon: simple
+      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files, snapd-control]
     maestro:
       command: launch-maestro.sh
       environment:
