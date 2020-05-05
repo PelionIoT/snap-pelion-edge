@@ -1,0 +1,8 @@
+#!/bin/bash
+
+sleep 60
+sync
+echo "sync"
+sleep 300
+sync
+echo "sync"
