@@ -20,7 +20,7 @@ function try_upgrade()
 	echo "Checking for ${UPGRADE_TGZ}"
 	if [ -e "${UPGRADE_TGZ}" ]; then
 		mkdir -p "${UPGRADE_WORKDIR}"
-		tar -xzf "${UPGRADE_TGZ}" -C "${UPGRADE_WORKDIR}"
+		tar --no-same-owner -xzf "${UPGRADE_TGZ}" -C "${UPGRADE_WORKDIR}"
 		# remove the upgrade tgz file so that we don't fall into an upgrade loop
 		rm "${UPGRADE_TGZ}"
 		pushd "${UPGRADE_WORKDIR}"
