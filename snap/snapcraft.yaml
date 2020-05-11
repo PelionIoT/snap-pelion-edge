@@ -20,6 +20,7 @@ plugs:
         privileged-containers: true
     docker-cli:
         interface: docker
+    network:
 slots:
     docker-daemon:
         interface: docker
@@ -53,7 +54,7 @@ apps:
       restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
-      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files, snapd-control]
+      plugs: [shutdown, hardware-observe, network-bind, network-control, network-observe, system-files, snapd-control]
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
       plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
@@ -74,7 +75,7 @@ apps:
         restart-delay: 5s
       restart-condition: always
       daemon: simple
-      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, system-files, x11]
+      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, system-files, x11]
     maestro-shell:
       command: wigwag/system/bin/maestro-shell
       environment:
