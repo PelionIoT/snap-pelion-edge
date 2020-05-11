@@ -415,7 +415,7 @@ parts:
     maestro:
       plugin: go
       source: https://github.com/armPelionEdge/maestro.git
-      source-commit: d6ab0da4238bb4d8b767db3f70af71db909fae1c
+      source-commit: 9ea215322cc11d7847c50fbd08f4cd859d5badab
       build-packages:
         - python
         - build-essential
@@ -430,8 +430,7 @@ parts:
         cd go/src/github.com/armPelionEdge
         git clone https://github.com/armPelionEdge/maestro.git
         cd maestro
-        git checkout d6ab0da4238bb4d8b767db3f70af71db909fae1c
-        git am patches/0001-PATCH-Fake-devicedb-running-on-local-machine.patch
+        git checkout 9ea215322cc11d7847c50fbd08f4cd859d5badab
         git am ${SNAPCRAFT_PROJECT_DIR}/files/maestro/patches/0001-allow-DEBUG-build-flag-override-from-environment.patch
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
