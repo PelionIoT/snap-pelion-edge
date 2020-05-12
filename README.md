@@ -171,6 +171,7 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     sudo snap connect pelion-edge:netlink-connector :netlink-connector
     sudo snap connect pelion-edge:network-observe :network-observe
     sudo snap connect pelion-edge:process-control :process-control
+    sudo snap connect pelion-edge:shutdown :shutdown
     ```
 ## Run Pelion Edge
 
