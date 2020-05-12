@@ -37,6 +37,10 @@ passthrough:
             bind: $SNAP_DATA/var/lib/dockershim
         /etc/docker:
             bind: $SNAP_DATA/etc/docker
+        /var/log/pods:
+            bind: $SNAP_COMMON/var/log/pods
+        /var/log/containers:
+            bind: $SNAP_COMMON/var/log/containers
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
     relay-term:
@@ -45,7 +49,7 @@ apps:
       restart-condition: always
       command: bin/node $SNAP/wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP_DATA/relayterm-config.json
       daemon: simple
-      environment: 
+      environment:
         NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
       plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, system-files, snapd-control, shutdown, network-manager, modem-manager, log-observe]
     edge-core:
@@ -562,7 +566,7 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-edgenet.sh ${SNAPCRAFT_PART_INSTALL}/
       stage:
         - -usr/share/*
-      stage-packages: [coreutils, iptables, systemd]
+      stage-packages: [coreutils, iptables, systemd, util-linux]
     jq:
       plugin: autotools
       configflags:
