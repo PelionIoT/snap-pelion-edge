@@ -189,6 +189,7 @@ parts:
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-use-customized-edge-core-update-scripts.patch
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-fix-calculation-of-remaining-buffer-size-when-callin.patch
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-patch-mbed-edge-with-the-ability-to-override-pelion-.patch
+        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-force-port-443.patch
       configflags:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
