@@ -413,7 +413,5 @@ You can initiate a firmware update campaign targeting any registered device from
 
 To use port 443 for the for Pelion-Cloud connection:
 
-1. Edit your mbed_cloud_dev_credentials.c
-    1. Find a line like: ``` const char MBED_CLOUD_DEV_BOOTSTRAP_SERVER_URI[] = "coaps://<URL_ADDRESS>:5684?aid=0171136b8b040efaa44517e000000000"; ``` 
-    1. Change the ``` <URL_ADDRESS>:5684 ``` to ``` <URL_ADDRESS>:443 ```
+1. Run the following: ``` sed -i 's,\(coaps://[^:]*:\)5684,\1443,' mbed_cloud_dev_credentials.c ```
 1. Do a clean build following the instruction above in this readme.
