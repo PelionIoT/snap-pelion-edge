@@ -450,7 +450,7 @@ parts:
     maestro:
       plugin: go
       source: https://github.com/armPelionEdge/maestro.git
-      source-commit: 9ea215322cc11d7847c50fbd08f4cd859d5badab
+      source-commit: 1968345aa18770bedc20a971b21b767a6c5dceba
       build-packages:
         - python
         - build-essential
@@ -465,8 +465,7 @@ parts:
         cd go/src/github.com/armPelionEdge
         git clone https://github.com/armPelionEdge/maestro.git
         cd maestro
-        git checkout 9ea215322cc11d7847c50fbd08f4cd859d5badab
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/maestro/patches/0001-allow-DEBUG-build-flag-override-from-environment.patch
+        git checkout 1968345aa18770bedc20a971b21b767a6c5dceba
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
