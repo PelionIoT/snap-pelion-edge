@@ -91,7 +91,7 @@ apps:
       restart-condition: always
       command: launch-fp-edge.sh
       daemon: simple
-      plugs: [network-bind]
+      plugs: [network-bind, network-control]
     identity:
       command: launch-pelion-identity.sh $SNAP $SNAP_DATA
       daemon: simple
