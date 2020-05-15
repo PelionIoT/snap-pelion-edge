@@ -170,6 +170,8 @@ parts:
         - build-essential
         - cmake
         - git
+      build-environment:
+        - COAP_PORT_OVERRIDE_443: "true"
       override-pull: |
         snapcraftctl pull
         # mbed_cloud_dev_credentials.c is required if DEVELOPER_MODE=ON
@@ -188,8 +190,12 @@ parts:
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-PELEDGE19-1193-Call-a-script-on-factory-reset.patch
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-use-customized-edge-core-update-scripts.patch
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-fix-calculation-of-remaining-buffer-size-when-callin.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-patch-mbed-edge-with-the-ability-to-override-pelion-.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-force-port-443.patch
+        if [ "${COAP_PORT_OVERRIDE_443}" = "true" ]; then
+            echo "PATCHING PORT 443 OVERRIDE"
+            [ -f config/mbed_cloud_dev_credentials.c ] && sed -i 's,\(coaps://[^:]*:\)5684,\1443,' config/mbed_cloud_dev_credentials.c
+            git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-patch-mbed-edge-with-the-ability-to-override-pelion-.patch
+            git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-force-port-443.patch
+        fi
       configflags:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
