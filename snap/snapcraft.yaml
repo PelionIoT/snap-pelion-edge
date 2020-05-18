@@ -1,6 +1,6 @@
 name: pelion-edge
 base: core
-version: "1.13.0"
+version: "1.13.1"
 summary: Pelion Edge
 description: Pelion Edge
 confinement: devmode
