@@ -13,6 +13,7 @@ fi
 
 exec ${SNAP}/wigwag/system/bin/kubelet \
     --root-dir=${SNAP_COMMON}/var/lib/kubelet \
+    --offline-cache-path=${SNAP_COMMON}/var/lib/kubelet/store \
     --fail-swap-on=false \
     --image-pull-progress-deadline=2m \
     --hostname-override=${DEVICE_ID} \
