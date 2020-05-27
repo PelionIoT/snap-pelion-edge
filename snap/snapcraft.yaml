@@ -3,7 +3,7 @@ base: core
 version: "1.13.1"
 summary: Pelion Edge
 description: Pelion Edge
-confinement: strict
+confinement: devmode
 grade: devel
 architectures:
   - amd64
