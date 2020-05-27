@@ -562,7 +562,7 @@ parts:
     kubelet:
       plugin: go
       source: git@github.com:armPelionEdge/argus.git
-      source-commit: f3dab5a4f903c2dd165be7d530d4853ad1e9e8cc
+      source-commit: 44277f2070300ab32279298dc4217c0bd6fc0627
       go-importpath: k8s.io/kubernetes
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored depdnencies.
@@ -575,7 +575,7 @@ parts:
         cd go/src/k8s.io
         git clone git@github.com:armPelionEdge/argus.git kubernetes
         cd kubernetes
-        git checkout f3dab5a4f903c2dd165be7d530d4853ad1e9e8cc
+        git checkout 44277f2070300ab32279298dc4217c0bd6fc0627
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_SRC}/go
         cd ${GOPATH}/src/k8s.io/kubernetes/hack/make-rules
