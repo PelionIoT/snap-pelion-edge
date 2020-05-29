@@ -35,6 +35,7 @@ exec ${SNAP}/wigwag/system/bin/kubelet \
     --cni-bin-dir=${SNAP}/wigwag/system/opt/cni/bin \
     --cni-conf-dir=${SNAP}/wigwag/system/etc/cni/net.d \
     --network-plugin=cni \
+    --node-status-update-frequency=150s \
     --register-node=true \
     --docker-endpoint=unix://${SNAP_COMMON}/var/run/docker.sock \
     $NODE_IP_OPTION
