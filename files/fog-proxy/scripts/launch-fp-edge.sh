@@ -5,6 +5,13 @@ EDGE_PROXY_URI_RELATIVE_PATH=$(jq -r .edge_proxy_uri_relative_path ${SNAP_DATA}/
 if ! grep -q "gateways.local" /etc/hosts; then
     echo "127.0.0.1 gateways.local" >> /etc/hosts
 fi
+
+if [[ $(snapctl get fp-edge.debug) = "false" ]]; then
+    # this is known as bash exec redirection.
+    # see https://www.tldp.org/LDP/abs/html/x17974.html
+    exec >/dev/null 2>&1
+fi
+
 exec ${SNAP}/wigwag/system/bin/fp-edge \
     -proxy-uri=${EDGE_K8S_ADDRESS} \
     -tunnel-uri=ws://gateways.local$EDGE_PROXY_URI_RELATIVE_PATH \
@@ -14,4 +21,3 @@ exec ${SNAP}/wigwag/system/bin/fp-edge \
     -cert-strategy-options=device-cert-name=mbed.LwM2MDeviceCert \
     -cert-strategy-options=private-key-name=mbed.LwM2MDevicePrivateKey \
     -forwarding-addresses={\"gateways.local\":\"${GATEWAYS_ADDRESS#"https://"}\"}
-ls
