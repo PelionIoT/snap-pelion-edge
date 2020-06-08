@@ -244,16 +244,16 @@ parts:
         install ${SNAPCRAFT_PART_SRC}/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/scripts/generic/*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
         # override the generic update scripts with our own
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
-    fog-proxy:
+    edge-proxy:
       plugin: go
-      source: git@github.com:armPelionEdge/fog-proxy.git
-      source-commit: 9eb83a24b44386ff963c99470c38eb7c56f95e9a
-      go-importpath: github.com/armPelionEdge/fog-proxy
+      source: git@github.com:armPelionEdge/edge-proxy.git
+      source-commit: a04adbb7146042363ad9cbb86bf95839649db6a2
+      go-importpath: github.com/armPelionEdge/edge-proxy
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
-        install ${SNAPCRAFT_PROJECT_DIR}/files/fog-proxy/config/fp-edge.conf.json ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/fog-proxy/scripts/launch-fp-edge.sh ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/config/fp-edge.conf.json ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/scripts/launch-fp-edge.sh ${SNAPCRAFT_PART_INSTALL}/
       organize:
         bin/fp-edge: wigwag/system/bin/fp-edge
     devicedb:
