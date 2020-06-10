@@ -96,7 +96,7 @@ declare -a file_list=(
     'wigwag/system/bin/stopwatchdog'
     'wigwag/system/bin/maestro'
     'wigwag/wwrelay-utils/conf/versions.json'
-    'wigwag/system/bin/fp-edge'
+    'wigwag/system/bin/edge-proxy'
 )
 
 for file in "${file_list[@]}"
