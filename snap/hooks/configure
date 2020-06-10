@@ -18,6 +18,6 @@
 # ----------------------------------------------------------------------------
 
 # check if we need to set a default value
-if [[ -z $(snapctl get fp-edge.debug) ]]; then
-    snapctl set fp-edge.debug=false
+if [[ -z $(snapctl get edge-proxy.debug) ]]; then
+    snapctl set edge-proxy.debug=false
 fi

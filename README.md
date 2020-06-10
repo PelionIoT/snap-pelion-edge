@@ -224,18 +224,18 @@ Log files are captured by snap and are available with the following commands:
 ## Runtime Configuration
 
 1. The maestro service may be configured with [maestro-shell](https://github.com/armpelionedge/maestro-shell) and with [devicedb](https://github.com/armpelionedge/devicedb).  See the README of each project for more information.
-1. The fp-edge service exposes a debug flag using snap configuration that can be viewed with `snap get` and configured with `snap set`.  The key is named `fp-edge.debug` and can be set to `true` or `false` (the default).  Setting the flag to true will cause fp-edge log output to be sent to the systemd journal and setting it to false will cause fp-edge log output to be redirected to /dev/null.
+1. The edge-proxy service exposes a debug flag using snap configuration that can be viewed with `snap get` and configured with `snap set`.  The key is named `edge-proxy.debug` and can be set to `true` or `false` (the default).  Setting the flag to true will cause edge-proxy log output to be sent to the systemd journal and setting it to false will cause edge-proxy log output to be redirected to /dev/null.
 ```
 admin@localhost:~$ snap get pelion-edge
 Key      Value
-fp-edge  {...}
-admin@localhost:~$ snap get pelion-edge fp-edge
+edge-proxy  {...}
+admin@localhost:~$ snap get pelion-edge edge-proxy
 Key            Value
-fp-edge.debug  false
-admin@localhost:~$ snap set pelion-edge fp-edge.debug=true
-admin@localhost:~$ snap get pelion-edge fp-edge
+edge-proxy.debug  false
+admin@localhost:~$ snap set pelion-edge edge-proxy.debug=true
+admin@localhost:~$ snap get pelion-edge edge-proxy
 Key            Value
-fp-edge.debug  true
+edge-proxy.debug  true
 admin@localhost:~$
 ```
 

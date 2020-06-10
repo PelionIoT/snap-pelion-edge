@@ -21,8 +21,8 @@ if [ ! -f "$SNAP_DATA/edge-core.conf" ]; then
     cp "$SNAP/edge-core.conf" "$SNAP_DATA/edge-core.conf"
 fi
 
-if [ ! -f "$SNAP_DATA/fp-edge.conf.json" ]; then
-    cp "$SNAP/fp-edge.conf.json" "$SNAP_DATA/fp-edge.conf.json"
+if [ ! -f "$SNAP_DATA/edge-proxy.conf.json" ]; then
+    cp "$SNAP/edge-proxy.conf.json" "$SNAP_DATA/edge-proxy.conf.json"
 fi
 
 if [ ! -d "$SNAP_DATA/userdata/etc" ]; then

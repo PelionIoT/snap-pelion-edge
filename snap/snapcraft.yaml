@@ -85,11 +85,11 @@ apps:
       environment:
         LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
       plugs: [network-bind, network-control, network-observe, system-files]
-    fp-edge:
+    edge-proxy:
       passthrough:
         restart-delay: 5s
       restart-condition: always
-      command: launch-fp-edge.sh
+      command: launch-edge-proxy.sh
       daemon: simple
       plugs: [network-bind, network-control]
     identity:
@@ -252,10 +252,10 @@ parts:
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/config/fp-edge.conf.json ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/scripts/launch-fp-edge.sh ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/config/edge-proxy.conf.json ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/scripts/launch-edge-proxy.sh ${SNAPCRAFT_PART_INSTALL}/
       organize:
-        bin/fp-edge: wigwag/system/bin/fp-edge
+        bin/edge-proxy: wigwag/system/bin/edge-proxy
     devicedb:
       plugin: go
       source: git@github.com:armPelionEdge/devicedb.git
