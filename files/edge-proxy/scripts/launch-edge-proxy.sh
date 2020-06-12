@@ -25,6 +25,7 @@ if ! grep -q "gateways.local" /etc/hosts; then
 fi
 
 if [[ $(snapctl get edge-proxy.debug) = "false" ]]; then
+    echo "edge-proxy logging is disabled.  To see logs, run \"snap set pelion-edge edge-proxy.debug=true\" and restart edge-proxy"
     # this is known as bash exec redirection.
     # see https://www.tldp.org/LDP/abs/html/x17974.html
     exec >/dev/null 2>&1
