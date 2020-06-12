@@ -247,7 +247,7 @@ parts:
     edge-proxy:
       plugin: go
       source: git@github.com:armPelionEdge/edge-proxy.git
-      source-commit: a04adbb7146042363ad9cbb86bf95839649db6a2
+      source-commit: 470539b560a9aea3c8b6ecc0c0e0d3b4064bacaf
       go-importpath: github.com/armPelionEdge/edge-proxy
       override-build: |
         snapcraftctl build
