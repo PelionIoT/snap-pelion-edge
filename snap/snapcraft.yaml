@@ -51,6 +51,8 @@ apps:
       daemon: simple
       environment:
         NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
+        LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
+        PATH: $PATH:$SNAP/wigwag/system/bin
       plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, system-files, snapd-control, shutdown, network-manager, modem-manager, log-observe]
     edge-core:
       passthrough:
