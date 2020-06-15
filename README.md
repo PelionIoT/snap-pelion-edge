@@ -431,5 +431,5 @@ You can initiate a firmware update campaign targeting any registered device from
 
 To use port 443 for the for Pelion-Cloud connection:
 
-1. Run the following: ``` sed -i 's,\(coaps://[^:]*:\)5684,\1443,' mbed_cloud_dev_credentials.c ```
+1. Open `snap/snapcraft.yaml` and set COAP_PORT_OVERRIDE_443 to "true" in the edge-core part.
 1. Do a clean build following the instruction above in this readme.
