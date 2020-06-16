@@ -421,7 +421,7 @@ parts:
     maestro-shell:
       plugin: go
       source: https://github.com/armPelionEdge/maestro-shell.git
-      source-commit: e06b5e28d6beb46577710331168a84687bb4b370
+      source-commit: 04365928338093328fe86fa4d5d14231cf83d30b
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
         # Create the go workspace. This is normally done by the plugin
@@ -433,7 +433,7 @@ parts:
         cd go/src/github.com/armPelionEdge
         git clone https://github.com/armPelionEdge/maestro-shell.git
         cd maestro-shell
-        git checkout e06b5e28d6beb46577710331168a84687bb4b370
+        git checkout 04365928338093328fe86fa4d5d14231cf83d30b
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         cd ${GOPATH}/src/github.com/armPelionEdge/maestro-shell/
