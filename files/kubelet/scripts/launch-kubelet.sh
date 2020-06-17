@@ -21,4 +21,5 @@ exec ${SNAP}/wigwag/system/bin/kubelet \
     --cni-bin-dir=${SNAP}/wigwag/system/opt/cni/bin \
     --cni-conf-dir=${SNAP}/wigwag/system/etc/cni/net.d \
     --network-plugin=cni \
+    --node-ip=127.0.0.1 \
     --register-node=true
