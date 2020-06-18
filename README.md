@@ -173,6 +173,12 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     sudo snap connect pelion-edge:process-control :process-control
     sudo snap connect pelion-edge:shutdown :shutdown
     ```
+
+1. Restart pelion-edge
+
+   ```bash
+   sudo snap restart pelion-edge
+   ```
 ## Run Pelion Edge
 
 After the snap is installed, Pelion Edge starts automatically:
@@ -450,7 +456,7 @@ You can initiate a firmware update campaign targeting any registered device from
     1. From the **Filter** dropdown list, select the filter that targets the devices you need to update.
     1. Click **Finish** to start the campaign.
 
-### Using port 443 
+### Using port 443
 
 To use port 443 for the for Pelion-Cloud connection:
 
