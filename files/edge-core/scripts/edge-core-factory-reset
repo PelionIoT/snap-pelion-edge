@@ -19,6 +19,7 @@
 
 # This is present on some, but not all gateways, and is where logs are persisted.
 rm -f /var/log/syslog*
+journalctl --vacuum-time=1s
 
 rm -rf ${SNAP_DATA}/userdata/edge_gw_identity
 snap stop pelion-edge.kubelet || true
