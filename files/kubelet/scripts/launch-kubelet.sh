@@ -11,6 +11,15 @@ if [ $? -ne 0 ]; then
     exit 2
 fi
 
+# Get the IP address of the interface with Internet access
+IP_ADDR=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
+
+if [ -z $IP_ADDR ]; then
+    NODE_IP_OPTION="--node-ip=$(IP_ADDR)"
+else
+    NODE_IP_OPTION=""
+fi
+
 exec ${SNAP}/wigwag/system/bin/kubelet \
     --root-dir=${SNAP_COMMON}/var/lib/kubelet \
     --offline-cache-path=${SNAP_COMMON}/var/lib/kubelet/store \
@@ -21,4 +30,5 @@ exec ${SNAP}/wigwag/system/bin/kubelet \
     --cni-bin-dir=${SNAP}/wigwag/system/opt/cni/bin \
     --cni-conf-dir=${SNAP}/wigwag/system/etc/cni/net.d \
     --network-plugin=cni \
-    --register-node=true
+    --register-node=true \
+    $NODE_IP_OPTION
