@@ -15,7 +15,7 @@ fi
 IP_ADDR=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
 
 if [ -n $IP_ADDR ]; then
-    NODE_IP_OPTION="--node-ip=$(IP_ADDR)"
+    NODE_IP_OPTION="--node-ip=$IP_ADDR"
 else
     NODE_IP_OPTION=""
 fi
