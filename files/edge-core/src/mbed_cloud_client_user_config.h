@@ -41,6 +41,8 @@
 #define MBED_CLIENT_TCP_KEEPALIVE_INTERVAL 60
 #define MBED_CLIENT_TCP_KEEPALIVE_TIME 60
 
+#define EDGE_RUNNING_IN_SNAP 1
+
 #define PLATFORM_VERSION_FILE "/var/snap/pelion-edge/current/etc/platform_version"
 
 #endif /* MBED_CLIENT_USER_CONFIG_H */
