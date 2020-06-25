@@ -14,7 +14,7 @@ fi
 # Get the IP address of the interface with Internet access
 IP_ADDR=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
 
-if [ -z $IP_ADDR ]; then
+if [ -n $IP_ADDR ]; then
     NODE_IP_OPTION="--node-ip=$(IP_ADDR)"
 else
     NODE_IP_OPTION=""
