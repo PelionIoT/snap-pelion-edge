@@ -491,6 +491,10 @@ parts:
         # copied into the prime directory during the prime step
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install ${GOPATH}/bin/maestro-shell ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro-shell
+    yq:
+      plugin: go
+      source: git@github.com:mikefarah/yq.git
+      go-importpath: github.com/mikefarah/yq
     maestro:
       plugin: go
       source: https://github.com/armPelionEdge/maestro.git
