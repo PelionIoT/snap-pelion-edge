@@ -337,7 +337,7 @@ parts:
         - python
         - build-essential
       source: https://github.com/armPelionEdge/edge-utils.git
-      source-commit: 7020d6bd0d3a486299d33e20be3f11b61372ebeb
+      source-commit: 9abc56414972bfd3b13afb1d6e294218938c0614
       override-pull: |
         snapcraftctl pull
         cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/package.json .
