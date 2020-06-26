@@ -105,7 +105,7 @@ apps:
         restart-delay: 5s
       restart-condition: always
       daemon: simple
-      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, x11, system-files-logs]
+      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, mount-observe, netlink-audit, netlink-connector, network-manager, network, network-bind, network-control, network-observe, x11, system-files-logs]
     maestro-shell:
       command: wigwag/system/bin/maestro-shell
       environment:
@@ -491,6 +491,10 @@ parts:
         # copied into the prime directory during the prime step
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install ${GOPATH}/bin/maestro-shell ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro-shell
+    yq:
+      plugin: go
+      source: git@github.com:mikefarah/yq.git
+      go-importpath: github.com/mikefarah/yq
     maestro:
       plugin: go
       source: https://github.com/armPelionEdge/maestro.git
