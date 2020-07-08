@@ -9,8 +9,8 @@ architectures:
   - amd64
 plugs:
     system-files:
-        read: [/proc, /etc, /run, /sys, /var/lib]
-        write: [/proc, /etc, /run, /var/lib]
+        read: [/proc, /etc, /run, /sys, /var/lib, /var/log]
+        write: [/proc, /etc, /run, /var/lib, /var/log]
     home:
         read: all
     support:
@@ -60,7 +60,7 @@ apps:
       restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
-      plugs: [shutdown, hardware-observe, network-bind, network-control, network-observe, system-files, snapd-control]
+      plugs: [shutdown, hardware-observe, network-bind, network-control, network-observe, system-files, snapd-control, log-observe]
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
       plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
