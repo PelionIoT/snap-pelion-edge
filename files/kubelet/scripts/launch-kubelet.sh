@@ -20,6 +20,11 @@ else
     NODE_IP_OPTION=""
 fi
 
+# Fix readlink permission denied in Ubuntu Core <20 for /proc/1/ns/*
+APPARMOR_PROFILE=/var/lib/snapd/apparmor/profiles/snap.${SNAP_INSTANCE_NAME}.kubelet
+sed -i 's/^\(deny ptrace\)/#\1/' $APPARMOR_PROFILE
+/sbin/apparmor_parser -r $APPARMOR_PROFILE
+
 exec ${SNAP}/wigwag/system/bin/kubelet \
     --root-dir=${SNAP_COMMON}/var/lib/kubelet \
     --offline-cache-path=${SNAP_COMMON}/var/lib/kubelet/store \
