@@ -21,11 +21,17 @@ EDGE_K8S_ADDRESS=$(jq -r .edgek8sServicesAddress ${SNAP_DATA}/userdata/edge_gw_i
 GATEWAYS_ADDRESS=$(jq -r .gatewayServicesAddress ${SNAP_DATA}/userdata/edge_gw_identity/identity.json)
 DEVICE_ID=$(jq -r .deviceID ${SNAP_DATA}/userdata/edge_gw_identity/identity.json)
 EDGE_PROXY_URI_RELATIVE_PATH=$(jq -r .edge_proxy_uri_relative_path ${SNAP_DATA}/edge-proxy.conf.json)
+EXTERN_HTTP_PROXY=$(snapctl get edge-proxy.extern-http-proxy)
 if ! grep -q "gateways.local" /etc/hosts; then
     echo "127.0.0.1 gateways.local" >> /etc/hosts
 fi
 if ! grep -q "$DEVICE_ID" /etc/hosts; then
     echo "127.0.0.1 $DEVICE_ID" >> /etc/hosts
+fi
+if [[ $EXTERN_HTTP_PROXY = "" ]]; then
+    EXTERN_ARG=
+else
+    EXTERN_ARG=-extern-http-proxy-uri=$EXTERN_HTTP_PROXY
 fi
 if [[ $(snapctl get edge-proxy.debug) = "false" ]]; then
     echo "edge-proxy logging is disabled.  To see logs, run \"snap set pelion-edge edge-proxy.debug=true\" and restart edge-proxy"
@@ -33,6 +39,8 @@ if [[ $(snapctl get edge-proxy.debug) = "false" ]]; then
     # see https://www.tldp.org/LDP/abs/html/x17974.html
     exec >/dev/null 2>&1
 fi
+
+
 
 exec ${SNAP}/wigwag/system/bin/edge-proxy \
     -proxy-uri=${EDGE_K8S_ADDRESS} \
@@ -42,4 +50,5 @@ exec ${SNAP}/wigwag/system/bin/edge-proxy \
     -cert-strategy-options=path=/1/pt \
     -cert-strategy-options=device-cert-name=mbed.LwM2MDeviceCert \
     -cert-strategy-options=private-key-name=mbed.LwM2MDevicePrivateKey \
+    $EXTERN_ARG \
     -forwarding-addresses={\"gateways.local\":\"${GATEWAYS_ADDRESS#"https://"}\"}
