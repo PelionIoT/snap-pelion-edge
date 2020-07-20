@@ -250,6 +250,16 @@ Log files are captured by snap and are available with the following commands:
    journalctl -u snap.pelion-edge.edge-core -f
    ```
 
+## Proxying HTTP traffic
+When a pelion-edge device is installed in a site that restricts HTTP traffic it can be configured to pass its traffic through an HTTP proxy. The HTTP proxy can be set in the snap environment variable edge-proxy.extern-http-proxy in the following manner
+
+   ```bash
+   snap set pelion-edge edge-proxy.extern-http-proxy=<http-proxy-uri>
+   ```
+For example
+   ```bash
+   snap set pelion-edge edge-proxy.extern-http-proxy=https://webproxy.myorg.com:8443
+   ```
 ## Runtime Configuration
 
 1. The maestro service may be configured with [maestro-shell](https://github.com/armpelionedge/maestro-shell) and with [devicedb](https://github.com/armpelionedge/devicedb).  See the README of each project for more information.

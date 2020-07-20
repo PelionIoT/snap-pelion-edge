@@ -21,3 +21,6 @@
 if [[ -z $(snapctl get edge-proxy.debug) ]]; then
     snapctl set edge-proxy.debug=false
 fi
+if [[ -z $(snapctl get edge-proxy.extern-http-proxy) ]]; then
+    snapctl set edge-proxy.extern-http-proxy=""
+fi
