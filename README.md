@@ -249,7 +249,7 @@ Log files are captured by snap and are available with the following commands:
    ```bash
    journalctl -u snap.pelion-edge.edge-core -f
    ```
-
+blah blah
 ## Runtime Configuration
 
 1. The maestro service may be configured with [maestro-shell](https://github.com/armpelionedge/maestro-shell) and with [devicedb](https://github.com/armpelionedge/devicedb).  See the README of each project for more information.
