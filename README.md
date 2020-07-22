@@ -304,12 +304,12 @@ If you see the following error when starting Edge core, you are probably attempt
 
 This is known to not work. The remedy is to install Ubuntu onto the system or use a virtual machine.
 
-### Relay term startup errors
+### Service startup errors
 
-If you see the following error when starting relay term, then relay term is attempting to startup on first boot when it's config files are not yet accessible and the snap service connections have not been setup:
+If you see the following error when starting any pelion edge service (for example, relay term), then the service is attempting to startup on first boot when it's config files are not yet accessible and the snap service connections have not been setup:
 
 ```
-pelion-edge.relay-term[3660]: Error: Unable to read from config file at: /var/snap/pelion-edge/x1/relayterm-config.json
+pelion-edge.x[xxxx]: Error: Unable to read from config file at: /var/snap/pelion-edge/x1/x-config.json
 ```
 
 This is an expected error at first boot if snap connections have not been established. Reconnect the snap connections with the script under [Install the pelion-edge snap on Ubuntu 16](#install-the-pelion-edge-snap-on-ubuntu-16) - "Hookup the following connections".
