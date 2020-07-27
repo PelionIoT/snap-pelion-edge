@@ -1,0 +1,285 @@
+From 55ae3582923fd8667d2e28d72e9d484cf12f403c Mon Sep 17 00:00:00 2001
+From: Nic Costa <nic.costa@gmail.com>
+Date: Tue, 28 Jul 2020 11:55:00 -0500
+Subject: [PATCH 4/4] allow resources to be named
+
+customers have requested that new resources have a name when viewed
+in the device management portal
+---
+ edge-client/edge-client/edge_client.h         |  1 +
+ .../edge-client/gateway_services_resource.h   |  4 ++--
+ edge-client/edge_client.cpp                   | 11 ++++++++---
+ edge-client/gateway_services_resource.c       | 19 ++++++++++++++++---
+ edge-client/reset_factory_settings.c          |  1 +
+ edge-core/protocol_api.c                      |  6 ++++--
+ 6 files changed, 32 insertions(+), 10 deletions(-)
+
+diff --git a/edge-client/edge-client/edge_client.h b/edge-client/edge-client/edge_client.h
+index 9e870b36..701468ad 100644
+--- a/edge-client/edge-client/edge_client.h
++++ b/edge-client/edge-client/edge_client.h
+@@ -357,6 +357,7 @@ pt_api_result_code_e edgeclient_create_resource_value(const char *endpoint_name,
+                                                    const uint8_t *value,
+                                                    uint32_t value_length,
+                                                    Lwm2mResourceType resource_type,
++                                                   const char *resource_name,
+                                                    int opr,
+                                                    void *ctx);
+ 
+diff --git a/edge-client/edge-client/gateway_services_resource.h b/edge-client/edge-client/gateway_services_resource.h
+index 525c9670..bc858f5f 100644
+--- a/edge-client/edge-client/gateway_services_resource.h
++++ b/edge-client/edge-client/gateway_services_resource.h
+@@ -131,7 +131,7 @@ float get_cpu();
+  * \param res_id the resource id to add to the pelion cloud
+  * \param value string value to set in the cloud
+  */
+-void gsr_init_string_resource(uint16_t obj_id, uint16_t res_id, const char* value);
++void gsr_init_string_resource(uint16_t obj_id, uint16_t res_id, const char *res_name, const char* value);
+ 
+ 
+ /**
+@@ -140,7 +140,7 @@ void gsr_init_string_resource(uint16_t obj_id, uint16_t res_id, const char* valu
+  * \param res_id the resource id to add to the pelion cloud
+  * \param value uint32_t value to set in the cloud
+  */
+-void gsr_init_int_resource(uint16_t obj_id, uint16_t res_id, int64_t value);
++void gsr_init_int_resource(uint16_t obj_id, uint16_t res_id, const char *res_name, int64_t value);
+ 
+ /**
+  * \brief The initial add of the resources to the cloud
+diff --git a/edge-client/edge_client.cpp b/edge-client/edge_client.cpp
+index 479658c9..0a6f686f 100644
+--- a/edge-client/edge_client.cpp
++++ b/edge-client/edge_client.cpp
+@@ -879,7 +879,8 @@ EDGE_LOCAL M2MResourceBase::ResourceType resolve_resource_type(Lwm2mResourceType
+ }
+ 
+ bool edgeclient_add_resource(const char *endpoint_name, const uint16_t object_id, const uint16_t object_instance_id,
+-                  const uint16_t resource_id, Lwm2mResourceType resource_type, int opr, void *connection)
++                  const uint16_t resource_id, Lwm2mResourceType resource_type, const char *resource_name,
++                  int opr, void *connection)
+ {
+     AsyncCallbackParamsBase *acp = NULL;
+     tr_debug("add_resource for endpoint: %s, object_id: %u, object_instance_id: %u, resource_id: %u",
+@@ -899,7 +900,7 @@ bool edgeclient_add_resource(const char *endpoint_name, const uint16_t object_id
+ 
+     m2m::itoa_c(resource_id, res_name);
+     M2MResourceBase::ResourceType resolved_resource_type = resolve_resource_type(resource_type);
+-    M2MResource *res = inst->create_dynamic_resource(String(res_name), "", resolved_resource_type, true, false, false);
++    M2MResource *res = inst->create_dynamic_resource(String(res_name), resource_name, resolved_resource_type, true, false, false);
+     if (res == NULL) {
+         return false;
+     }
+@@ -1085,6 +1086,7 @@ bool edgeclient_create_resource_structure(const char *endpoint_name,
+                                           const uint16_t object_instance_id,
+                                           const uint16_t resource_id,
+                                           Lwm2mResourceType resource_type,
++                                          const char *resource_name,
+                                           int opr,
+                                           void *ctx)
+ {
+@@ -1144,6 +1146,7 @@ bool edgeclient_create_resource_structure(const char *endpoint_name,
+                                      object_instance_id,
+                                      resource_id,
+                                      resource_type,
++                                     resource_name,
+                                      opr,
+                                      ctx)) {
+             tr_error("create_resource_structure - could not create resource!");
+@@ -1259,7 +1262,8 @@ pt_api_result_code_e edgeclient_update_resource_value(const char *endpoint_name,
+ pt_api_result_code_e edgeclient_create_resource_value(const char *endpoint_name, const uint16_t object_id,
+                                                    const uint16_t object_instance_id, const uint16_t resource_id,
+                                                    const uint8_t *value, const uint32_t value_length,
+-                                                   Lwm2mResourceType resource_type, int opr, void *ctx)
++                                                   Lwm2mResourceType resource_type, const char *resource_name,
++                                                   int opr, void *ctx)
+ {
+     //create the resource
+     if (!edgeclient_create_resource_structure(endpoint_name,
+@@ -1267,6 +1271,7 @@ pt_api_result_code_e edgeclient_create_resource_value(const char *endpoint_name,
+                                               object_instance_id,
+                                               resource_id,
+                                               resource_type,
++                                              resource_name,
+                                               opr,
+                                               ctx)) {
+         tr_error("set_endpoint_resource_value - could not create resource structure!");
+diff --git a/edge-client/gateway_services_resource.c b/edge-client/gateway_services_resource.c
+index 253396b5..629e5297 100644
+--- a/edge-client/gateway_services_resource.c
++++ b/edge-client/gateway_services_resource.c
+@@ -50,6 +50,7 @@ static int gsr_add_service_instance(uint16_t obj_instance_id, uint8_t* id, uint3
+                                                                 id,
+                                                                 id_len,
+                                                                 LWM2M_STRING,
++                                                                "edge service id",
+                                                                 OPERATION_READ,
+                                                                 /* userdata */ NULL);
+     if(result != PT_API_SUCCESS) {
+@@ -64,6 +65,7 @@ static int gsr_add_service_instance(uint16_t obj_instance_id, uint8_t* id, uint3
+                                   enabled,
+                                   1,
+                                   LWM2M_BOOLEAN,
++                                  "edge service enabled",
+                                   OPERATION_READ_WRITE,
+                                   /* userdata */ NULL);
+     if(result != PT_API_SUCCESS) {
+@@ -78,6 +80,7 @@ static int gsr_add_service_instance(uint16_t obj_instance_id, uint8_t* id, uint3
+                                   config,
+                                   config_len,
+                                   LWM2M_STRING,
++                                  "edge service config",
+                                   OPERATION_READ_WRITE,
+                                   /* userdata */ NULL);
+     if(result != PT_API_SUCCESS) {
+@@ -373,7 +376,7 @@ void *gsr_update_gateway_stats_resource(void *args)
+ }
+ 
+ //set a value in the cloud for obj_id/res_id to string result of the cmd shell command.
+-void gsr_init_string_resource(uint16_t obj_id, uint16_t res_id, const char* value)
++void gsr_init_string_resource(uint16_t obj_id, uint16_t res_id, const char *res_name, const char* value)
+ {
+     //set value to cloud
+     edgeclient_create_resource_value(   NULL,
+@@ -383,12 +386,13 @@ void gsr_init_string_resource(uint16_t obj_id, uint16_t res_id, const char* valu
+                                         (uint8_t *) value,
+                                         strlen(value),
+                                         LWM2M_STRING,
++                                        res_name,
+                                         OPERATION_READ,
+                                         /* userdata */ NULL);
+ }
+ 
+ //set a value in the cloud for obj_id/res_id to string result of the cmd shell command.
+-void gsr_init_int_resource(uint16_t obj_id, uint16_t res_id, int64_t value)
++void gsr_init_int_resource(uint16_t obj_id, uint16_t res_id, const char *res_name, int64_t value)
+ {
+     //set value to cloud
+     edgeclient_create_resource_value(   NULL,
+@@ -398,12 +402,13 @@ void gsr_init_int_resource(uint16_t obj_id, uint16_t res_id, int64_t value)
+                                         (uint8_t *) &value,
+                                         sizeof(value),
+                                         LWM2M_INTEGER,
++                                        res_name,
+                                         OPERATION_READ,
+                                         NULL);
+ }
+ 
+ //set a value in the cloud for obj_id/res_id to string result of the cmd shell command.
+-void gsr_init_float_resource(uint16_t obj_id, uint16_t res_id, float value)
++void gsr_init_float_resource(uint16_t obj_id, uint16_t res_id, const char *res_name, float value)
+ {
+     //set value to cloud
+     edgeclient_create_resource_value(   NULL,
+@@ -413,6 +418,7 @@ void gsr_init_float_resource(uint16_t obj_id, uint16_t res_id, float value)
+                                         (uint8_t *) &value,
+                                         sizeof(value),
+                                         LWM2M_FLOAT,
++                                        res_name,
+                                         OPERATION_READ,
+                                         NULL);
+ }
+@@ -433,16 +439,19 @@ void gsr_add_gateway_stats_resource()
+     //snap version
+     gsr_init_string_resource(   GATEWAY_STATS_OBJ_ID,
+                                 GATEWAY_STATS_VERSION_RES_ID,
++                                "edge snap version",
+                                 str_exec(cmd_version));
+ 
+     //ram total
+     gsr_init_int_resource(  GATEWAY_STATS_OBJ_ID,
+                             GATEWAY_STATS_RAM_TOTAL_RES_ID,
++                            "mem total",
+                             int_exec(cmd_ram_total));
+ 
+     //disk total
+     gsr_init_int_resource(  GATEWAY_STATS_OBJ_ID,
+                             GATEWAY_STATS_DISK_TOTAL_RES_ID,
++                            "disk total",
+                             int_exec(cmd_disk_total));
+ 
+     // --- add dynamic resources ---
+@@ -455,6 +464,7 @@ void gsr_add_gateway_stats_resource()
+                                         (uint8_t *) &int_default,
+                                         sizeof(uint32_t),
+                                         LWM2M_INTEGER,
++                                        "cpu temp",
+                                         OPERATION_READ,
+                                         /* userdata */ NULL);
+ 
+@@ -466,6 +476,7 @@ void gsr_add_gateway_stats_resource()
+                                         (uint8_t *) &float_default,
+                                         sizeof(float_default),
+                                         LWM2M_FLOAT,
++                                        "cpu usage",
+                                         OPERATION_READ,
+                                         /* userdata */ NULL);
+ 
+@@ -477,6 +488,7 @@ void gsr_add_gateway_stats_resource()
+                                         (uint8_t *) &int_default,
+                                         sizeof(uint32_t),
+                                         LWM2M_INTEGER,
++                                        "mem free",
+                                         OPERATION_READ,
+                                         /* userdata */ NULL);
+ 
+@@ -488,6 +500,7 @@ void gsr_add_gateway_stats_resource()
+                                         (uint8_t *) &int_default,
+                                         sizeof(uint32_t),
+                                         LWM2M_INTEGER,
++                                        "disk free",
+                                         OPERATION_READ,
+                                         /* userdata */ NULL);
+ }
+diff --git a/edge-client/reset_factory_settings.c b/edge-client/reset_factory_settings.c
+index 45061a0b..52b14c01 100644
+--- a/edge-client/reset_factory_settings.c
++++ b/edge-client/reset_factory_settings.c
+@@ -141,6 +141,7 @@ void rfs_add_factory_reset_resource()
+                                   (uint8_t *) NULL,
+                                   0,
+                                   LWM2M_OPAQUE,
++                                  "factory reset",
+                                   OPERATION_EXECUTE,
+                                   /* userdata */ NULL);
+ }
+diff --git a/edge-core/protocol_api.c b/edge-core/protocol_api.c
+index e7e41b8c..bd912103 100644
+--- a/edge-core/protocol_api.c
++++ b/edge-core/protocol_api.c
+@@ -179,13 +179,13 @@ static void initialize_pt_resources(char *name, int pt_id){
+     uint32_t length = strlen(name);
+     edgeclient_create_resource_value(NULL, PROTOCOL_TRANSLATOR_OBJECT_ID, pt_id,
+                                   PROTOCOL_TRANSLATOR_OBJECT_NAME_RESOURCE_ID, (uint8_t*) name, length,
+-                                  LWM2M_OPAQUE, OPERATION_READ /*GET_ALLOWED*/, /* userdata */ NULL);
++                                  LWM2M_OPAQUE, "", OPERATION_READ /*GET_ALLOWED*/, /* userdata */ NULL);
+ 
+     //Set device counter to zero, the API expects values in network byte-order.
+     uint16_t zero = htons(0);
+     edgeclient_create_resource_value(NULL, PROTOCOL_TRANSLATOR_OBJECT_ID, pt_id,
+                                   PROTOCOL_TRANSLATOR_OBJECT_COUNT_RESOURCE_ID, (uint8_t*) &zero, sizeof(uint16_t),
+-                                  LWM2M_INTEGER, OPERATION_READ /*GET_ALLOWED*/, /* userdata */ NULL);
++                                  LWM2M_INTEGER, "", OPERATION_READ /*GET_ALLOWED*/, /* userdata */ NULL);
+ }
+ 
+ void edge_core_protocol_api_client_data_destroy(client_data_t *client_data)
+@@ -321,6 +321,7 @@ static void update_device_amount_resource_by_delta(struct connection* connection
+             PROTOCOL_TRANSLATOR_OBJECT_COUNT_RESOURCE_ID,
+             (uint8_t*) &pt_device_amount, sizeof(int16_t),
+             LWM2M_INTEGER,
++            "",
+             /* operations = allow read */ OPERATION_READ,
+             connection);
+         if (PT_API_SUCCESS == ret) {
+@@ -703,6 +704,7 @@ pt_api_result_code_e update_json_device_objects(json_t *json_structure,
+                                                                                             resource_value,
+                                                                                             decoded_len,
+                                                                                             resource_type,
++                                                                                            "",
+                                                                                             opr,
+                                                                                             connection);
+                     if (set_resource_status == PT_API_SUCCESS) {
+-- 
+2.21.0 (Apple Git-122)
+

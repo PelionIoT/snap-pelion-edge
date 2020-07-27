@@ -1,0 +1,568 @@
+From 08fd5a973e423e2c968cf60d2652fa86fb05bd63 Mon Sep 17 00:00:00 2001
+From: Michael Ray <mjray@umich.edu>
+Date: Thu, 25 Jun 2020 13:50:22 -0500
+Subject: [PATCH 3/3] Broadcast gateway stats to LWM2M resources
+
+List of resources broadcasting:
+* /3/0/3303 - CPU temp
+* /3/0/3320 - CPU usage
+* /3/0/3321 - RAM usage
+* /3/0/3322 - Disk usage
+* /3/0/4001 - Snap version
+
+Resources will report nothing if cannot obtain CPU temp and disk usage
+
+Protection for multiple callback requests from starting cloud thread more
+than once.
+---
+ .../edge-client/gateway_services_resource.h        | 100 +++++-
+ edge-client/edge_client.cpp                        |   1 +
+ edge-client/gateway_services_resource.c            | 353 +++++++++++++++++++++
+ edge-core/edge_server.c                            |  14 +-
+ 4 files changed, 466 insertions(+), 2 deletions(-)
+
+diff --git a/edge-client/edge-client/gateway_services_resource.h b/edge-client/edge-client/gateway_services_resource.h
+index 120e257..525c967 100644
+--- a/edge-client/edge-client/gateway_services_resource.h
++++ b/edge-client/edge-client/gateway_services_resource.h
+@@ -37,6 +37,33 @@
+  */
+ 
+ /**
++ * \struct cpu_info
++ * \brief a sample of cpu info from /proc/stat used by get_cpuu()
++ */
++struct cpu_info
++{
++    //raw data
++    char cpu[20];    //cpu name
++
++    //various cpu usage types from  linux
++    unsigned long long  user;
++    unsigned long long  nice;
++    unsigned long long  system;
++    unsigned long long  idle;
++    unsigned long long  io_wait;
++    unsigned long long  irq;
++    unsigned long long  soft_irq;
++    unsigned long long  steal;
++    unsigned long long  guest;
++    unsigned long long  guest_nice;
++
++    //combined stats for computing total cpu % with prev
++    int all_idle;  // idle+iowate
++    int non_idle;  // user + nice + system + irq + softirq + steal
++    int total;     // all_idle + non_idle
++} ;
++
++/**
+  * \brief Adds the Gateway Services resource.
+  */
+ void gsr_add_gateway_services_resource();
+@@ -46,10 +73,81 @@ void gsr_add_gateway_services_resource();
+  * \param request_ctx Data and state information about the gateway service resource request.
+  * \see edgeclient_request_context_t
+  */
+-
+ void gsr_resource_requested(edgeclient_request_context_t *request_ctx);
+ 
+ /**
++ * \brief Run a shell command and return results to out_buffer.
++ * \param out_buffer the return data from the command execution.
++ * \param cmd the bash command to run
++ */
++int sys_exec(char* out_buffer, const char* cmd);
++
++/**
++ * \brief run a shell command with the return result expected to be an integer value
++ * \param cmd the bash command to run
++ * \return int64_t result
++ */
++int64_t int_exec(const char* cmd);
++
++/**
++ * \brief run a shell command with the return result expected to be an unsigned integer value
++ * \param cmd the bash command to run
++ * \return char* result
++ */
++char* str_exec(const char* cmd);
++
++/**
++ * \brief This is the thread/libevent that updates the cloud.
++ * \param args Currently not used.
++ */
++void *gsr_update_gateway_stats_resource(void *args);
++
++/**
++ * \brief Set a string value in the cloud for obj_id/res_id to string result of the cmd shell command.
++ * \param obj_id the object id to add to the pelion cloud
++ * \param res_id the resource id to add to the pelion cloud
++ * \param cmd the bash shell command to run for the resource data
++ */
++void gsr_set_resource_helper(uint16_t obj_id, uint16_t res_id, const char* cmd);
++
++/**
++ * \brief Set a string value in the cloud for obj_id/res_id to string result of the cmd shell command.
++ * \param obj_id the object id to add to the pelion cloud
++ * \param res_id the resource id to add to the pelion cloud
++ * \param value the unsigned int value to set
++ */
++void gsr_set_resource_helper_int(uint32_t obj_id, uint16_t res_id, int64_t value);
++
++/**
++ * \brief Get and process a string from /proc/stat and return cpu percentage.
++ * \note First sample will always be zero because it requires previous state to compute a value.
++ * \return  0.00-100.00 percent cpu usage float
++ */
++float get_cpu();
++
++/**
++ * \brief Add a new value in cloud for obj_id/res_id with a value of a string.
++ * \param obj_id the object id to add to the pelion cloud
++ * \param res_id the resource id to add to the pelion cloud
++ * \param value string value to set in the cloud
++ */
++void gsr_init_string_resource(uint16_t obj_id, uint16_t res_id, const char* value);
++
++
++/**
++ * \brief Add a new value in cloud for obj_id/res_id with a value of a string.
++ * \param obj_id the object id to add to the pelion cloud
++ * \param res_id the resource id to add to the pelion cloud
++ * \param value uint32_t value to set in the cloud
++ */
++void gsr_init_int_resource(uint16_t obj_id, uint16_t res_id, int64_t value);
++
++/**
++ * \brief The initial add of the resources to the cloud
++ */
++void gsr_add_gateway_stats_resource();
++
++/**
+  * @}
+  * Close GATEWAY_SERVICES_RESOURCE Doxygen group definition
+  */
+diff --git a/edge-client/edge_client.cpp b/edge-client/edge_client.cpp
+index 5b22e85..479658c 100644
+--- a/edge-client/edge_client.cpp
++++ b/edge-client/edge_client.cpp
+@@ -1192,6 +1192,7 @@ bool edgeclient_get_endpoint_context(const char *endpoint_name, void **context_o
+     return false;
+ }
+ 
++
+ pt_api_result_code_e edgeclient_update_resource_value(const char *endpoint_name,
+                                                       const uint16_t object_id,
+                                                       const uint16_t object_instance_id,
+diff --git a/edge-client/gateway_services_resource.c b/edge-client/gateway_services_resource.c
+index 3149dd5..253396b 100644
+--- a/edge-client/gateway_services_resource.c
++++ b/edge-client/gateway_services_resource.c
+@@ -22,9 +22,24 @@
+ #include "edge-client/edge_client.h"
+ #include <stddef.h>
+ #include <string.h>
++#include <unistd.h>
+ #include "mbed-trace/mbed_trace.h"
+ #include "edge-client/edge_core_cb_result.h"
+ #include "edge-client/gateway_services_resource.h"
++#include <stdlib.h>
++
++#define GATEWAY_STATS_OBJ_ID 3
++
++#define GATEWAY_STATS_VERSION_RES_ID 4001
++#define GATEWAY_STATS_CPU_TEMP_RES_ID 3303
++#define GATEWAY_STATS_CPU_PCT_RES_ID 3320
++#define GATEWAY_STATS_RAM_FREE_RES_ID 3321
++#define GATEWAY_STATS_RAM_TOTAL_RES_ID 3322
++#define GATEWAY_STATS_DISK_FREE_RES_ID 3323
++#define GATEWAY_STATS_DISK_TOTAL_RES_ID 3324
++
++#define GATEWAY_STATS_BUFFER_SIZE 128
++#define GATEWAY_STATS_REFRESH_TIMER 10
+ 
+ static int gsr_add_service_instance(uint16_t obj_instance_id, uint8_t* id, uint32_t id_len, uint8_t* enabled, uint8_t* config, uint32_t config_len)
+ {
+@@ -137,4 +152,342 @@ void gsr_add_gateway_services_resource()
+     }
+ }
+ 
++//run shell cmd and return results to out_buffer
++int sys_exec(char* out_buffer, const char* cmd) {
++    FILE *fp;
++    char buffer[128];
++    fp = popen(cmd, "r");
++    if (fp == NULL)
++        return -1;
++    while (fgets(buffer, sizeof(buffer), fp) != NULL) {
++        strcat(out_buffer, buffer);
++    }
++    pclose(fp);
++    return 0;
++}
++
++//set a value in the cloud for obj_id/res_id to string result of the cmd shell command.
++void gsr_set_resource_helper(uint16_t obj_id, uint16_t res_id, const char* cmd)
++{
++    char result[GATEWAY_STATS_BUFFER_SIZE];
++    *result = 0;
++    int ret = sys_exec(result, cmd);
++    if (ret != 0)
++        strcpy(result, "-1");
++    pt_api_result_code_e eret = edgeclient_update_resource_value(   NULL,
++                                                                    obj_id,
++                                                                    0,
++                                                                    res_id,
++                                                                    (uint8_t *) result,
++                                                                    strlen(result));
++    if (eret != PT_API_SUCCESS)
++        tr_debug("EdgeClient update resource /%d/0/%d failed with code: %d", obj_id, res_id, eret);
++}
++
++//set a value in the cloud for obj_id/res_id to nValue
++void gsr_set_resource_helper_int(uint32_t obj_id, uint16_t res_id, int64_t value)
++{
++    pt_api_result_code_e eret = edgeclient_update_resource_value(   NULL,
++                                                                    obj_id,
++                                                                    0,
++                                                                    res_id,
++                                                                    (uint8_t *)&value,
++                                                                    sizeof(value));
++
++    if (eret != PT_API_SUCCESS)
++        tr_debug("EdgeClient update resource /%d/0/%d failed with code: %d", obj_id, res_id, eret);
++}
++
++//set a value in the cloud for obj_id/res_id to nValue
++void gsr_set_resource_helper_float(uint32_t obj_id, uint16_t res_id, float value)
++{
++    pt_api_result_code_e eret = edgeclient_update_resource_value(   NULL,
++                                                                    obj_id,
++                                                                    0,
++                                                                    res_id,
++                                                                    (uint8_t *)&value,
++                                                                    sizeof(value));
++
++    if (eret != PT_API_SUCCESS)
++        tr_debug("EdgeClient update resource /%d/0/%d failed with code: %d", obj_id, res_id, eret);
++}
++
++// run a shell command with the return result expected to
++// be an unsigned integer value
++float float_exec(const char* cmd)
++{
++    float rt = 0;
++
++    //result string
++    static char result[256];
++    memset(result,0,256);
++
++    //run command
++    int ret = sys_exec(result, cmd);
++    if (ret == -1)
++        strcpy(result, "0");
++
++    //convert to int return
++    rt = strtof(result, (char **)NULL);
++
++    return rt;
++}
++
++// run a shell command with the return result expected to
++// be an unsigned integer value
++int64_t int_exec(const char* cmd)
++{
++    int64_t rt = 0;
++
++    //result string
++    static char result[256];
++    memset(result,0,256);
++
++    //run command
++    int ret = sys_exec(result, cmd);
++    if (ret == -1)
++        strcpy(result, "0");
++
++    //convert to int return
++    rt = strtoll(result, (char **)NULL, 10);
++
++    return rt;
++}
++
++
++// run a shell command with the return result expected to
++// be a string
++char* str_exec(const char* cmd)
++{
++    //result string
++    static char result[256];
++    memset(result,0,256);
++
++    //run command
++    int ret = sys_exec(result, cmd);
++    if (ret == -1)
++        strcpy(result, "-1");
++
++    return result;
++}
++
++
++//process a string from /proc/stat and return cpu percentage
++//1st sample will always be zero because it requires previous state to compute
++float get_cpu()
++{
++
++    const char cmd_cpu_pct[] = "head -1 /proc/stat";    //get cpu status bash command
++    float cpu_percent = 0;                              //return value
++    struct cpu_info current_stats;                      //current info from /proc/stat
++    char proc_stat[256];
++
++    //previous cpu usage stats
++    static struct cpu_info previous_stats = {"",0,0,0,0,0,0,0,0,0,0};
++
++    //clear result of exec
++    memset(proc_stat,0, 256);
++
++    //run cmd
++    int ret = sys_exec(proc_stat, cmd_cpu_pct);
++
++    //if we got a result
++    if (ret != -1)
++    {
++        //clear it
++        memset(&current_stats,0,sizeof(struct cpu_info));
++
++        // pull the 1st line out of /proc/stat
++        sscanf( proc_stat,
++                "%s %16llu %16llu %16llu %16llu %16llu %16llu %16llu %16llu %16llu %16llu",
++                current_stats.cpu,
++                &current_stats.user,
++                &current_stats.nice,
++                &current_stats.system,
++                &current_stats.idle,
++                &current_stats.io_wait,
++                &current_stats.irq,
++                &current_stats.soft_irq,
++                &current_stats.steal,
++                &current_stats.guest,
++                &current_stats.guest_nice);
++
++        //calc all idle
++        current_stats.all_idle =    current_stats.idle +
++                                    current_stats.io_wait;
++
++        //calc all cpu
++        current_stats.non_idle =    current_stats.user +
++                                    current_stats.nice +
++                                    current_stats.system +
++                                    current_stats.irq +
++                                    current_stats.soft_irq +
++                                    current_stats.steal;
++
++        // calc totals
++        current_stats.total =       current_stats.all_idle +
++                                    current_stats.non_idle;
++
++        //if we have a previous sample then do the cpu percent
++        if(strlen(previous_stats.cpu) > 0)
++        {
++            //get the diffs
++            int total_diff  = current_stats.total - previous_stats.total;
++            int idle_diff   = current_stats.all_idle - previous_stats.all_idle;
++            //now make the cpu %
++            cpu_percent = (float)(((float)total_diff - (float)idle_diff) / (float)total_diff)*100;
++        }
++
++        //save the current as previous for next run
++        memcpy(&previous_stats, &current_stats, sizeof(struct cpu_info));
++    }
++
++    return cpu_percent;
++}
++
++//this is the thread that updates the cloud
++void *gsr_update_gateway_stats_resource(void *args)
++{
++    // CPU temperature in Celsius
++    const char cmd_cpu_temp[] = "{ echo -1; cat /sys/class/hwmon/hwmon0/temp*_input 2>/dev/null; } | awk '{if (max<$1) max=$1} END {print max/1000}'";
++
++    // RAM free and total in bytes
++    const char cmd_ram_free[] = "awk '/^MemFree:/{ print $2*1024 }' /proc/meminfo";
++
++    // Disk free and total in bytes
++    const char cmd_disk_free[] = "df / /var/lib/snapd/hostfs /writable /home --output=source,avail 2>/dev/null | grep -v '^/dev/loop' | sed '$!d;s/[^ ]* *//'";
++
++    //temp in whole degrees no decimal
++    gsr_set_resource_helper_int(GATEWAY_STATS_OBJ_ID, GATEWAY_STATS_CPU_TEMP_RES_ID, int_exec(cmd_cpu_temp));
++
++    //cpu percentage used in whole nums no decimal.
++    gsr_set_resource_helper_float(GATEWAY_STATS_OBJ_ID, GATEWAY_STATS_CPU_PCT_RES_ID, (float)get_cpu());
++
++    //ram in bytes. note: may need to be kb or mb for large ram systems as this is a uint32_t
++    gsr_set_resource_helper_int(GATEWAY_STATS_OBJ_ID, GATEWAY_STATS_RAM_FREE_RES_ID, int_exec(cmd_ram_free));
++
++    // disk info in megabytes. note: so we don't overflow the uint32_t type
++    gsr_set_resource_helper_int(GATEWAY_STATS_OBJ_ID, GATEWAY_STATS_DISK_FREE_RES_ID, int_exec(cmd_disk_free));
++
++    return NULL;
++}
++
++//set a value in the cloud for obj_id/res_id to string result of the cmd shell command.
++void gsr_init_string_resource(uint16_t obj_id, uint16_t res_id, const char* value)
++{
++    //set value to cloud
++    edgeclient_create_resource_value(   NULL,
++                                        obj_id,
++                                        0,
++                                        res_id,
++                                        (uint8_t *) value,
++                                        strlen(value),
++                                        LWM2M_STRING,
++                                        OPERATION_READ,
++                                        /* userdata */ NULL);
++}
++
++//set a value in the cloud for obj_id/res_id to string result of the cmd shell command.
++void gsr_init_int_resource(uint16_t obj_id, uint16_t res_id, int64_t value)
++{
++    //set value to cloud
++    edgeclient_create_resource_value(   NULL,
++                                        obj_id,
++                                        0,
++                                        res_id,
++                                        (uint8_t *) &value,
++                                        sizeof(value),
++                                        LWM2M_INTEGER,
++                                        OPERATION_READ,
++                                        NULL);
++}
++
++//set a value in the cloud for obj_id/res_id to string result of the cmd shell command.
++void gsr_init_float_resource(uint16_t obj_id, uint16_t res_id, float value)
++{
++    //set value to cloud
++    edgeclient_create_resource_value(   NULL,
++                                        obj_id,
++                                        0,
++                                        res_id,
++                                        (uint8_t *) &value,
++                                        sizeof(value),
++                                        LWM2M_FLOAT,
++                                        OPERATION_READ,
++                                        NULL);
++}
++
++//initial add of the resources to the cloud
++void gsr_add_gateway_stats_resource()
++{
++    uint32_t int_default = 0;
++    float float_default = 0;
+ 
++    // bash command to fetch data
++    const char cmd_version[] = "snap info pelion-edge | sed -n 's/^installed:[^0-9]*\\([0-9.]*\\).*/\\1/p'";    //snap version
++    const char cmd_ram_total[] = "awk '/^MemTotal:/{ print $2*1024 }' /proc/meminfo";                           //ram total
++    const char cmd_disk_total[] = "df / /var/lib/snapd/hostfs /writable /home --output=source,size 2>/dev/null | grep -v '^/dev/loop' | sed '$!d;s/[^ ]* *//'"; //disk total
++
++    // --- add static resoures ---
++
++    //snap version
++    gsr_init_string_resource(   GATEWAY_STATS_OBJ_ID,
++                                GATEWAY_STATS_VERSION_RES_ID,
++                                str_exec(cmd_version));
++
++    //ram total
++    gsr_init_int_resource(  GATEWAY_STATS_OBJ_ID,
++                            GATEWAY_STATS_RAM_TOTAL_RES_ID,
++                            int_exec(cmd_ram_total));
++
++    //disk total
++    gsr_init_int_resource(  GATEWAY_STATS_OBJ_ID,
++                            GATEWAY_STATS_DISK_TOTAL_RES_ID,
++                            int_exec(cmd_disk_total));
++
++    // --- add dynamic resources ---
++
++    //cpu temp
++    edgeclient_create_resource_value(   NULL,
++                                        GATEWAY_STATS_OBJ_ID,
++                                        0,
++                                        GATEWAY_STATS_CPU_TEMP_RES_ID,
++                                        (uint8_t *) &int_default,
++                                        sizeof(uint32_t),
++                                        LWM2M_INTEGER,
++                                        OPERATION_READ,
++                                        /* userdata */ NULL);
++
++    //cpu usage percent
++    edgeclient_create_resource_value(   NULL,
++                                        GATEWAY_STATS_OBJ_ID,
++                                        0,
++                                        GATEWAY_STATS_CPU_PCT_RES_ID,
++                                        (uint8_t *) &float_default,
++                                        sizeof(float_default),
++                                        LWM2M_FLOAT,
++                                        OPERATION_READ,
++                                        /* userdata */ NULL);
++
++    //ram free
++    edgeclient_create_resource_value(   NULL,
++                                        GATEWAY_STATS_OBJ_ID,
++                                        0,
++                                        GATEWAY_STATS_RAM_FREE_RES_ID,
++                                        (uint8_t *) &int_default,
++                                        sizeof(uint32_t),
++                                        LWM2M_INTEGER,
++                                        OPERATION_READ,
++                                        /* userdata */ NULL);
++
++    //disk free
++    edgeclient_create_resource_value(   NULL,
++                                        GATEWAY_STATS_OBJ_ID,
++                                        0,
++                                        GATEWAY_STATS_DISK_FREE_RES_ID,
++                                        (uint8_t *) &int_default,
++                                        sizeof(uint32_t),
++                                        LWM2M_INTEGER,
++                                        OPERATION_READ,
++                                        /* userdata */ NULL);
++}
+diff --git a/edge-core/edge_server.c b/edge-core/edge_server.c
+index 0477bb7..e86892c 100644
+--- a/edge-core/edge_server.c
++++ b/edge-core/edge_server.c
+@@ -484,7 +484,19 @@ EDGE_LOCAL void clean(struct context *ctx)
+ 
+ void register_cb(void)
+ {
++    //who woulda thought register_cb gets called twice?
++    if((g_program_context->ctx_data)->cloud_connection_status == EDGE_STATE_CONNECTED)
++        return;
++
+     (g_program_context->ctx_data)->cloud_connection_status = EDGE_STATE_CONNECTED;
++
++    //timeout length 1st value in struct is seconds
++    struct timeval interval = {10,0};
++    struct event *ev1;
++
++    //create and add the gateway stats event
++    ev1 = event_new(g_program_context->ev_base, -1, EV_TIMEOUT | EV_PERSIST, gsr_update_gateway_stats_resource, NULL);
++    event_add(ev1, &interval);
+ }
+ 
+ void unregister_cb(void)
+@@ -701,6 +713,7 @@ int testable_main(int argc, char **argv)
+         edgeclient_create(&edgeclient_create_params, byoc_data);
+         rfs_add_factory_reset_resource();
+         gsr_add_gateway_services_resource();
++        gsr_add_gateway_stats_resource();
+ 
+         // Connect client
+         edgeclient_connect();
+@@ -733,4 +746,3 @@ int testable_main(int argc, char **argv)
+     edge_trace_destroy();
+     return rc;
+ }
+-
+-- 
+2.10.1.windows.1
+
