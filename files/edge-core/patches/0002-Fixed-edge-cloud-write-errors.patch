@@ -1,0 +1,235 @@
+From 067e12c3ea9ef4981626ea7ae048fa15e13b5e58 Mon Sep 17 00:00:00 2001
+From: Michael Ray <michael.ray@arm.com>
+Date: Mon, 27 Jul 2020 16:24:58 -0500
+Subject: [PATCH 2/3] Fixed edge cloud write errors
+
+Edge set/create/update now correctly update the values
+in the cloud to the correct types.
+
+Note: Does not contain complete commit
+Removed testing infrastructure
+---
+ edge-client/edge-client/edge_client.h   |  4 +-
+ edge-client/edge_client.cpp             | 84 +++++++++++++++++++++++----------
+ edge-client/gateway_services_resource.c |  6 +--
+ edge-client/reset_factory_settings.c    |  2 +-
+ edge-core/protocol_api.c                |  8 ++--
+ 5 files changed, 68 insertions(+), 36 deletions(-)
+
+diff --git a/edge-client/edge-client/edge_client.h b/edge-client/edge-client/edge_client.h
+index 7ad9bf4..9e870b3 100644
+--- a/edge-client/edge-client/edge_client.h
++++ b/edge-client/edge-client/edge_client.h
+@@ -292,7 +292,7 @@ bool edgeclient_get_endpoint_context(const char *endpoint_name, void **context_o
+  *        object_instance_id and resource_id.
+  *        If any of the path elements are missing, updating the resource value will fail.
+  *        Using this method, it's not possible to set the type or the allowed operations of the resource.
+- *        See also, `edgeclient_set_resource_value` which has less limitations.
++ *        See also, `edgeclient_create_resource_value` which has less limitations.
+  * \param endpoint_name The name of the endpoint under which the resource is located. It cannot be NULL.
+  * \param object_id The ID of the object under which the resource is located, a 16-bit unsigned integer.
+  * \param object_instance_id The ID of the object instance under which the resource is located, a 16-bit unsigned
+@@ -350,7 +350,7 @@ pt_api_result_code_e edgeclient_update_resource_value(const char *endpoint_name,
+  * \return #PT_API_SUCCESS on success
+  *         Other codes on failure
+  */
+-pt_api_result_code_e edgeclient_set_resource_value(const char *endpoint_name,
++pt_api_result_code_e edgeclient_create_resource_value(const char *endpoint_name,
+                                                    const uint16_t object_id,
+                                                    const uint16_t object_instance_id,
+                                                    const uint16_t resource_id,
+diff --git a/edge-client/edge_client.cpp b/edge-client/edge_client.cpp
+index 105a13e..5b22e85 100644
+--- a/edge-client/edge_client.cpp
++++ b/edge-client/edge_client.cpp
+@@ -1203,26 +1203,64 @@ pt_api_result_code_e edgeclient_update_resource_value(const char *endpoint_name,
+     if (res == NULL) {
+         return PT_API_RESOURCE_NOT_FOUND;
+     }
+-    Lwm2mResourceType resource_type = resolve_m2mresource_type(res->resource_instance_type());
+-    bool value_ok = edgeclient_verify_value(value, value_length, resource_type);
+-    if (!value_ok) {
+-        return PT_API_ILLEGAL_VALUE;
+-    }
+-    char *text_format;
+-    size_t text_format_length = value_to_text_format(resource_type, value, value_length, &text_format);
+-    if (text_format_length > 0 && text_format != NULL) {
+-        res->update_value((uint8_t *) text_format, text_format_length);
+-    } else {
+-        return PT_API_INTERNAL_ERROR;
++
++    //set the value correctly for the type
++    switch(res->resource_instance_type()) {
++        case M2MBase::OBJLINK:
++        case M2MBase::OPAQUE:
++        case M2MBase::STRING:
++        {
++            res->set_value((uint8_t *) value, value_length);
++        }
++        break;
++        case M2MBase::TIME:
++        case M2MBase::INTEGER:
++        {
++            int64_t new_value = 0;
++
++            //convert the int types to int64_t
++            switch(value_length)
++            {
++                case 1: //8 bits
++                    new_value = *((int8_t*)value);
++                break;
++                case 2: //16 bits
++                    new_value = *((int16_t*)value);
++                break;
++                case 4: //32 bits
++                    new_value = *((int32_t*)value);
++                break;
++                case 8: //64 bits
++                    new_value = *((int64_t*)value);
++                break;
++            }
++
++            res->set_value(new_value);
++        }
++        break;
++        case M2MBase::FLOAT:
++        {
++            float new_value = *((float*)value);
++            res->set_value_float(new_value);
++        }
++        break;
++        case M2MBase::BOOLEAN:
++        {
++            bool new_value = *((bool*)value);
++            res->set_value((int64_t)new_value);
++        }
++        break;
+     }
++
+     return PT_API_SUCCESS;
+ }
+ 
+-pt_api_result_code_e edgeclient_set_resource_value(const char *endpoint_name, const uint16_t object_id,
++pt_api_result_code_e edgeclient_create_resource_value(const char *endpoint_name, const uint16_t object_id,
+                                                    const uint16_t object_instance_id, const uint16_t resource_id,
+                                                    const uint8_t *value, const uint32_t value_length,
+                                                    Lwm2mResourceType resource_type, int opr, void *ctx)
+ {
++    //create the resource
+     if (!edgeclient_create_resource_structure(endpoint_name,
+                                               object_id,
+                                               object_instance_id,
+@@ -1233,20 +1271,14 @@ pt_api_result_code_e edgeclient_set_resource_value(const char *endpoint_name, co
+         tr_error("set_endpoint_resource_value - could not create resource structure!");
+         return PT_API_INTERNAL_ERROR;
+     }
+-    M2MResource *res = edgelient_get_resource(endpoint_name, object_id, object_instance_id, resource_id);
+-    if (res == NULL) {
+-        return PT_API_INTERNAL_ERROR;
+-    }
+-    if (value != NULL && value_length > 0) {
+-        char* text_format = NULL;
+-        size_t text_format_length = value_to_text_format(resource_type, value, value_length, &text_format);
+-        if (text_format_length > 0 && text_format != NULL) {
+-            res->update_value((uint8_t*) text_format, text_format_length);
+-        } else {
+-            return PT_API_ILLEGAL_VALUE;
+-        }
+-    }
+-    return PT_API_SUCCESS;
++
++    //set the initial value of the new resource
++    return edgeclient_update_resource_value( endpoint_name,
++                                             object_id,
++                                             object_instance_id,
++                                             resource_id,
++                                             value,
++                                             value_length);
+ }
+ 
+ bool edgeclient_get_resource_value_and_attributes(const char *endpoint_name,
+diff --git a/edge-client/gateway_services_resource.c b/edge-client/gateway_services_resource.c
+index 2bc3bbd..3149dd5 100644
+--- a/edge-client/gateway_services_resource.c
++++ b/edge-client/gateway_services_resource.c
+@@ -28,7 +28,7 @@
+ 
+ static int gsr_add_service_instance(uint16_t obj_instance_id, uint8_t* id, uint32_t id_len, uint8_t* enabled, uint8_t* config, uint32_t config_len)
+ {
+-    pt_api_result_code_e result = edgeclient_set_resource_value(NULL,
++    pt_api_result_code_e result = edgeclient_create_resource_value(NULL,
+                                                                 EDGE_SERVICEMGMT_OBJECT_ID,
+                                                                 obj_instance_id,
+                                                                 EDGE_SERVICE_ID,
+@@ -42,7 +42,7 @@ static int gsr_add_service_instance(uint16_t obj_instance_id, uint8_t* id, uint3
+       return -1;
+     }
+ 
+-    result = edgeclient_set_resource_value(NULL,
++    result = edgeclient_create_resource_value(NULL,
+                                   EDGE_SERVICEMGMT_OBJECT_ID,
+                                   obj_instance_id,
+                                   EDGE_SERVICE_ENABLED,
+@@ -56,7 +56,7 @@ static int gsr_add_service_instance(uint16_t obj_instance_id, uint8_t* id, uint3
+       return -1;
+     }
+ 
+-    result = edgeclient_set_resource_value(NULL,
++    result = edgeclient_create_resource_value(NULL,
+                                   EDGE_SERVICEMGMT_OBJECT_ID,
+                                   obj_instance_id,
+                                   EDGE_SERVICE_CONFIG,
+diff --git a/edge-client/reset_factory_settings.c b/edge-client/reset_factory_settings.c
+index 9b588d0..45061a0 100644
+--- a/edge-client/reset_factory_settings.c
++++ b/edge-client/reset_factory_settings.c
+@@ -134,7 +134,7 @@ EDGE_LOCAL void rfs_reset_factory_settings_request_cb(void *arg)
+ 
+ void rfs_add_factory_reset_resource()
+ {
+-    edgeclient_set_resource_value(NULL,
++    edgeclient_create_resource_value(NULL,
+                                   EDGE_DEVICE_OBJECT_ID,
+                                   0,
+                                   EDGE_FACTORY_RESET_RESOURCE_ID,
+diff --git a/edge-core/protocol_api.c b/edge-core/protocol_api.c
+index 352dbd7..e7e41b8 100644
+--- a/edge-core/protocol_api.c
++++ b/edge-core/protocol_api.c
+@@ -177,13 +177,13 @@ json_t *pt_api_allocate_response_common(const char *request_id)
+ static void initialize_pt_resources(char *name, int pt_id){
+     // Set pt name
+     uint32_t length = strlen(name);
+-    edgeclient_set_resource_value(NULL, PROTOCOL_TRANSLATOR_OBJECT_ID, pt_id,
++    edgeclient_create_resource_value(NULL, PROTOCOL_TRANSLATOR_OBJECT_ID, pt_id,
+                                   PROTOCOL_TRANSLATOR_OBJECT_NAME_RESOURCE_ID, (uint8_t*) name, length,
+                                   LWM2M_OPAQUE, OPERATION_READ /*GET_ALLOWED*/, /* userdata */ NULL);
+ 
+     //Set device counter to zero, the API expects values in network byte-order.
+     uint16_t zero = htons(0);
+-    edgeclient_set_resource_value(NULL, PROTOCOL_TRANSLATOR_OBJECT_ID, pt_id,
++    edgeclient_create_resource_value(NULL, PROTOCOL_TRANSLATOR_OBJECT_ID, pt_id,
+                                   PROTOCOL_TRANSLATOR_OBJECT_COUNT_RESOURCE_ID, (uint8_t*) &zero, sizeof(uint16_t),
+                                   LWM2M_INTEGER, OPERATION_READ /*GET_ALLOWED*/, /* userdata */ NULL);
+ }
+@@ -315,7 +315,7 @@ static void update_device_amount_resource_by_delta(struct connection* connection
+         pt_device_amount += delta_amount;
+         /* Change the amount to network byte order */
+         pt_device_amount = htons(pt_device_amount);
+-        pt_api_result_code_e ret =  edgeclient_set_resource_value(
++        pt_api_result_code_e ret =  edgeclient_create_resource_value(
+             NULL, PROTOCOL_TRANSLATOR_OBJECT_ID,
+             connection->client_data->id,
+             PROTOCOL_TRANSLATOR_OBJECT_COUNT_RESOURCE_ID,
+@@ -696,7 +696,7 @@ pt_api_result_code_e update_json_device_objects(json_t *json_structure,
+                         break;
+                     }
+                 } else {
+-                    pt_api_result_code_e set_resource_status = edgeclient_set_resource_value(device_id_val,
++                    pt_api_result_code_e set_resource_status = edgeclient_create_resource_value(device_id_val,
+                                                                                             object_id,
+                                                                                             object_instance_id,
+                                                                                             resource_id,
+-- 
+2.10.1.windows.1
+

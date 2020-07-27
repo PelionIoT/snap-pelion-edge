@@ -219,7 +219,10 @@ parts:
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-PELEDGE19-1193-Call-a-script-on-factory-reset.patch
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-use-customized-edge-core-update-scripts.patch
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-fix-calculation-of-remaining-buffer-size-when-callin.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Patch-Broadcast-snap-version-to-LWM2M-resource-3-0-4.patch
+        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-fix-bug-dynamic-resources-should-be-updatable-by-the.patch
+        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0002-Fixed-edge-cloud-write-errors.patch
+        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0003-Broadcast-gateway-stats-to-LWM2M-resources.patch
+        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0004-allow-resources-to-be-named.patch
         if [ "${COAP_PORT_OVERRIDE_443}" = "true" ]; then
             echo "PATCHING PORT 443 OVERRIDE"
             [ -f config/mbed_cloud_dev_credentials.c ] && sed -i 's,\(coaps://[^:]*:\)5684,\1443,' config/mbed_cloud_dev_credentials.c

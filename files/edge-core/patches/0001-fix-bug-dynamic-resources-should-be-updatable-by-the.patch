@@ -1,0 +1,30 @@
+From d85e2acc6ead6a18e9c0cd89cd45dd119451731b Mon Sep 17 00:00:00 2001
+From: Nic Costa <nic.costa@gmail.com>
+Date: Thu, 23 Jul 2020 11:34:22 -0500
+Subject: [PATCH 1/3] fix bug: dynamic resources should be updatable by the
+ client
+
+the end device should be able to update its own dynamic resource
+regardless of whether the resource can be modified from the cloud
+via the REST API PUT or POST.
+---
+ edge-client/edge_client.cpp | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/edge-client/edge_client.cpp b/edge-client/edge_client.cpp
+index 0a690b1..105a13e 100644
+--- a/edge-client/edge_client.cpp
++++ b/edge-client/edge_client.cpp
+@@ -1208,9 +1208,6 @@ pt_api_result_code_e edgeclient_update_resource_value(const char *endpoint_name,
+     if (!value_ok) {
+         return PT_API_ILLEGAL_VALUE;
+     }
+-    if (!(res->operation() & OPERATION_WRITE)) {
+-        return PT_API_RESOURCE_NOT_WRITABLE;
+-    }
+     char *text_format;
+     size_t text_format_length = value_to_text_format(resource_type, value, value_length, &text_format);
+     if (text_format_length > 0 && text_format != NULL) {
+-- 
+2.10.1.windows.1
+
