@@ -9,8 +9,7 @@ architectures:
   - amd64
 plugs:
     system-files:
-        read: [/proc, /etc, /run, /sys, /var/lib, /var/log]
-        write: [/proc, /etc, /run, /var/lib, /var/log]
+        write: [/var/log]
     home:
         read: all
     support:
@@ -106,7 +105,6 @@ apps:
       command: launch-kubelet.sh
       daemon: simple
       plugs:
-        - block-devices
         - bluetooth-control
         - docker
         - firewall-control
