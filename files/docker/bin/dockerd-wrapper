@@ -44,13 +44,8 @@ done
 rm -rf "$dir"
 trap - EXIT
 
-# use SNAP_DATA for most "data" bits
-mkdir -p \
-	"$SNAP_DATA/run" \
-	"/var/run/pelion-edge" \
-	"/var/run/pelion-edge/docker" \
-	"$SNAP_DATA/run/docker" \
-	"$SNAP_COMMON/var-lib-docker"
+# use SNAP_COMMON for most "data" bits
+mkdir -p "$SNAP_COMMON/var/run/docker"
 
 workaround_lp1606510
 
@@ -58,8 +53,8 @@ workaround_apparmor_profile_reload
 
 exec dockerd \
 	-G $default_socket_group \
-	--exec-root="/var/run/pelion-edge/docker" \
-	--data-root="$SNAP_COMMON/var-lib-docker" \
-	--pidfile="/var/run/pelion-edge/docker.pid" \
+	--exec-root="$SNAP_COMMON/var/run/docker" \
+	--data-root="$SNAP_COMMON/var/lib/docker" \
+	--pidfile="$SNAP_COMMON/var/run/docker.pid" \
 	--config-file="$SNAP_DATA/config/daemon.json" \
 	"$@"
