@@ -8,8 +8,6 @@ grade: devel
 architectures:
   - amd64
 plugs:
-    system-files:
-        write: [/var/log]
     home:
         read: all
     support:
@@ -54,17 +52,17 @@ apps:
         NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
         LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
         PATH: $PATH:$SNAP/wigwag/system/bin
-      plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, system-files, snapd-control, shutdown, network-manager, modem-manager, log-observe]
+      plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, snapd-control, shutdown, network-manager, modem-manager, log-observe]
     edge-core:
       passthrough:
         restart-delay: 5s
       restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
-      plugs: [shutdown, hardware-observe, network-bind, network-control, network-observe, system-files, snapd-control, log-observe]
+      plugs: [shutdown, hardware-observe, network-bind, network-control, network-observe, snapd-control, log-observe]
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
-      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files]
+      plugs: [hardware-observe, network-bind, network-control, network-observe]
     help:
       command: cat ${SNAP}/help.md
     devicedb:
@@ -73,7 +71,7 @@ apps:
         restart-delay: 5s
       restart-condition: always
       daemon: simple
-      plugs: [hardware-observe, network-bind, network-control, network-observe, system-files, snapd-control]
+      plugs: [hardware-observe, network-bind, network-control, network-observe, snapd-control]
     maestro:
       command: launch-maestro.sh
       environment:
@@ -82,12 +80,12 @@ apps:
         restart-delay: 5s
       restart-condition: always
       daemon: simple
-      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, system-files, x11]
+      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, x11]
     maestro-shell:
       command: wigwag/system/bin/maestro-shell
       environment:
         LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
-      plugs: [network-bind, network-control, network-observe, system-files]
+      plugs: [network-bind, network-control, network-observe]
     edge-proxy:
       passthrough:
         restart-delay: 5s
@@ -119,7 +117,6 @@ apps:
         - network-control
         - process-control
         - support
-        - system-files
         - system-observe
         - system-trace
     docker:
@@ -146,7 +143,6 @@ apps:
         - privileged
         - home
         - kernel-module-observe
-        - system-files
       slots:
         - docker-daemon
     compose:
