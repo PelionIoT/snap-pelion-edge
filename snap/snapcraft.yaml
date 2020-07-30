@@ -9,8 +9,12 @@ architectures:
   - amd64
 plugs:
     system-files:
-        read: [/run/systemd/journal]
-        write: [/run/systemd/journal]
+        read:
+          - /run/systemd/journal
+          - /run/systemd/private
+        write:
+          - /run/systemd/journal
+          - /run/systemd/private
     home:
         read: all
     support:
@@ -122,6 +126,7 @@ apps:
         - network-observe
         - process-control
         - support
+        - system-files
         - system-observe
         - system-trace
     docker:
