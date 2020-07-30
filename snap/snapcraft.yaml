@@ -111,6 +111,7 @@ apps:
         - bluetooth-control
         - docker
         - firewall-control
+        - hardware-observe
         - kubernetes-support
         - log-observe
         - mount-observe
@@ -118,6 +119,7 @@ apps:
         - netlink-connector
         - network-bind
         - network-control
+        - network-observe
         - process-control
         - support
         - system-observe
