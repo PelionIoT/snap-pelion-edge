@@ -8,6 +8,9 @@ grade: devel
 architectures:
   - amd64
 plugs:
+    system-files:
+        read: [/run/systemd/journal]
+        write: [/run/systemd/journal]
     home:
         read: all
     support:
@@ -80,7 +83,7 @@ apps:
         restart-delay: 5s
       restart-condition: always
       daemon: simple
-      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, x11]
+      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, x11, system-files]
     maestro-shell:
       command: wigwag/system/bin/maestro-shell
       environment:
