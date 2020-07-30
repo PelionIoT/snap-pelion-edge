@@ -59,7 +59,7 @@ apps:
       restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
-      plugs: [shutdown, hardware-observe, network-bind, network-control, network-observe, snapd-control, log-observe]
+      plugs: [shutdown, hardware-observe, log-observe, mount-observe, network-bind, network-control, network-observe, snapd-control]
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
       plugs: [hardware-observe, network-bind, network-control, network-observe]
