@@ -4,7 +4,7 @@ version: "1.16.1"
 summary: Pelion Edge
 description: Pelion Edge
 confinement: strict
-grade: devel
+grade: stable
 architectures:
   - amd64
 plugs:
