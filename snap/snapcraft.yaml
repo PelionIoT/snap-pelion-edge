@@ -12,9 +12,11 @@ plugs:
         read:
           - /run/systemd/journal
           - /run/systemd/private
+          - /var/lib/snapd/apparmor/profiles
         write:
           - /run/systemd/journal
           - /run/systemd/private
+          - /var/lib/snapd/apparmor/profiles
     home:
         read: all
     support:
