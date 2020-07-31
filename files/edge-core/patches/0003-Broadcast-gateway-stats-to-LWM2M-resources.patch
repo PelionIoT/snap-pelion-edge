@@ -390,7 +390,7 @@ index 3149dd5..253396b 100644
 +    const char cmd_ram_free[] = "awk '/^MemFree:/{ print $2*1024 }' /proc/meminfo";
 +
 +    // Disk free and total in bytes
-+    const char cmd_disk_free[] = "df / /var/lib/snapd/hostfs /writable /home --output=source,avail 2>/dev/null | grep -v '^/dev/loop' | sed '$!d;s/[^ ]* *//'";
++    const char cmd_disk_free[] = "df /home --output=avail | sed '$!d;s/ *//'";
 +
 +    //temp in whole degrees no decimal
 +    gsr_set_resource_helper_int(GATEWAY_STATS_OBJ_ID, GATEWAY_STATS_CPU_TEMP_RES_ID, int_exec(cmd_cpu_temp));
@@ -461,7 +461,7 @@ index 3149dd5..253396b 100644
 +    // bash command to fetch data
 +    const char cmd_version[] = "snap info pelion-edge | sed -n 's/^installed:[^0-9]*\\([0-9.]*\\).*/\\1/p'";    //snap version
 +    const char cmd_ram_total[] = "awk '/^MemTotal:/{ print $2*1024 }' /proc/meminfo";                           //ram total
-+    const char cmd_disk_total[] = "df / /var/lib/snapd/hostfs /writable /home --output=source,size 2>/dev/null | grep -v '^/dev/loop' | sed '$!d;s/[^ ]* *//'"; //disk total
++    const char cmd_disk_total[] = "df /home --output=size | sed '$!d;s/ *//'"; //disk total
 +
 +    // --- add static resoures ---
 +
