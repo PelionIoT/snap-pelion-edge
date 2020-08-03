@@ -56,5 +56,6 @@ exec dockerd \
 	--exec-root="$SNAP_COMMON/var/run/docker" \
 	--data-root="$SNAP_COMMON/var/lib/docker" \
 	--pidfile="$SNAP_COMMON/var/run/docker.pid" \
+	--host="unix://$SNAP_COMMON/var/run/docker.sock" \
 	--config-file="$SNAP_DATA/config/daemon.json" \
 	"$@"
