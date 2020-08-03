@@ -145,6 +145,7 @@ apps:
         - docker-cli
         - network
         - home
+        - network-control
     dockerd:
       command: dockerd-wrapper
       daemon: simple
