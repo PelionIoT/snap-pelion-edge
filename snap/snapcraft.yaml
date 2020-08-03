@@ -8,6 +8,9 @@ grade: stable
 architectures:
   - amd64
 plugs:
+    snapd:
+        interface: snapd-control
+        refresh-schedule: managed
     system-files-logs:
         interface: system-files
         read:
