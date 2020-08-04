@@ -17,10 +17,6 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------
 
-if [ ! -f "$SNAP_DATA/edge-core.conf" ]; then
-    cp "$SNAP/edge-core.conf" "$SNAP_DATA/edge-core.conf"
-fi
-
 if [ ! -f "$SNAP_DATA/edge-proxy.conf.json" ]; then
     cp "$SNAP/edge-proxy.conf.json" "$SNAP_DATA/edge-proxy.conf.json"
 fi
