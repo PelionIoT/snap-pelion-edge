@@ -28,6 +28,9 @@ ${SNAP}/edge-core-bootloader.sh
 
 # SNAP_DATA: /var/snap/pelion-edge/current/
 CONF_FILE=${SNAP_DATA}/edge-core.conf
+if [ ! -f "${CONF_FILE}" ]; then
+    cp "$SNAP/edge-core.conf" "${CONF_FILE}"
+fi
 
 # defaults
 ARGS=""
