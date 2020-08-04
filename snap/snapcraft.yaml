@@ -17,6 +17,8 @@ plugs:
           - /run/systemd/journal
           - /run/systemd/private
           - /var/lib/snapd/apparmor/profiles
+          - /var/log
+          - /run/log/journal
     home:
         read: all
     support:
@@ -81,6 +83,7 @@ apps:
         - process-control
         - snapd-control
         - shutdown
+        - system-files
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
       plugs: [hardware-observe, network-bind, network-control, network-observe]
