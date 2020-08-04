@@ -1,5 +1,7 @@
 # snap-pelion-edge
 
+DONT MERGE
+
 This repository contains snapcraft packaging for Pelion Edge. This lets you run Pelion Edge on Ubuntu.
 
 ## Prerequisites
