@@ -17,10 +17,6 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------
 
-if [ ! -d "$SNAP_DATA/userdata/etc" ]; then
-    mkdir -p $SNAP_DATA/userdata/etc
-fi
-
 if [ ! -d "$SNAP_DATA/localdata" ]; then
     mkdir -p $SNAP_DATA/localdata
 fi
