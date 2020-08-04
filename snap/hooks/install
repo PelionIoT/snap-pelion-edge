@@ -17,10 +17,6 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------
 
-if [ ! -f "$SNAP_DATA/edge-proxy.conf.json" ]; then
-    cp "$SNAP/edge-proxy.conf.json" "$SNAP_DATA/edge-proxy.conf.json"
-fi
-
 if [ ! -d "$SNAP_DATA/userdata/etc" ]; then
     mkdir -p $SNAP_DATA/userdata/etc
 fi
