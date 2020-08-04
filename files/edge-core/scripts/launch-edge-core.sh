@@ -23,6 +23,11 @@ if [ ! -d ${SNAP_DATA}/userdata/mbed ]; then
     mkdir -p ${SNAP_DATA}/userdata/mbed
 fi
 
+# make sure the upgrade folder exists in case we need to download updates
+if [ ! -d "$SNAP_DATA/upgrades" ]; then
+    mkdir -p $SNAP_DATA/upgrades
+fi
+
 # before we start edge-core, call the fake bootloader to apply any existing updates
 ${SNAP}/edge-core-bootloader.sh
 

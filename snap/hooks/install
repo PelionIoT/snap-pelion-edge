@@ -33,10 +33,6 @@ if [ ! -d "$SNAP_DATA/wigwag/log" ]; then
     mkdir -p $SNAP_DATA/wigwag/log
 fi
 
-if [ ! -d "$SNAP_DATA/upgrades" ]; then
-    mkdir -p $SNAP_DATA/upgrades
-fi
-
 # copy the config file from $SNAP into $SNAP_COMMON if it doesn't exist
 if [ ! -f "$SNAP_DATA/config/daemon.json" ]; then
     mkdir -p "$SNAP_DATA/config"
