@@ -8,7 +8,8 @@ grade: stable
 architectures:
   - amd64
 plugs:
-    system-files:
+    system-files-logs:
+        interface: system-files
         read:
           - /run/systemd/journal
           - /run/systemd/private
