@@ -71,7 +71,16 @@ apps:
       daemon: simple
       environment:
         DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
-      plugs: [shutdown, hardware-observe, log-observe, mount-observe, network-bind, network-control, network-observe, snapd-control]
+      plugs:
+        - hardware-observe
+        - log-observe
+        - mount-observe
+        - network-bind
+        - network-control
+        - network-observe
+        - process-control
+        - snapd-control
+        - shutdown
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
       plugs: [hardware-observe, network-bind, network-control, network-observe]
