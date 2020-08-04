@@ -53,6 +53,9 @@ fi
 # use SNAP_COMMON for most "data" bits
 mkdir -p "$SNAP_COMMON/var/run/docker"
 
+# ensure the layouts dir for /etc/docker exists
+mkdir -p "$SNAP_DATA/etc/docker"
+
 workaround_lp1606510
 
 workaround_apparmor_profile_reload
