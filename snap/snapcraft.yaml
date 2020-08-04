@@ -8,7 +8,8 @@ grade: stable
 architectures:
   - amd64
 plugs:
-    system-files:
+    system-files-logs:
+        interface: system-files
         read:
           - /run/systemd/journal
           - /run/systemd/private
@@ -83,7 +84,7 @@ apps:
         - process-control
         - snapd-control
         - shutdown
-        - system-files
+        - system-files-logs
     edge-core-reset-storage:
       command: launch-edge-core.sh --reset-storage
       plugs: [hardware-observe, network-bind, network-control, network-observe]
@@ -104,7 +105,7 @@ apps:
         restart-delay: 5s
       restart-condition: always
       daemon: simple
-      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, x11, system-files]
+      plugs: [account-control, bluetooth-control, firewall-control, hardware-observe, log-observe, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-observe, x11, system-files-logs]
     maestro-shell:
       command: wigwag/system/bin/maestro-shell
       environment:
@@ -145,7 +146,7 @@ apps:
         - network-observe
         - process-control
         - support
-        - system-files
+        - system-files-logs
         - system-observe
         - system-trace
     docker:
