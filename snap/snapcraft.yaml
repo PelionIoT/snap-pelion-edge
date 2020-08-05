@@ -63,7 +63,6 @@ apps:
         NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
         LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
         PATH: $PATH:$SNAP/wigwag/system/bin
-        DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
       plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, snapd-control, shutdown, network-manager, modem-manager, log-observe]
     edge-core:
       passthrough:
@@ -71,8 +70,6 @@ apps:
       restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
-      environment:
-        DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
       plugs:
         - hardware-observe
         - log-observe
@@ -128,8 +125,6 @@ apps:
       restart-condition: always
       command: launch-kubelet.sh
       daemon: simple
-      environment:
-        DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
       plugs:
         - bluetooth-control
         - docker
@@ -157,7 +152,6 @@ apps:
         GIT_CONFIG_NOSYSTEM: "true"
         GIT_EXEC_PATH: $SNAP/libexec/git-core
         GIT_TEXTDOMAINDIR: $SNAP/usr/share/locale
-        DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
       completer: bin/docker-completion.sh
       plugs:
         - docker-cli
@@ -167,8 +161,6 @@ apps:
     dockerd:
       command: dockerd-wrapper
       daemon: simple
-      environment:
-        DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
       plugs:
         - network-bind
         - firewall-control
@@ -180,8 +172,6 @@ apps:
         - docker-daemon
     compose:
       command: docker-compose
-      environment:
-        DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
       plugs:
         - docker-cli
         - network
@@ -189,8 +179,6 @@ apps:
         - mount-observe
     machine:
       command: docker-machine
-      environment:
-        DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
       plugs:
         - docker-cli
         - network
