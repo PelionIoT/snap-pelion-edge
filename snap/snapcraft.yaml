@@ -51,6 +51,8 @@ passthrough:
             bind: $SNAP_COMMON/var/log/pods
         /var/log/containers:
             bind: $SNAP_COMMON/var/log/containers
+        /var/run/docker.sock:
+            bind: $SNAP_COMMON/var/run/docker.sock
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
     relay-term:
