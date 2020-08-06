@@ -498,7 +498,7 @@ parts:
     maestro:
       plugin: go
       source: https://github.com/armPelionEdge/maestro.git
-      source-commit: 64520703aa26861cf0415261aded3d9c2059900e
+      source-commit: a2069b14dd636af3ca7069dcb3bbd18a6fa37db9
       build-packages:
         - python
         - build-essential
@@ -513,7 +513,7 @@ parts:
         cd go/src/github.com/armPelionEdge
         git clone https://github.com/armPelionEdge/maestro.git
         cd maestro
-        git checkout 64520703aa26861cf0415261aded3d9c2059900e
+        git checkout a2069b14dd636af3ca7069dcb3bbd18a6fa37db9
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
