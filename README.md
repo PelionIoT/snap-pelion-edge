@@ -1,6 +1,6 @@
 # snap-pelion-edge
 
-This repository contains snapcraft packaging for Pelion Edge. This lets you run Pelion Edge on Ubuntu.
+This repository contains snapcraft packaging for Pelion Edge on Ubuntu.
 
 ## Prerequisites
 
@@ -8,13 +8,7 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
 
 - a Linux box with Docker configured (other operating systems may work but aren't supported)
 - git
-
-### User account prerequisites
-
-1. [A Pelion Device Management account](https://os.mbed.com/account/signup/).
-1. [Access to Device Management](https://console.mbed.com/cloud-registration).
-1. An [Ubuntu SSO account](https://login.ubuntu.com/). This is required for an Ubuntu Core installation.
-1. An SSH key [uploaded into your Ubuntu SSO account](https://login.ubuntu.com/ssh-keys) so you can SSH into your Ubuntu SSO account. Please see the [Ubuntu instructions](https://help.ubuntu.com/community/SSH/OpenSSH/Keys) for more information about generating an SSH key on your computer.
+- [A Pelion Device Management account](https://os.mbed.com/account/signup/).
 
 ## Build Pelion Edge
 
@@ -24,17 +18,6 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     git clone https://github.com/armpelionedge/snap-pelion-edge
     cd snap-pelion-edge
     ```
-
-1. To support firmware updates - also known as Firmware Over-the-Air (FOTA) - locate the `edge-core` component in the `parts` section of `snap/snapcraft.yaml` and set `FIRMWARE_UPDATE=ON`:
-
-    ```
-    parts:
-        edge-core:
-          ...
-          configflags:
-            - -DFIRMWARE_UPDATE=ON
-    ```
-
 1. Decide if you will be using production or developer mode when building your snap. Documentation on the choices for certificate configuration modes can be found at [Configuring Edge Build](https://github.com/ARMmbed/mbed-edge#configuring-edge-build)
 
     * [Developer Mode] Generate a device certificate from the Device Management Portal:
@@ -53,15 +36,16 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
     * [Production Mode] Do not use the device certificate from the Device Management Portal. Turn off by:
 
       1. Change the definitions of `DEVELOPER_MODE` and `FACTORY_MODE` in `snap/snapcraft.yaml` to `DEVELOPER_MODE=OFF` and `FACTORY_MODE=ON`
-      1. Follow the documentation for [Factory Provisioning](https://www.pelion.com/docs/device-management-provision/1.2/introduction/index.html)
+      1. Follow the documentation for [Factory Provisioning](https://www.pelion.com/docs/device-management/current/provisioning-process/index.html)
       1. Make sure to specify the `class-id` and `vendor-id` values in `fcu.yml` as specified in the next section.
       1. If enabling firmware updates, make sure to set `update-auth-certificate-file` in `fcu.yml` to the path of the firmware update certificate `default.der` created in the next section.
+      1. The default provisioning path for the snap is '/var/snap/pelion-edge/current/userdata/mbed'.  This is the path that the factory configurator client should be executed from to inject the production certificates and meta data.
 
 1. Generate firmware update certificates using the [manifest-tool](https://github.com/armmbed/manifest-tool)
 
     1. Check that support for firmware updates is enabled in `snap/snapcraft.yaml` with `FIRMWARE_UPDATE=ON`
     1. Install the manifest-tool: `pip install manifest-tool`
-    1. Obtain an API key from the [Pelion Edge Access Management Portal](https://portal-os2.mbedcloudstaging.net/access/keys/list)
+    1. Obtain an API key from the [Pelion Edge Access Management Portal](https://portal.mbedcloud.com/access/keys/list)
     1. Generate certificates using the manifest-tool:
 
       ```bash
@@ -91,31 +75,7 @@ This repository contains snapcraft packaging for Pelion Edge. This lets you run 
 
 ## Install and run Pelion Edge
 
-### Install on Ubuntu Core 16
-
-1. Plug a keyboard and monitor into your device.
-
-1. Power on the device.
-
-1. After booting, the system displays the prompt **Press enter to configure**.
-
-1. Press enter.
-
-1. Select **Start** to begin configuring your network and an administrator account.
-
-1. Follow the instructions on the screen; you will be asked to configure your network and enter your Ubuntu SSO credentials.
-
-1. At the end of the process, you will see your credentials to access your Ubuntu Core machine:
-
-    ```bash
-    This device is registered to <Ubuntu SSO email address>.
-    Remote access was enabled via authentication with the SSO user <Ubuntu SSO user name>
-    Public SSH keys were added to the device for remote access.
-    ```
-
-1. Continue following the Ubuntu 16 instructions below.
-
-### Install the pelion-edge snap on Ubuntu 16
+### Install the pelion-edge snap on Ubuntu
 
 1. Copy the `pelion-edge_<version>_<arch>.snap` package to the device.
 
@@ -178,7 +138,7 @@ After the snap is installed, Pelion Edge starts automatically:
     systemctl status snap.pelion-edge.edge-core
     ```
 
-- Use one of the following commands to start Pelion Edge:
+- If it is not running, you can use one of the following commands to start Pelion Edge:
 
     ```bash
     snap start pelion-edge
