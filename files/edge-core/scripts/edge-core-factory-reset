@@ -26,7 +26,7 @@ systemctl stop syslog.socket rsyslog.service
 find /var/log -type f -print0 | xargs -0 truncate --size=0
 
 rm -rf ${SNAP_DATA}/userdata/edge_gw_identity
-rm -rf ${SNAP_DATA}/userdata/etc/devicedb
+rm -rf ${SNAP_DATA}/userdata/etc
 rm -rf ${SNAP_DATA}/wigwag/etc/devicejs/devicedb.yaml
 snap stop pelion-edge.kubelet || true
 rm -rf ${SNAP_COMMON}/var/lib/kubelet
@@ -34,4 +34,3 @@ rm -rf ${SNAP_COMMON}/var/lib/kubelet
 # Stop and remove all existing docker containers and images
 docker stop $(docker ps -a -q) || true
 docker system prune --volumes -a -f || true
-
