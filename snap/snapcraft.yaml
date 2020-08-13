@@ -88,9 +88,6 @@ apps:
         - snapd-control
         - shutdown
         - system-files-logs
-    edge-core-reset-storage:
-      command: launch-edge-core.sh --reset-storage
-      plugs: [hardware-observe, network-bind, network-control, network-observe]
     help:
       command: cat ${SNAP}/help.md
     devicedb:
