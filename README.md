@@ -162,12 +162,6 @@ After the snap is installed, Pelion Edge starts automatically:
     systemctl stop snap.pelion-edge.edge-core
     ```
 
-- To reset your local Device Management credentials, stop Pelion Edge, and run `pelion-edge.edge-core-reset-storage`:
-
-    ```bash
-    snap stop pelion-edge
-    pelion-edge.edge-core-reset-storage
-    ```
 
 These are just convenient snap commands that run the binaries. The actual binaries are at `/snap/pelion-edge/current/`. Use the [Pelion Edge docs](https://github.com/armpelionedge/snap-pelion-edge#general-info-for-running-the-binaries) for information about running the binaries directly.
 
@@ -247,11 +241,12 @@ If you see this error:
 2018-09-13 18:14:14.003 tid:   6932 [ERR ][fcc ]: key_config_manager.c:309:kcm_item_get_data:Failed reading file from storage (3)
 ```
 
-Please reset your credentials by running the `pelion-edge.edge-core-reset-storage` app:
+Please reset your credentials and restart pelion-edge:
 
 ```bash
-sudo snap stop pelion-edge
-sudo pelion-edge.edge-core-reset-storage
+sudo rm -rf /var/snap/pelion-edge/current/userdata/mbed/mcc_config
+sudo rm -rf /var/snap/pelion-edge/current/userdata/edge_gw_identity
+sudo snap restart pelion-edge
 ```
 
 ### Edge startup errors
