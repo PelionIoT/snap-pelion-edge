@@ -61,7 +61,7 @@ apps:
       passthrough:
         restart-delay: 5s
       restart-condition: always
-      command: bin/node $SNAP/wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP_DATA/relayterm-config.json
+      command: bin/node $SNAP/wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP_DATA/wigwag/etc/relayterm-config.json
       daemon: simple
       environment:
         NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
@@ -337,7 +337,7 @@ parts:
         - python
         - build-essential
       source: https://github.com/armPelionEdge/edge-utils.git
-      source-commit: 0eaf84d562d8bde2dd5e13c0a1c2fbc249eb78d3
+      source-commit: d0323a9145ee20a21d18f1f0328625fd49ff60ed
       override-pull: |
         snapcraftctl pull
         cp ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/package.json .
