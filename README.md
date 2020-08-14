@@ -97,6 +97,13 @@ This repository contains snapcraft packaging for Pelion Edge on Ubuntu.
     sudo snap install --dangerous pelion-edge_<version>_<arch>.snap
     ```
 
+1. Disable devicedb
+
+    ```bash
+    sudo systemctl stop snap.pelion-edge.devicedb.service
+    sudo systemctl disable snap.pelion-edge.devicedb.service
+    ```
+
 1. Hookup the following connections
 
     ```bash
