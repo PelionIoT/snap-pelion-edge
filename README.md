@@ -312,7 +312,7 @@ Example runme.sh script:
 #!/bin/bash
 set -eux
 
-snap install --devmode pelion-edge_1.0_amd64.snap
+snap install --dangerous pelion-edge_1.0_amd64.snap
 ```
 
 This example `runme.sh` script assumes a firmware update tar.gz with the following contents:
@@ -333,12 +333,12 @@ $ tar -tzf firmware-update.tar.gz`
     ```
     snap ack curl.assert
     snap install curl.snap
-    snap install --devmode pelion-edge_amd64.snap
+    snap install --dangerous pelion-edge_amd64.snap
     ```
 
     not this:
     ```
-    snap install --devmode pelion-edge_amd64.snap
+    snap install --dangerous pelion-edge_amd64.snap
     snap ack curl.assert
     snap install curl.snap
     ```
