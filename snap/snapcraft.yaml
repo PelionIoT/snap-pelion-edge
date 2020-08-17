@@ -505,6 +505,8 @@ parts:
         git checkout 7ea6fa2c0a9deacb8a1b89fab12c2cfc3a2f2fac
         export GOPATH=${SNAPCRAFT_PART_SRC}/go
         go mod download
+        # https://github.com/golang/go/issues/27455
+        chmod -R a+rw ${GOPATH}/pkg
       override-build: |
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
@@ -513,6 +515,8 @@ parts:
         DEBUG= ./build-deps.sh
         # Build maestro
         DEBUG= DEBUG2= ./build.sh
+        # https://github.com/golang/go/issues/27455
+        chmod -R a+rw ${GOPATH}/pkg
         # Install maestro into the SNAPCRAFT_PART_INSTALL folder so that it is
         # copied into the prime directory during the prime step
         install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
