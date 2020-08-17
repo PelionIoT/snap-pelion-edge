@@ -41,12 +41,6 @@ var_defs:
      value: "{{SNAP}}/wigwag/etc/versions.json"
    - key: "UPGRADE_VERSIONS_FILE"
      value: "{{SNAP}}/wigwag/etc/versions.json"
-devicedb_conn_config:
-  devicedb_uri: "http://{{ARCH_DEVICE_ID}}:9000" #default uri
-  devicedb_prefix: "configs.device" #default prefix
-  devicedb_bucket: "lww" #default bucket
-  relay_id: "{{ARCH_DEVICE_ID}}" #default relay id
-  ca_chain: "{{SSL_CERTS_PATH}}/ca-chain.cert.pem" #default chain cert file name
 mdns:
   # disable: true
   static_records:
