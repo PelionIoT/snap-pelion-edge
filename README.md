@@ -132,10 +132,10 @@ This repository contains snapcraft packaging for Pelion Edge on Ubuntu.
     sudo snap connect pelion-edge:shutdown :shutdown
     ```
 
-1. Restart pelion-edge or reboot the device so these connections take effect.
+1. Reboot the device so these connections take effect.
 
    ```bash
-   sudo snap restart pelion-edge
+   sudo reboot
    ```
 ## Run Pelion Edge
 
