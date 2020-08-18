@@ -494,61 +494,36 @@ parts:
     maestro:
       plugin: go
       source: https://github.com/armPelionEdge/maestro.git
-      source-commit: 64520703aa26861cf0415261aded3d9c2059900e
+      source-commit: 7ea6fa2c0a9deacb8a1b89fab12c2cfc3a2f2fac
+      go-importpath: github.com/armPelionEdge/maestro
       build-packages:
         - python
         - build-essential
       override-pull: |
-        # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
-        # Create the go workspace. This is normally done by the plugin
-        install -d go
-        install -d go/src
-        install -d go/bin
-        install -d go/pkg
-        install -d go/src/github.com/armPelionEdge
-        cd go/src/github.com/armPelionEdge
-        git clone https://github.com/armPelionEdge/maestro.git
+        git clone https://github.com/armPelionEdge/maestro.git ${SNAPCRAFT_PART_SRC}/
         cd maestro
-        git checkout 64520703aa26861cf0415261aded3d9c2059900e
+        git checkout 7ea6fa2c0a9deacb8a1b89fab12c2cfc3a2f2fac
+        export GOPATH=${SNAPCRAFT_PART_SRC}/go
+        go mod download
       override-build: |
-        export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
+        export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         export GOBIN=${GOPATH}/bin
-        cd ${GOPATH}/src/github.com/armPelionEdge/maestro/
         # Build maestro dependencies
         DEBUG= ./build-deps.sh
         # Build maestro
         DEBUG= DEBUG2= ./build.sh
-        # Install maestro into GOPATH/bin
-        go install github.com/armPelionEdge/maestro
-
-        # build the grease_echo utility
-        cd ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/
-        make grease_echo
-        make standalone_test_logsink
         # Install maestro into the SNAPCRAFT_PART_INSTALL folder so that it is
         # copied into the prime directory during the prime step
         install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
-        install -d ${SNAPCRAFT_PART_INSTALL}/etc/init.d
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
         install ${GOPATH}/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
-        install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/grease_echo ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/grease_echo
-        install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/standalone_test_logsink ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/standalone_test_logsink
-        LIBS_DIR="${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/lib"
+        LIBS_DIR="${SNAPCRAFT_PART_BUILD}/greasego/deps/lib"
         ALL_LIBS="libTW.a libprofiler.a libstacktrace.a libtcmalloc.la libtcmalloc_debug.a libtcmalloc_minimal.la libuv.a libgrease.so libprofiler.la libstacktrace.la libtcmalloc_and_profiler.a libtcmalloc_debug.la libtcmalloc_minimal_debug.a libgrease.so.1 libtcmalloc.a libtcmalloc_and_profiler.la  libtcmalloc_minimal.a libtcmalloc_minimal_debug.la libtcmalloc_minimal.so*"
         for f in $ALL_LIBS; do
           install -m 0755 $LIBS_DIR/$f ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
         done
-      filesets:
-        bin:
-          - wigwag/system/bin/*
-        lib:
-          - wigwag/system/lib/*
-      stage:
-        - $lib
-        - $bin
-        - launch-maestro.sh
     cni:
       plugin: go
       source: https://github.com/containernetworking/plugins.git
