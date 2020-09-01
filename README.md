@@ -134,6 +134,7 @@ This repository contains snapcraft packaging for Pelion Edge on Ubuntu.
     sudo snap connect pelion-edge:network-observe :network-observe
     sudo snap connect pelion-edge:process-control :process-control
     sudo snap connect pelion-edge:shutdown :shutdown
+    sudo snap connect pelion-edge:dbus-wpa wpa-supplicant:service
     ```
 
 1. Reboot the device so these connections take effect.
@@ -141,6 +142,23 @@ This repository contains snapcraft packaging for Pelion Edge on Ubuntu.
    ```bash
    sudo reboot
    ```
+
+## Wifi support through Pelion Edge
+
+1. Make sure the gateway has wpa-supplicant snap installed (```snap list```). If not, the following command can be used to install wpa-supplicant snap:
+      ```bash
+    sudo snap install wpa-supplicant
+    ```  
+2. Make sure dbus-wpa connection is set.
+    ```bash
+    sudo snap connect pelion-edge:dbus-wpa wpa-supplicant:service
+    ``` 
+3. Configure the network interface for wpa-supplicant to wlan0 and restart wpa-supplicant service using the following commands:
+      ```bash
+    snap set wpa-supplicant interface=wlan0
+    sudo systemctl restart snap.wpa-supplicant.wpa
+    ```
+
 ## Run Pelion Edge
 
 After the snap is installed, Pelion Edge starts automatically:
