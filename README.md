@@ -103,7 +103,11 @@ This repository contains snapcraft packaging for Pelion Edge on Ubuntu.
     sudo systemctl stop snap.pelion-edge.devicedb.service
     sudo systemctl disable snap.pelion-edge.devicedb.service
     ```
-
+1. When installing on Ubuntu 18.04 server do the following
+    ```bash
+    sudo snap install network-manager
+    sudo snap install modem-manager
+    ```
 1. Hookup the following connections
 
     ```bash
