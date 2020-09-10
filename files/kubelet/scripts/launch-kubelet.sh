@@ -1,3 +1,4 @@
+#!/bin/bash
 
 DEVICE_ID=`jq -r .deviceID ${SNAP_DATA}/userdata/edge_gw_identity/identity.json`
 if [ $? -ne 0 ]; then
@@ -11,13 +12,41 @@ if [ $? -ne 0 ]; then
     exit 2
 fi
 
+function checkIp4()
+{
+    ip="$1"
+    ip_pattern='^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)$'
+
+    if [[ ! $ip =~ $ip_pattern ]];then
+        echo "Invalid IP [$ip]"
+        return 1
+    fi
+
+    for i in {1..4}
+    do
+        if [[ ${BASH_REMATCH[$i]} -gt 255 ]];then
+            echo "Invalid octet [${BASH_REMATCH[$i]}] in [$ip]"
+            return 1
+        fi
+    done
+
+    if [[ ${BASH_REMATCH[1]} -eq 0 ]];then
+        echo "Zero not permitted for first octet in [$ip]"
+        return 1
+    fi
+
+    echo "Valid IP [$ip]"
+    return 0
+}
+
 # Get the IP address of the interface with Internet access
 IP_ADDR=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
 
-if [ -n $IP_ADDR ]; then
+if checkIp4 $IP_ADDR;then
     NODE_IP_OPTION="--node-ip=$IP_ADDR"
 else
-    NODE_IP_OPTION=""
+    echo "Unable to get an IP"
+    exit 2
 fi
 
 # Fix readlink permission denied in Ubuntu Core <20 for /proc/1/ns/*
