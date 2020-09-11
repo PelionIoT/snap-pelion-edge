@@ -447,15 +447,6 @@ parts:
         - $devtools
         - $system
         - $support
-    openssl10:
-      plugin: make
-      make-install-var: "INSTALL_PREFIX"
-      source: https://github.com/openssl/openssl/archive/OpenSSL_1_0_2u.tar.gz
-      source-checksum: md5/c38577624507dad3a4a1f3d07b84fa59
-      override-build: |
-        ./config shared
-        make depend
-        snapcraftctl build
     maestro-shell:
       plugin: go
       source: https://github.com/armPelionEdge/maestro-shell.git
