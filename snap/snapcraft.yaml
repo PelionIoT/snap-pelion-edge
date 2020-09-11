@@ -447,12 +447,6 @@ parts:
         - $devtools
         - $system
         - $support
-    dss:
-      plugin: dump
-      source: https://github.com/armPelionEdge/edgeos-shell-scripts.git
-      source-commit: 04db833a43b80ecdfae07fd388bbe4e242771f38
-      organize:
-        '*': wigwag/system/bin/
     openssl10:
       plugin: make
       make-install-var: "INSTALL_PREFIX"
