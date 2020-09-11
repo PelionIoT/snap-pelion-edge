@@ -162,7 +162,7 @@ targets:
    #       format_pre: "{"     # you will wrap this output with { "log": [ OUTPUT ] }
 static_file_generators:
    - name: "devicedb"
-     template_file: "{{SNAP}}/wigwag/wwrelay-utils/conf/maestro-conf/template.devicedb.conf"
+     template_file: "{{SNAP}}/wigwag/etc/templates/template.devicedb.conf"
      output_file: "{{SNAP_DATA}}/wigwag/etc/devicejs/devicedb.yaml"
    - name: "ca_pem"
      template: "{{ARCH_CA_CERT_PEM}}"
@@ -186,6 +186,6 @@ static_file_generators:
      template: "{{ARCH_CA_CHAIN_CERT_PEM}}"
      output_file: "{{SSL_CERTS_PATH}}/ca-chain.cert.pem"
    - name: "relayTerm"
-     template_file: "{{SNAP}}/wigwag/wwrelay-utils/conf/maestro-conf/relayTerm.template.json"
+     template_file: "{{SNAP}}/wigwag/etc/templates/relayTerm.template.json"
      output_file: "{{SNAP_DATA}}/wigwag/etc/relayterm-config.json"
 config_end: true
