@@ -326,17 +326,16 @@ parts:
         'node_modules/': wigwag/devicejs-core-modules/node_modules/
         'maestroRunner/': wigwag/devicejs-core-modules/maestroRunner/
         'core-interfaces/': wigwag/devicejs-core-modules/core-interfaces/
-    wwrelay-utils:
-      plugin: dump
-      source: https://github.com/armPelionEdge/edge-utils.git
-      source-commit: 7020d6bd0d3a486299d33e20be3f11b61372ebeb
+    pe-utils:
+      plugin: nil
+      source: https://github.com/armPelionEdge/pe-utils.git
+      source-commit: c5704b72787f50d88ee889cde805b1c99889840c
       override-build: |
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
         install ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/
-        snapcraftctl build
-      organize:
-        'debug_scripts/get_new_gw_identity/': wigwag/wwrelay-utils/debug_scripts/get_new_gw_identity/
-        'debug_scripts/create-new-eeprom-with-self-signed-certs.sh': wigwag/wwrelay-utils/debug_scripts/create-new-eeprom-with-self-signed-certs.sh
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
+        cp -r . ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
+        chmod -R 0755 ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
     maestro-shell:
       plugin: go
       source: https://github.com/armPelionEdge/maestro-shell.git
@@ -406,10 +405,10 @@ parts:
         make standalone_test_logsink
         # Install maestro into the SNAPCRAFT_PART_INSTALL folder so that it is
         # copied into the prime directory during the prime step
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/wwrelay-utils/conf/maestro-conf
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/config/maestro-config-dell5000.yaml ${SNAPCRAFT_PART_INSTALL}/wigwag/wwrelay-utils/conf/maestro-conf/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/relayTerm.template.json ${SNAPCRAFT_PART_INSTALL}/wigwag/wwrelay-utils/conf/maestro-conf/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/template.devicedb.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/wwrelay-utils/conf/maestro-conf/
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates
+        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/config/maestro-config-dell5000.yaml ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/relayTerm.template.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/template.devicedb.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
         install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
         install -d ${SNAPCRAFT_PART_INSTALL}/etc/init.d
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
@@ -430,12 +429,12 @@ parts:
           - wigwag/system/bin/*
         lib:
           - wigwag/system/lib/*
-        config:
-          - config/*.yaml
+        etc:
+          - wigwag/etc/*
       stage:
         - $lib
         - $bin
-        - $config
+        - $etc
         - launch-maestro.sh
     cni:
       plugin: go

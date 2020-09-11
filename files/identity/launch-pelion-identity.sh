@@ -18,7 +18,6 @@
 # ----------------------------------------------------------------------------
 
 export PATH=${SNAP}/wigwag/system/bin:${PATH}
-export NODE_PATH=${SNAP}/wigwag/devicejs-core-modules/node_modules
 
 #NOTE: The following use of `false` will cause this subsequent while loop to
 # run its loop body. This implements a construct similar to C's `do { ... } while`.
@@ -28,7 +27,7 @@ false
 while [ $? -ne 0 ]
 do
   sleep 5
-  sh $1/wigwag/wwrelay-utils/debug_scripts/create-new-eeprom-with-self-signed-certs.sh\
-    $1/wigwag 8081 $2/userdata/edge_gw_identity
+  exec $1/wigwag/pe-utils/identity-tools/generate-identity.sh\
+	8081 $2/userdata/edge_gw_identity
 done
 
