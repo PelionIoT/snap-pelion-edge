@@ -288,10 +288,7 @@ parts:
     edge-proxy:
       plugin: go
       source: git@github.com:armPelionEdge/edge-proxy.git
-      source-commit: a3ffd49c387909f11b855a740230cc88c287e32e
-      override-pull: |
-        snapcraftctl pull
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/patches/0001-Correctly-handle-empty-string-for-proxy-URI.patch
+      source-commit: b0f66f21e84078ff52e11f59f1cc9890a0dfaa34
       go-importpath: github.com/armPelionEdge/edge-proxy
       override-build: |
         snapcraftctl build
