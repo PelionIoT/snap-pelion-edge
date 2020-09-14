@@ -44,7 +44,7 @@ This repository contains snapcraft packaging for Pelion Edge on Ubuntu.
 1. Generate firmware update certificates using the [manifest-tool](https://github.com/armmbed/manifest-tool)
 
     1. Check that support for firmware updates is enabled in `snap/snapcraft.yaml` with `FIRMWARE_UPDATE=ON`
-    1. Install the manifest-tool: `pip install manifest-tool`
+    1. Install the manifest-tool: `pip install manifest-tool==1.5.2`
     1. Obtain an API key from the [Pelion Edge Access Management Portal](https://portal.mbedcloud.com/access/keys/list)
     1. Generate certificates using the manifest-tool:
 
