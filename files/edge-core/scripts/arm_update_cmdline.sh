@@ -20,8 +20,6 @@
 # This script is used for firmware upgrades. It parses the command line in
 # order to allow environment and command line parameter merging
 
-# SNAP_DATA: /var/snap/pelion-edge/current/
-# path copied from snap-pelion-edge/snap/hooks/install
 UPGRADE_DIR="${SNAP_DATA}/upgrades"
 UPGRADE_TGZ="${UPGRADE_DIR}/upgrade.tar.gz"
 UPGRADE_HDR="${UPGRADE_DIR}/header.bin"

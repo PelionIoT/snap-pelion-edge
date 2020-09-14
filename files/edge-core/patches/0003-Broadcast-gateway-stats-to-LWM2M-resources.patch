@@ -1,7 +1,7 @@
-From 08fd5a973e423e2c968cf60d2652fa86fb05bd63 Mon Sep 17 00:00:00 2001
+From b9bd33f47e5d978caa22d4b262e303967d4008cf Mon Sep 17 00:00:00 2001
 From: Michael Ray <mjray@umich.edu>
 Date: Thu, 25 Jun 2020 13:50:22 -0500
-Subject: [PATCH 3/3] Broadcast gateway stats to LWM2M resources
+Subject: [PATCH 5/8] Broadcast gateway stats to LWM2M resources
 
 List of resources broadcasting:
 * /3/0/3303 - CPU temp
@@ -155,7 +155,7 @@ index 5b22e85..479658c 100644
                                                        const uint16_t object_id,
                                                        const uint16_t object_instance_id,
 diff --git a/edge-client/gateway_services_resource.c b/edge-client/gateway_services_resource.c
-index 3149dd5..253396b 100644
+index 3149dd5..800c052 100644
 --- a/edge-client/gateway_services_resource.c
 +++ b/edge-client/gateway_services_resource.c
 @@ -22,9 +22,24 @@
@@ -459,7 +459,7 @@ index 3149dd5..253396b 100644
 +    float float_default = 0;
  
 +    // bash command to fetch data
-+    const char cmd_version[] = "snap info pelion-edge | sed -n 's/^installed:[^0-9]*\\([0-9.]*\\).*/\\1/p'";    //snap version
++    const char cmd_version[] = "snap info " SNAPCRAFT_PROJECT_NAME " | sed -n 's/^installed:[^0-9]*\\([0-9.]*\\).*/\\1/p'";    //snap version
 +    const char cmd_ram_total[] = "awk '/^MemTotal:/{ print $2*1024 }' /proc/meminfo";                           //ram total
 +    const char cmd_disk_total[] = "df /home --output=size | sed '$!d;s/ *//'"; //disk total
 +
@@ -564,5 +564,5 @@ index 0477bb7..e86892c 100644
  }
 -
 -- 
-2.10.1.windows.1
+2.7.4
 
