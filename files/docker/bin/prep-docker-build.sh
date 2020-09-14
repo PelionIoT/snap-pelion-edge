@@ -6,7 +6,7 @@
 
 for patch in "$SNAPCRAFT_STAGE"/patches/*.patch; do
 	echo "Applying $(basename "$patch") ..."
-	git apply --ignore-space-change --ignore-whitespace "$patch"
+	sed "s/pelion-edge/${SNAPCRAFT_PROJECT_NAME}/g" "$patch" | git apply --ignore-space-change --ignore-whitespace -
 	echo
 done
 
