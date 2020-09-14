@@ -43,8 +43,6 @@ slots:
           - .
 passthrough:
     layout:
-        /var/lib/pelion-edge:
-            bind: $SNAP_DATA/var/lib/pelion-edge
         /var/lib/dockershim:
             bind: $SNAP_DATA/var/lib/dockershim
         /etc/docker:
