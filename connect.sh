@@ -17,26 +17,28 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------
 
-sudo snap connect pelion-edge:snapd-control       :snapd-control
-sudo snap connect pelion-edge:modem-manager       modem-manager:service
-sudo snap connect pelion-edge:network-manager     network-manager:service
-sudo snap connect pelion-edge:network-control     :network-control
-sudo snap connect pelion-edge:privileged          :docker-support
-sudo snap connect pelion-edge:support             :docker-support
-sudo snap connect pelion-edge:firewall-control    :firewall-control
-sudo snap connect pelion-edge:docker-cli          pelion-edge:docker-daemon
-sudo snap connect pelion-edge:log-observe         :log-observe
-sudo snap connect pelion-edge:system-files-logs   :system-files
-sudo snap connect pelion-edge:kernel-module-observe :kernel-module-observe
-sudo snap connect pelion-edge:system-trace        :system-trace
-sudo snap connect pelion-edge:system-observe      :system-observe
-sudo snap connect pelion-edge:account-control     :account-control
-sudo snap connect pelion-edge:bluetooth-control   :bluetooth-control
-sudo snap connect pelion-edge:hardware-observe    :hardware-observe
-sudo snap connect pelion-edge:kubernetes-support  :kubernetes-support
-sudo snap connect pelion-edge:mount-observe       :mount-observe
-sudo snap connect pelion-edge:netlink-audit       :netlink-audit
-sudo snap connect pelion-edge:netlink-connector   :netlink-connector
-sudo snap connect pelion-edge:network-observe     :network-observe
-sudo snap connect pelion-edge:process-control     :process-control
-sudo snap connect pelion-edge:shutdown            :shutdown
+SNAP_NAME=${SNAP_NAME:-pelion-edge}
+
+sudo snap connect ${SNAP_NAME}:snapd-control       :snapd-control
+sudo snap connect ${SNAP_NAME}:modem-manager       modem-manager:service
+sudo snap connect ${SNAP_NAME}:network-manager     network-manager:service
+sudo snap connect ${SNAP_NAME}:network-control     :network-control
+sudo snap connect ${SNAP_NAME}:privileged          :docker-support
+sudo snap connect ${SNAP_NAME}:support             :docker-support
+sudo snap connect ${SNAP_NAME}:firewall-control    :firewall-control
+sudo snap connect ${SNAP_NAME}:docker-cli          ${SNAP_NAME}:docker-daemon
+sudo snap connect ${SNAP_NAME}:log-observe         :log-observe
+sudo snap connect ${SNAP_NAME}:system-files-logs   :system-files
+sudo snap connect ${SNAP_NAME}:kernel-module-observe :kernel-module-observe
+sudo snap connect ${SNAP_NAME}:system-trace        :system-trace
+sudo snap connect ${SNAP_NAME}:system-observe      :system-observe
+sudo snap connect ${SNAP_NAME}:account-control     :account-control
+sudo snap connect ${SNAP_NAME}:bluetooth-control   :bluetooth-control
+sudo snap connect ${SNAP_NAME}:hardware-observe    :hardware-observe
+sudo snap connect ${SNAP_NAME}:kubernetes-support  :kubernetes-support
+sudo snap connect ${SNAP_NAME}:mount-observe       :mount-observe
+sudo snap connect ${SNAP_NAME}:netlink-audit       :netlink-audit
+sudo snap connect ${SNAP_NAME}:netlink-connector   :netlink-connector
+sudo snap connect ${SNAP_NAME}:network-observe     :network-observe
+sudo snap connect ${SNAP_NAME}:process-control     :process-control
+sudo snap connect ${SNAP_NAME}:shutdown            :shutdown
