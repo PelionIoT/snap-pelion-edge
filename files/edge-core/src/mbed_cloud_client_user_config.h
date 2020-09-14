@@ -43,7 +43,7 @@
 
 #define EDGE_RUNNING_IN_SNAP 1
 
-#define PLATFORM_VERSION_FILE "/var/snap/pelion-edge/current/etc/platform_version"
+#define PLATFORM_VERSION_FILE "/var/snap/" SNAPCRAFT_PROJECT_NAME "/current/etc/platform_version"
 
 #endif /* MBED_CLIENT_USER_CONFIG_H */
 

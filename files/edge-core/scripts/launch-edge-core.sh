@@ -31,7 +31,6 @@ fi
 # before we start edge-core, call the fake bootloader to apply any existing updates
 ${SNAP}/edge-core-bootloader.sh
 
-# SNAP_DATA: /var/snap/pelion-edge/current/
 CONF_FILE=${SNAP_DATA}/edge-core.conf
 if [ ! -f "${CONF_FILE}" ]; then
     cp "$SNAP/edge-core.conf" "${CONF_FILE}"

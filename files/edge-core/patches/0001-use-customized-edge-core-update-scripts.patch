@@ -1,14 +1,14 @@
-From 6696df8a7c633ec64f902a10bf1b05947c0fa095 Mon Sep 17 00:00:00 2001
+From 691093985f83fce9f6c70da15ba731877669fc9b Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Thu, 2 Apr 2020 16:37:10 -0500
-Subject: [PATCH] use customized edge-core update scripts
+Subject: [PATCH 1/8] use customized edge-core update scripts
 
 ---
- .../source/arm_uc_pal_linux_generic.c          | 18 +++++++++---------
+ .../pal-linux/source/arm_uc_pal_linux_generic.c        | 18 +++++++++---------
  1 file changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c b/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c
-index 1d1228b..872f101 100644
+index 4f7c0be..09d623d 100644
 --- a/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c
 +++ b/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c
 @@ -121,7 +121,7 @@ arm_ucp_worker_t arm_uc_worker_parameters_details = {
@@ -16,7 +16,7 @@ index 1d1228b..872f101 100644
  
  arm_ucp_worker_t arm_uc_worker_parameters_active_details = {
 -    .command = "../../../arm_update_active_details.sh",
-+    .command = "/snap/pelion-edge/current/wigwag/mbed/arm_update_active_details.sh",
++    .command = "/snap/" SNAPCRAFT_PROJECT_NAME "/current/wigwag/mbed/arm_update_active_details.sh",
      .header   = 1,
      .firmware = 0,
      .location = 0,
@@ -25,7 +25,7 @@ index 1d1228b..872f101 100644
  
  arm_ucp_worker_t arm_uc_worker_parameters_activate = {
 -    .command = "../../../arm_update_activate.sh",
-+    .command = "/snap/pelion-edge/current/wigwag/mbed/arm_update_activate.sh",
++    .command = "/snap/" SNAPCRAFT_PROJECT_NAME "/current/wigwag/mbed/arm_update_activate.sh",
      .header   = 1,
      .firmware = 1,
      .location = 0,
@@ -34,7 +34,7 @@ index 1d1228b..872f101 100644
  
  arm_ucp_worker_t arm_uc_worker_parameters_installer = {
 -    .command = "../../../arm_update_installer.sh",
-+    .command = "/snap/pelion-edge/current/wigwag/mbed/arm_update_installer.sh",
++    .command = "/snap/" SNAPCRAFT_PROJECT_NAME "/current/wigwag/mbed/arm_update_installer.sh",
      .header   = 1,
      .firmware = 0,
      .location = 0,
@@ -59,5 +59,5 @@ index 1d1228b..872f101 100644
  
      return ARM_UC_PAL_Linux_Initialize(callback);
 -- 
-2.21.0 (Apple Git-122)
+2.7.4
 
