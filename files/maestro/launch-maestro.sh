@@ -14,7 +14,7 @@ if [ ! -d "$SNAP_DATA/userdata/etc" ]; then
 fi
 
 if [ ! -f "$SNAP_DATA/maestro-config.yaml" ]; then
-    cp "$SNAP/wigwag/wwrelay-utils/conf/maestro-conf/edge-config-dell5000-demo.yaml" "$SNAP_DATA/maestro-config.yaml"
+    cp "$SNAP/config/maestro-config-dell5000.yaml" "$SNAP_DATA/maestro-config.yaml"
 fi
 
 config_file=$SNAP_DATA/maestro-config.yaml

@@ -505,17 +505,17 @@ parts:
         DEBUG= DEBUG2= ./build.sh
         # Install maestro into GOPATH/bin
         go install github.com/armPelionEdge/maestro
-
         # build the grease_echo utility
         cd ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/
         make grease_echo
         make standalone_test_logsink
         # Install maestro into the SNAPCRAFT_PART_INSTALL folder so that it is
         # copied into the prime directory during the prime step
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
+        install -d ${SNAPCRAFT_PART_INSTALL}/config
         install -d ${SNAPCRAFT_PART_INSTALL}/etc/init.d
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
+        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
         install ${GOPATH}/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
         install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/grease_echo ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/grease_echo
         install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/standalone_test_logsink ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/standalone_test_logsink
@@ -524,14 +524,20 @@ parts:
         for f in $ALL_LIBS; do
           install -m 0755 $LIBS_DIR/$f ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
         done
+        # fixup the SNAP and SNAP_DATA variables in the config files based on the snap name
+        cp ${SNAPCRAFT_PROJECT_DIR}/files/maestro/config/*.yaml ${SNAPCRAFT_PART_INSTALL}/config/
+        sed -i "s!/snap/pelion-edge!/snap/${SNAPCRAFT_PROJECT_NAME}!" ${SNAPCRAFT_PART_INSTALL}/config/*.yaml
       filesets:
         bin:
           - wigwag/system/bin/*
         lib:
           - wigwag/system/lib/*
+        config:
+          - config/*.yaml
       stage:
         - $lib
         - $bin
+        - $config
         - launch-maestro.sh
     cni:
       plugin: go
