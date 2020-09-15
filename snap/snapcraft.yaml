@@ -258,6 +258,7 @@ parts:
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0002-Fixed-edge-cloud-write-errors.patch
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0003-Broadcast-gateway-stats-to-LWM2M-resources.patch
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0004-allow-resources-to-be-named.patch
+        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Increasing-Path-Size.patch
         if [ "${COAP_PORT_OVERRIDE_443}" = "true" ]; then
             echo "PATCHING PORT 443 OVERRIDE"
             [ -f config/mbed_cloud_dev_credentials.c ] && sed -i 's,\(coaps://[^:]*:\)5684,\1443,' config/mbed_cloud_dev_credentials.c
