@@ -331,6 +331,7 @@ parts:
       source: https://github.com/armPelionEdge/pe-utils.git
       source-commit: c5704b72787f50d88ee889cde805b1c99889840c
       override-build: |
+        git am ${SNAPCRAFT_PROJECT_DIR}/files/identity/patches/0001-Update-create-dev-identity.sh-path-location-for-snap.patch
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
         install ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
