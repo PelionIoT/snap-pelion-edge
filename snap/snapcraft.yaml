@@ -333,7 +333,7 @@ parts:
       override-build: |
         git am ${SNAPCRAFT_PROJECT_DIR}/files/identity/patches/0001-Update-create-dev-identity.sh-path-location-for-snap.patch
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        install ${SNAPCRAFT_PROJECT_DIR}/files/wwrelay-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/pe-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
         cp -r . ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
         chmod -R 0755 ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
