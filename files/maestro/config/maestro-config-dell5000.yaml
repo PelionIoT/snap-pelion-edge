@@ -7,7 +7,10 @@ imagePath: /tmp/maestro/images
 scratchPath: /tmp/maestro/scratch
 clientId: "{{ARCH_SERIAL_NUMBER}}"
 network:
-    disable: true
+  interfaces:
+    - if_name: eth0
+      dhcpv4: true
+      hw_addr: "{{ARCH_ETHERNET_MAC}}"
 platform_readers:
   - platform: "fsonly"
     params:
