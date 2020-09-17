@@ -76,15 +76,17 @@ apps:
       environment:
         DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
       plugs:
+        - docker
         - hardware-observe
+        - kubernetes-support
         - log-observe
         - mount-observe
         - network-bind
         - network-control
         - network-observe
         - process-control
-        - snapd-control
         - shutdown
+        - snapd-control
         - system-files-logs
     help:
       command: cat ${SNAP}/help.md
