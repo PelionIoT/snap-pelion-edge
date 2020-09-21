@@ -17,20 +17,35 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------
 
-# This is present on some, but not all gateways, and is where logs are persisted.
-rm -f /var/log/syslog*
-journalctl --vacuum-time=1s
-
-# Stop logging until next reboot and remove previous logs
-systemctl stop syslog.socket rsyslog.service
-find /var/log -type f -print0 | xargs -0 truncate --size=0
-
-rm -rf ${SNAP_DATA}/userdata/edge_gw_identity
-rm -rf ${SNAP_DATA}/userdata/etc
-rm -rf ${SNAP_DATA}/wigwag/etc/devicejs/devicedb.yaml
-snapctl stop ${SNAP_INSTANCE_NAME}.kubelet || true
-rm -rf ${SNAP_COMMON}/var/lib/kubelet
-
 # Stop and remove all existing docker containers and images
+snapctl stop ${SNAP_INSTANCE_NAME}.kubelet || true
 docker stop $(docker ps -a -q) || true
 docker system prune --volumes -a -f || true
+
+# clear logs
+journalctl --vacuum-time=1s
+
+# syslog made a copy of journalctl so we need to delete those too
+systemctl stop syslog.socket rsyslog.service
+rm -f /var/log/syslog/*
+# sometimes the rm doesn't work, so let's try to truncate to 0
+find /var/log -type f -print0 | xargs -0 truncate --size=0
+
+# delete versioned r/w data but preserve mbed credentials if they
+# exist. edge-core handles the mbed credentials on factory reset and
+# it has different behavior based on whether it's configured for
+# dev mode or factory mode.
+[ -n "${SNAP_DATA}" ] && {
+	find ${SNAP_DATA} -depth \
+		-not -wholename "${SNAP_DATA}" \
+		-not -path "${SNAP_DATA}/userdata/mbed*" \
+		-not -wholename "${SNAP_DATA}/userdata/mbed" \
+		-exec rm -fd {} \;
+}
+
+# delete unversioned r/w data
+[ -n "${SNAP_COMMON}" ] && rm -rf ${SNAP_COMMON}
+
+# it's very important for this script to return success, otherwise
+# edge-core won't clean up mbed credentials
+exit 0
