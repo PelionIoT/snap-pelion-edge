@@ -17,10 +17,21 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------
 
-# check if we need to set a default value
+#
+# check if we need to set default values for snap configuration options
+#
 if [[ -z $(snapctl get edge-proxy.debug) ]]; then
     snapctl set edge-proxy.debug=false
 fi
+
 if [[ -z $(snapctl get edge-proxy.extern-http-proxy) ]]; then
     snapctl set edge-proxy.extern-http-proxy=""
+fi
+
+if [[ -z $(snapctl get kubelet.edgenet-subnet) ]]; then
+    snapctl set kubelet.edgenet-subnet="10.0.0.0/24"
+fi
+
+if [[ -z $(snapctl get kubelet.edgenet-gateway) ]]; then
+    snapctl set kubelet.edgenet-gateway="10.0.0.1"
 fi
