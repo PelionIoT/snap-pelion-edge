@@ -315,3 +315,15 @@ Pods often represent different applications on a gateway that need to talk to on
 - Pods.
 - ConfigMaps.
 - Secrets.
+
+## Change Docker Network Address
+
+Sometimes, the administrator may wish to change the IP address of containers.  For example, if the northbound IP address conflicts with the default subnet of 10.0.0.0/24, the IP address of containers should be changed to avoid conflict.
+
+From the the gateway terminal, or relayterm, use the following commands:
+
+1. `snap set pelion-edge kubelet.edgenet-subnet=192.168.0.0/24`
+1. `snap set pelion-edge kubelet.edgenet-gateway=192.168.0.1`
+1. `snap restart pelion-edge`
+
+This should cause existing containers to change their addresses so they're in the 192.168.0.0/24 subnet.
