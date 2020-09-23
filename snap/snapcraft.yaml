@@ -122,6 +122,9 @@ apps:
       command: launch-pelion-identity.sh $SNAP $SNAP_DATA
       daemon: simple
       plugs: [network, network-control]
+    platform-version:
+      command: platform-version.sh
+      plugs: [snapd-control]
     kubelet:
       passthrough:
         restart-delay: 5s
@@ -203,6 +206,9 @@ parts:
     help:
       plugin: dump
       source: files/help/
+    platform-version:
+      plugin: dump
+      source: files/platform-version/
     identity:
       plugin: dump
       source: files/identity/
