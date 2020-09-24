@@ -27,7 +27,8 @@ journalctl --vacuum-time=1s
 
 # syslog made a copy of journalctl so we need to delete those too
 systemctl stop syslog.socket rsyslog.service
-rm -f /var/log/syslog/*
+# attempt to delete /var/log/syslog and /var/log/syslog.X.gz
+rm -f /var/log/syslog*
 # sometimes the rm doesn't work, so let's try to truncate to 0
 find /var/log -type f -print0 | xargs -0 truncate --size=0
 
