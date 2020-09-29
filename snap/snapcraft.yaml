@@ -213,6 +213,8 @@ parts:
     platform-version:
       plugin: dump
       source: files/platform-version/
+      organize:
+        platform-version.sh: bin/platform-version.sh
     identity:
       plugin: dump
       source: files/identity/
