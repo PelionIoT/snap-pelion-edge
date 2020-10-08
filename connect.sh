@@ -42,4 +42,4 @@ sudo snap connect ${SNAP_NAME}:netlink-connector   :netlink-connector
 sudo snap connect ${SNAP_NAME}:network-observe     :network-observe
 sudo snap connect ${SNAP_NAME}:process-control     :process-control
 sudo snap connect ${SNAP_NAME}:shutdown            :shutdown
-sudo snap connect pelion-edge:dbus-wpa            wpa-supplicant:service
+sudo snap connect ${SNAP_NAME}:dbus-wpa            wpa-supplicant:service
