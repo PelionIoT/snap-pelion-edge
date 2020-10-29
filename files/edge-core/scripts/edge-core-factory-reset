@@ -48,10 +48,10 @@ find /var/log -type f -print0 | xargs -0 truncate --size=0
 [ -n "${SNAP_COMMON}" ] && rm -rf ${SNAP_COMMON}
 
 # delete custom environment variables
-snapctl unset ${SNAP_INSTANCE_NAME} edge-proxy.debug
-snapctl unset ${SNAP_INSTANCE_NAME} edge-proxy.extern-http-proxy
-snapctl unset ${SNAP_INSTANCE_NAME} kubelet.edgenet-gateway
-snapctl unset ${SNAP_INSTANCE_NAME} kubelet.edgenet-subnet
+snapctl unset edge-proxy.debug
+snapctl unset edge-proxy.extern-http-proxy
+snapctl unset kubelet.edgenet-gateway
+snapctl unset kubelet.edgenet-subnet
 
 # it's very important for this script to return success, otherwise
 # edge-core won't clean up mbed credentials
