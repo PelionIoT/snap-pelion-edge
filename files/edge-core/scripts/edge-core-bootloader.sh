@@ -60,8 +60,47 @@ function try_upgrade()
 	return $retval
 }
 
+# if a snap refresh is in progress, wait until it is done
+# returns: 0 if the snap refresh completed successfully
+#          1 if there is no watch id
+#          2 if the snap refresh completed with error
+#          3 if the snap refresh did not finish on time (timed out)
+WATCH_ID_STATUS_SUCCESS=0
+WATCH_ID_STATUS_NONE=1
+WATCH_ID_STATUS_ERROR=2
+WATCH_ID_STATUS_TIMEOUT=3
+function check_snap_refresh() {
+	local watch_id_file=$SNAP_COMMON/refresh_watch_id
+	local timestamp=$(date +%s)
+	local timeout=$(snapctl get edge-core.refresh-timeout 2>/dev/null || echo 300)
+	local tdiff=0
+	local retval=$WATCH_ID_STATUS_NONE
+	if [ -f "$watch_id_file" ]; then
+		retval=$WATCH_ID_STATUS_TIMEOUT
+		watch_id=$(cat "$watch_id_file")
+		while [ $tdiff -lt $timeout ]; do
+			status=$(curl -sS --unix-socket /run/snapd.socket http://localhost/v2/changes/$watch_id | jq .result.status)
+			[ "$status" = "Done" ] && {
+				retval=$WATCH_ID_STATUS_SUCCESS
+				break
+			}
+			[ "$status" = "Error" ] && {
+				retval=$WATCH_ID_STATUS_ERROR
+				break
+			}
+			sleep 1
+			tdiff=$(($(date +%s) - timestamp))
+		done
+		rm "$watch_id_file" 2>/dev/null
+	fi
+	return $retval
+}
+
 # If the upgrade fails for any reason, we ignore the new user version string
 try_upgrade || rm -f "${UPGRADE_VER}"
+
+check_snap_refresh
+# suggested usage: check_snap_refresh && copy_hdr_bin
 
 if [ -e "${UPGRADE_HDR}" ]; then
 	# copy the firmware header to persistent storage for later
