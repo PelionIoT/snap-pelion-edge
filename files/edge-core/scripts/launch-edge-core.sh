@@ -17,6 +17,8 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------
 
+PLATFORM_VERSION=${SNAP_DATA}/etc/platform_version
+
 # make sure the PAL_FS_MOUNT_POINT_PRIMARY directory exists so it can be populated
 # with mcc_config
 if [ ! -d ${SNAP_DATA}/userdata/mbed ]; then
@@ -30,6 +32,10 @@ fi
 
 # before we start edge-core, call the fake bootloader to apply any existing updates
 ${SNAP}/edge-core-bootloader.sh
+
+# Use the platform version script to generate a new MD5 hash
+# The platform version file is read by edge-core and populates LWM2M /10252/0/10
+${SNAP}/bin/platform-version.sh > $PLATFORM_VERSION
 
 CONF_FILE=${SNAP_DATA}/edge-core.conf
 if [ ! -f "${CONF_FILE}" ]; then
