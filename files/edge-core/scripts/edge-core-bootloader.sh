@@ -18,51 +18,38 @@
 # ----------------------------------------------------------------------------
 
 # This script is used for firmware upgrades.  It checks for the existence of an
-# upgrade.tar.gz file in ${SNAP_DATA}/upgrades/, and if found, untars the file
-# and runs the runme.sh script inside.
+# upgrade.tar.gz file in ${SNAP_DATA}/upgrades/, and if found, untars it and
+# runs through the upgrade procedure.
 
 UPGRADE_DIR=${SNAP_DATA}/upgrades
 UPGRADE_TGZ=${UPGRADE_DIR}/upgrade.tar.gz
 UPGRADE_HDR=${UPGRADE_DIR}/header.bin
-UPGRADE_VER=${UPGRADE_DIR}/platform_version
-UPGRADE_WORKDIR=/tmp/pelion-edge-upgrade/
+UPGRADE_WORKDIR=${SNAP_COMMON}/pelion-edge-upgrade
 ACTIVE_HDR=${SNAP_DATA}/userdata/mbed/header.bin
-ACTIVE_VER=${SNAP_DATA}/etc/platform_version
+REFRESH_WATCHID=${SNAP_COMMON}/refresh_watch_id
 
 function log_msg()
 {
 	echo "$@" |  systemd-cat -p info -t "EDGE-CORE-Bootloader"
 }
 
-function try_upgrade()
-{
-	let retval=0
-	echo "Checking for ${UPGRADE_TGZ}"
-	if [ -e "${UPGRADE_TGZ}" ]; then
-		mkdir -p "${UPGRADE_WORKDIR}"
-		tar --no-same-owner -xzf "${UPGRADE_TGZ}" -C "${UPGRADE_WORKDIR}"
-		# remove the upgrade tgz file so that we don't fall into an upgrade loop
-		rm "${UPGRADE_TGZ}"
-		pushd "${UPGRADE_WORKDIR}"
-		# copy the new version file to the upgrade folder to be copied
-		# into its final destination after the upgrade finishes
-		if [ -e platform_version ]; then
-			cp platform_version "${UPGRADE_VER}"
-			if [ -x runme.sh ]; then
-				echo "edge-core-bootloader.sh: Running runme.sh" | systemd-cat -p info -t FOTA
-				./runme.sh 2>&1 | systemd-cat -p info -t FOTA
-				retval=$?
-			else
-				echo "ERROR: upgrade.tar.gz did not contain runme.sh"
-				retval=1
-			fi
-		else
-			echo "ERROR: upgrade.tar.gz did not contain platform_version"
-			retval=1
-		fi
-		popd
-	fi
-	return $retval
+function snap_refresh() {
+    if [ -e "${REFRESH_WATCHID}" ]; then
+        echo "Snap refresh already in progress..."
+        return 0
+    else
+        response=$(curl -sS -H "Content-Type: application/json" --unix-socket /run/snapd.socket http://localhost/v2/snaps -X POST -d '{ "action": "refresh" }')
+        status=$(echo $response | jq -r '.status')
+        if [ "$status" = "Accepted" ]; then
+            change_id=$(echo $response | jq -r '.change')
+            echo $change_id > $REFRESH_WATCHID
+            return 0
+        else
+            echo "Attempted snap refresh.  Returned status " $status
+            echo "Complete response: " $response
+            return 1
+        fi
+    fi
 }
 
 # if a snap refresh is in progress, wait until it is done
@@ -108,27 +95,61 @@ function check_snap_refresh() {
 	return $retval
 }
 
-# If the upgrade fails for any reason, we ignore the new user version string
-try_upgrade || rm -f "${UPGRADE_VER}"
-
-check_snap_refresh
-# suggested usage: check_snap_refresh && copy_hdr_bin
-
-if [ -e "${UPGRADE_HDR}" ]; then
-	# copy the firmware header to persistent storage for later
-	# use by the arm_update_active_details.sh script
-	echo "Moving the new firmware header to persistent storage ${ACTIVE_HDR}"
-	mv "${UPGRADE_HDR}" "${ACTIVE_HDR}"
+echo "Checking for ${UPGRADE_TGZ}"
+if [ -e "${UPGRADE_TGZ}" ]; then
+    echo "Unpacking ${UPGRADE_TGZ}..."
+    mkdir -p "${UPGRADE_WORKDIR}"
+    tar --no-same-owner -xzf "${UPGRADE_TGZ}" -C "${UPGRADE_WORKDIR}"
+    # remove the upgrade tgz file so that we don't fall into an upgrade loop
+    rm "${UPGRADE_TGZ}"
+    # TODO: init fota process state tracking
 fi
 
-if [ -e "${UPGRADE_VER}" ]; then
-	echo "Moving the new firmware version file to final location ${ACTIVE_VER}"
-	mv "${UPGRADE_VER}" "${ACTIVE_VER}"
-fi
+# move into folder and call pre-refresh if exists
+retval=0
+if [ -e "${UPGRADE_WORKDIR}"]; then
+    pushd "${UPGRADE_WORKDIR}"
 
-if [ -d "${UPGRADE_WORKDIR}" ]; then
-	echo "Deleting the upgrade workdir ${UPGRADE_WORKDIR}"
-	rm -rf "${UPGRADE_WORKDIR}"
+    if [ -x pre-refresh.sh ]; then
+        echo "edge-core-bootloader.sh: Running pre-refresh.sh" | systemd-cat -p info -t FOTA-PRE-REFRESH
+        ./pre-refresh.sh 2>&1 | systemd-cat -p info -t FOTA-PRE-REFRESH
+        retval=$?
+        rm pre-refresh.sh
+    fi
+
+    if [ $retval = 0 ]; then
+        snap_refresh
+        retval=$?
+    fi
+
+    # this blocks until snap refresh is complete
+    check_snap_refresh
+    retval=$?
+
+    if [ $retval = 0 ]; then
+        # after snap refresh completes, call post-refresh.sh if it exists
+        if [ -x post-refresh.sh ]; then
+            echo "edge-core-bootloader.sh: Running post-refresh.sh" | systemd-cat -p info -t FOTA-PRE-REFRESH
+            ./post-refresh.sh 2>&1 | systemd-cat -p info -t FOTA-POST-REFRESH
+            retval=$?
+            rm post-refresh.sh
+        fi
+    fi
+
+    # TODO: copy the header.bin into place if all previous steps succeed
+    #if [ $retval = 0 ]; then
+    #   # copy the firmware header to persistent storage for later
+    #   # use by the arm_update_active_details.sh script
+    #   echo "Moving the new firmware header to persistent storage ${ACTIVE_HDR}"
+    #   mv "${UPGRADE_HDR}" "${ACTIVE_HDR}"
+    #fi
+
+    # delete the upgrade workdir only after snap-refresh is complete
+    # and post-refresh.sh is finished
+    echo "Deleting the upgrade workdir ${UPGRADE_WORKDIR}"
+    rm -rf "${UPGRADE_WORKDIR}"
+
+    popd
 fi
 
 # return success to allow edge-core to continue booting
