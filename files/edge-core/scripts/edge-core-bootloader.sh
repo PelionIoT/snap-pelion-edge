@@ -77,7 +77,7 @@ WATCH_ID_STATUS_TIMEOUT=3
 function check_snap_refresh() {
 	local watch_id_file=$SNAP_COMMON/refresh_watch_id
 	local timestamp=$(date +%s)
-	local timeout=$(snapctl get edge-core.refresh-timeout 2>/dev/null || echo 300)
+	local timeout=$(snapctl get edge-core.refresh-timeout)
 	local tdiff=0
 	local retval=$WATCH_ID_STATUS_NONE
 	if [ -f "$watch_id_file" ]; then
