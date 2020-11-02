@@ -59,7 +59,7 @@ index 1f50abd..c7f3313 100644
 +                if (resourcePlatVersion) {
 +                    FILE *fp = fopen(PLATFORM_VERSION_FILE, "r");
 +                    if (fp) {
-+                        char buffer[32] = "0.0.0";
++                        char buffer[33] = "0.0.0";
 +                        /* Strip out the newline if exists since we don't want it in the LWM2M object */
 +                        if (fgets(buffer, sizeof(buffer), fp) && buffer[strlen(buffer) - 1] == '\n') {
 +                            buffer[strlen(buffer)-1] = 0;
