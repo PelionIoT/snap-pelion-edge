@@ -129,7 +129,7 @@ if [ -e "${UPGRADE_WORKDIR}"]; then
     if [ $retval = 0 ]; then
         # after snap refresh completes, call post-refresh.sh if it exists
         if [ -x post-refresh.sh ]; then
-            echo "edge-core-bootloader.sh: Running post-refresh.sh" | systemd-cat -p info -t FOTA-PRE-REFRESH
+            echo "edge-core-bootloader.sh: Running post-refresh.sh" | systemd-cat -p info -t FOTA-POST-REFRESH
             ./post-refresh.sh 2>&1 | systemd-cat -p info -t FOTA-POST-REFRESH
             retval=$?
             rm post-refresh.sh
