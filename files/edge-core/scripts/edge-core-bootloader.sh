@@ -29,6 +29,11 @@ UPGRADE_WORKDIR=/tmp/pelion-edge-upgrade/
 ACTIVE_HDR=${SNAP_DATA}/userdata/mbed/header.bin
 ACTIVE_VER=${SNAP_DATA}/etc/platform_version
 
+function log_msg()
+{
+	echo "$@" |  systemd-cat -p info -t "EDGE-CORE-Bootloader"
+}
+
 function try_upgrade()
 {
 	let retval=0
@@ -78,20 +83,27 @@ function check_snap_refresh() {
 	if [ -f "$watch_id_file" ]; then
 		retval=$WATCH_ID_STATUS_TIMEOUT
 		watch_id=$(cat "$watch_id_file")
+		log_msg "Waiting for snap refresh ID $watch_id, max $timeout seconds"
+		local end_msg="did not complete in time"
 		while [ $tdiff -lt $timeout ]; do
 			status=$(curl -sS --unix-socket /run/snapd.socket http://localhost/v2/changes/$watch_id | jq .result.status)
 			[ "$status" = "Done" ] && {
 				retval=$WATCH_ID_STATUS_SUCCESS
+				end_msg="completed successfully"
 				break
 			}
 			[ "$status" = "Error" ] && {
 				retval=$WATCH_ID_STATUS_ERROR
+				end_msg="finished with error"
 				break
 			}
 			sleep 1
 			tdiff=$(($(date +%s) - timestamp))
 		done
+		log_msg "Snap refresh $end_msg"
 		rm "$watch_id_file" 2>/dev/null
+	else
+		log_msg "No snap refresh in progress, starting edge-core"
 	fi
 	return $retval
 }
