@@ -101,12 +101,14 @@ if [ -e "${UPGRADE_TGZ}" ]; then
         echo "Deleting old upgrade workdir..."
         rm -rf "${UPGRADE_WORKDIR}"
     fi
-    echo "Unpacking ${UPGRADE_TGZ}..."
+    echo "Unpacking ${UPGRADE_TGZ} to ${UPGRADE_WORKDIR}..."
     mkdir -p "${UPGRADE_WORKDIR}"
     tar --no-same-owner -xzf "${UPGRADE_TGZ}" -C "${UPGRADE_WORKDIR}"
     # remove the upgrade tgz file so that we don't fall into an upgrade loop
     rm "${UPGRADE_TGZ}"
-    # TODO: init fota process state tracking
+else
+    echo "No upgrade found...continue to boot"
+    exit 0
 fi
 
 # move into folder and call pre-refresh if exists
