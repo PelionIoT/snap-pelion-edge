@@ -25,6 +25,7 @@ UPGRADE_DIR=${SNAP_DATA}/upgrades
 UPGRADE_TGZ=${UPGRADE_DIR}/upgrade.tar.gz
 UPGRADE_HDR=${UPGRADE_DIR}/header.bin
 UPGRADE_WORKDIR=${SNAP_COMMON}/pelion-edge-upgrade
+UPGRADE_WORKDIR_FAILED=${SNAP_COMMON}/pelion-edge-upgrade-failed
 ACTIVE_HDR=${SNAP_DATA}/userdata/mbed/header.bin
 REFRESH_WATCHID=${SNAP_COMMON}/refresh_watch_id
 
@@ -112,46 +113,70 @@ else
 fi
 
 # move into folder and call pre-refresh if exists
-retval=0
 if [ -e "${UPGRADE_WORKDIR}" ]; then
+    echo "Processing upgrade..."
     pushd "${UPGRADE_WORKDIR}"
 
     if [ -x pre-refresh.sh ]; then
         echo "edge-core-bootloader.sh: Running pre-refresh.sh" | systemd-cat -p info -t FOTA-PRE-REFRESH
         ./pre-refresh.sh 2>&1 | systemd-cat -p info -t FOTA-PRE-REFRESH
         retval=$?
-        rm pre-refresh.sh
+        if [ $retval = 0 ]; then
+            rm pre-refresh.sh
+        else
+            popd
+            echo "pre-refresh.sh script failed: ${retval}"
+            rm -rf "${UPGRADE_WORKDIR_FAILED}"
+            mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
+            exit 1
+        fi
     fi
 
-    if [ $retval = 0 ]; then
-        snap_refresh
-        retval=$?
+    snap_refresh
+    retval=$?
+    if [ $retval != 0 ]; then
+        popd
+        echo "snap-refresh failed: ${retval}"
+        rm -rf "${UPGRADE_WORKDIR_FAILED}"
+        mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
+        exit 2
     fi
 
     # this blocks until snap refresh is complete
     check_snap_refresh
     retval=$?
+    if [ $retval != 0 ]; then
+        popd
+        echo "check-snap-refresh failed: ${retval}"
+        rm -rf "${UPGRADE_WORKDIR_FAILED}"
+        mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
+        exit 3
+    fi
 
-    if [ $retval = 0 ]; then
-        # after snap refresh completes, call post-refresh.sh if it exists
-        if [ -x post-refresh.sh ]; then
-            echo "edge-core-bootloader.sh: Running post-refresh.sh" | systemd-cat -p info -t FOTA-POST-REFRESH
-            ./post-refresh.sh 2>&1 | systemd-cat -p info -t FOTA-POST-REFRESH
-            retval=$?
+    # after snap refresh completes, call post-refresh.sh if it exists
+    if [ -x post-refresh.sh ]; then
+        echo "edge-core-bootloader.sh: Running post-refresh.sh" | systemd-cat -p info -t FOTA-POST-REFRESH
+        ./post-refresh.sh 2>&1 | systemd-cat -p info -t FOTA-POST-REFRESH
+        retval=$?
+        if [ $retval = 0 ]; then
             rm post-refresh.sh
+        else
+            popd
+            echo "post-refresh.sh script failed: ${retval}"
+            rm -rf "${UPGRADE_WORKDIR_FAILED}"
+            mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
+            exit 4
         fi
     fi
 
     # copy the header.bin into place if all previous steps succeed
-    if [ $retval = 0 ]; then
-       echo "Moving the new firmware header to persistent storage ${ACTIVE_HDR}"
-       mv "${UPGRADE_HDR}" "${ACTIVE_HDR}"
-    fi
+    echo "Moving the new firmware header to persistent storage ${ACTIVE_HDR}"
+    mv "${UPGRADE_HDR}" "${ACTIVE_HDR}"
 
     # delete the upgrade workdir only after snap-refresh is complete
     # and post-refresh.sh is finished
     echo "Deleting the upgrade workdir ${UPGRADE_WORKDIR}"
-    rm -rf "${UPGRADE_WORKDIR}"
+    rm -rf "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
 
     popd
 fi
