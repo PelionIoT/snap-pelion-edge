@@ -107,7 +107,7 @@ fi
 
 # move into folder and call pre-refresh if exists
 retval=0
-if [ -e "${UPGRADE_WORKDIR}"]; then
+if [ -e "${UPGRADE_WORKDIR}" ]; then
     pushd "${UPGRADE_WORKDIR}"
 
     if [ -x pre-refresh.sh ]; then
