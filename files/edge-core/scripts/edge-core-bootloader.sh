@@ -112,6 +112,15 @@ else
     exit 0
 fi
 
+function check_error() {
+    if [ $2 != 0 ]; then
+        echo "$1 failed failed: $2"
+        rm -rf "${UPGRADE_WORKDIR_FAILED}"
+        mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
+        exit $3
+    fi
+}
+
 # move into folder and call pre-refresh if exists
 if [ -e "${UPGRADE_WORKDIR}" ]; then
     echo "Processing upgrade..."
@@ -120,53 +129,23 @@ if [ -e "${UPGRADE_WORKDIR}" ]; then
     if [ -x pre-refresh.sh ]; then
         echo "edge-core-bootloader.sh: Running pre-refresh.sh" | systemd-cat -p info -t FOTA-PRE-REFRESH
         ./pre-refresh.sh 2>&1 | systemd-cat -p info -t FOTA-PRE-REFRESH
-        retval=$?
-        if [ $retval = 0 ]; then
-            rm pre-refresh.sh
-        else
-            popd
-            echo "pre-refresh.sh script failed: ${retval}"
-            rm -rf "${UPGRADE_WORKDIR_FAILED}"
-            mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
-            exit 1
-        fi
+        check_error "pre-refresh" $? 1
+        rm pre-refresh.sh
     fi
 
     snap_refresh
-    retval=$?
-    if [ $retval != 0 ]; then
-        popd
-        echo "snap-refresh failed: ${retval}"
-        rm -rf "${UPGRADE_WORKDIR_FAILED}"
-        mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
-        exit 2
-    fi
+    check_error "snap_refresh" $? 2
 
     # this blocks until snap refresh is complete
     check_snap_refresh
-    retval=$?
-    if [ $retval != 0 ]; then
-        popd
-        echo "check-snap-refresh failed: ${retval}"
-        rm -rf "${UPGRADE_WORKDIR_FAILED}"
-        mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
-        exit 3
-    fi
+    check_error "check_snap_refresh" $? 3
 
     # after snap refresh completes, call post-refresh.sh if it exists
     if [ -x post-refresh.sh ]; then
         echo "edge-core-bootloader.sh: Running post-refresh.sh" | systemd-cat -p info -t FOTA-POST-REFRESH
         ./post-refresh.sh 2>&1 | systemd-cat -p info -t FOTA-POST-REFRESH
-        retval=$?
-        if [ $retval = 0 ]; then
-            rm post-refresh.sh
-        else
-            popd
-            echo "post-refresh.sh script failed: ${retval}"
-            rm -rf "${UPGRADE_WORKDIR_FAILED}"
-            mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
-            exit 4
-        fi
+        check_error "post-refresh" $? 4
+        rm post-refresh.sh
     fi
 
     # copy the header.bin into place if all previous steps succeed
@@ -179,6 +158,7 @@ if [ -e "${UPGRADE_WORKDIR}" ]; then
     rm -rf "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
 
     popd
+    echo "Done processing upgrade"
 fi
 
 # return success to allow edge-core to continue booting
