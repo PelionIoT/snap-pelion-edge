@@ -140,13 +140,11 @@ if [ -e "${UPGRADE_WORKDIR}" ]; then
         fi
     fi
 
-    # TODO: copy the header.bin into place if all previous steps succeed
-    #if [ $retval = 0 ]; then
-    #   # copy the firmware header to persistent storage for later
-    #   # use by the arm_update_active_details.sh script
-    #   echo "Moving the new firmware header to persistent storage ${ACTIVE_HDR}"
-    #   mv "${UPGRADE_HDR}" "${ACTIVE_HDR}"
-    #fi
+    # copy the header.bin into place if all previous steps succeed
+    if [ $retval = 0 ]; then
+       echo "Moving the new firmware header to persistent storage ${ACTIVE_HDR}"
+       mv "${UPGRADE_HDR}" "${ACTIVE_HDR}"
+    fi
 
     # delete the upgrade workdir only after snap-refresh is complete
     # and post-refresh.sh is finished
