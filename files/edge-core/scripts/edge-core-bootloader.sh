@@ -73,7 +73,8 @@ function check_snap_refresh() {
 		log_msg "Waiting for snap refresh ID $watch_id, max $timeout seconds"
 		local end_msg="did not complete in time"
 		while [ $tdiff -lt $timeout ]; do
-			status=$(curl -sS --unix-socket /run/snapd.socket http://localhost/v2/changes/$watch_id | jq .result.status)
+			status=$(curl -sS --unix-socket /run/snapd.socket http://localhost/v2/changes/$watch_id | jq -r .result.status)
+            log_msg Snap refresh status: $status
 			[ "$status" = "Done" ] && {
 				retval=$WATCH_ID_STATUS_SUCCESS
 				end_msg="completed successfully"
