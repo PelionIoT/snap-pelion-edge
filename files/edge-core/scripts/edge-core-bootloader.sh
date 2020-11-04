@@ -26,6 +26,7 @@ UPGRADE_TGZ=${UPGRADE_DIR}/upgrade.tar.gz
 UPGRADE_HDR=${UPGRADE_DIR}/header.bin
 UPGRADE_WORKDIR=${SNAP_COMMON}/pelion-edge-upgrade
 UPGRADE_WORKDIR_FAILED=${SNAP_COMMON}/pelion-edge-upgrade-failed
+PLATFORM_MD5=${UPGRADE_WORKDIR}/platform-version.md5
 ACTIVE_HDR=${SNAP_DATA}/userdata/mbed/header.bin
 REFRESH_WATCHID=${SNAP_COMMON}/refresh_watch_id
 
@@ -113,7 +114,7 @@ fi
 
 function check_error() {
     if [ $2 != 0 ]; then
-        echo "$1 failed failed: $2"
+        echo "$1 failed: $2"
         rm -rf "${UPGRADE_WORKDIR_FAILED}"
         mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
         exit $3
@@ -139,11 +140,16 @@ if [ -e "${UPGRADE_WORKDIR}" ]; then
     check_snap_refresh
     check_error "check_snap_refresh" $? 3
 
-    # after snap refresh completes, call post-refresh.sh if it exists
+    # after snap refresh completes, compare the expected hash values
+    if [ "$(cat ${PLATFORM_MD5})" != "$(${SNAP}/bin/platform-version.sh)" ]; then
+        check_error "hash check" 1 4
+    fi
+
+    # now that we're certain the system is in an expected state, call post-refresh.sh if it exists
     if [ -x post-refresh.sh ]; then
         echo "edge-core-bootloader.sh: Running post-refresh.sh" | systemd-cat -p info -t FOTA-POST-REFRESH
         ./post-refresh.sh 2>&1 | systemd-cat -p info -t FOTA-POST-REFRESH
-        check_error "post-refresh" $? 4
+        check_error "post-refresh" $? 5
         rm post-refresh.sh
     fi
 
