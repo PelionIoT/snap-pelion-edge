@@ -108,8 +108,7 @@ if [ -e "${UPGRADE_TGZ}" ]; then
     # remove the upgrade tgz file so that we don't fall into an upgrade loop
     rm "${UPGRADE_TGZ}"
 else
-    echo "No upgrade found...continue to boot"
-    exit 0
+    echo "No upgrade payload found...continue to look for upgrade in progress"
 fi
 
 function check_error() {
@@ -159,6 +158,8 @@ if [ -e "${UPGRADE_WORKDIR}" ]; then
 
     popd
     echo "Done processing upgrade"
+else
+    echo "No upgrade in progress...continue to boot"
 fi
 
 # return success to allow edge-core to continue booting
