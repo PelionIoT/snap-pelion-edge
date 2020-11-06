@@ -132,6 +132,11 @@ if [ -e "${UPGRADE_WORKDIR}" ]; then
         check_error "pre-refresh" $? 1
         rm pre-refresh.sh
     fi
+    if [ -f map-version.json ]; then
+        echo "Adding new version mappings"
+        jq -s '.[0] * .[1]' ${VERSION_MAP} map-version.json > ${VERSION_MAP}.new
+        mv ${VERSION_MAP}.new ${VERSION_MAP}
+    fi
 
     snap_refresh
     check_error "snap_refresh" $? 2
