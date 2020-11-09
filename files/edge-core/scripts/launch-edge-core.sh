@@ -17,9 +17,9 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------
 
-PLATFORM_VERSION=${SNAP_DATA}/etc/platform_version
-READABLE_VERSION=${SNAP_DATA}/etc/readable_version
-VERSION_MAP=${SNAP_DATA}/etc/version_map.json
+export PLATFORM_VERSION=${SNAP_DATA}/etc/platform_version
+export READABLE_VERSION=${SNAP_DATA}/etc/readable_version
+export VERSION_MAP=${SNAP_DATA}/etc/version_map.json
 
 # make sure the PAL_FS_MOUNT_POINT_PRIMARY directory exists so it can be populated
 # with mcc_config
