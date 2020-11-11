@@ -301,9 +301,9 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
     edge-proxy:
       plugin: go
-      source: git@github.com:armPelionEdge/edge-proxy.git
+      source: git@github.com:PelionIoT/edge-proxy.git
       source-commit: b0f66f21e84078ff52e11f59f1cc9890a0dfaa34
-      go-importpath: github.com/armPelionEdge/edge-proxy
+      go-importpath: github.com/PelionIoT/edge-proxy
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
@@ -313,9 +313,9 @@ parts:
         bin/edge-proxy: wigwag/system/bin/edge-proxy
     devicedb:
       plugin: go
-      source: git@github.com:armPelionEdge/devicedb.git
+      source: git@github.com:PelionIoT/devicedb.git
       source-commit: a4ee46f3d9bc58b694e7563502142dfe265110cb
-      go-importpath: github.com/armPelionEdge/devicedb
+      go-importpath: github.com/PelionIoT/devicedb
       organize:
         'bin/*': wigwag/system/bin/
     edge-node-modules:
@@ -324,7 +324,7 @@ parts:
       build-packages:
         - python
         - build-essential
-      source: https://github.com/armPelionEdge/edge-node-modules.git
+      source: https://github.com/PelionIoT/edge-node-modules.git
       source-commit: a70efd3dd4c35904937c2707403313cc3023b025
       override-build: |
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-node-modules/patches/0001-Added-package.json.patch
@@ -343,7 +343,7 @@ parts:
         'core-interfaces/': wigwag/devicejs-core-modules/core-interfaces/
     pe-utils:
       plugin: nil
-      source: https://github.com/armPelionEdge/pe-utils.git
+      source: https://github.com/PelionIoT/pe-utils.git
       source-commit: e18c85638f7fa555b586d60679beccc6cd4be821
       override-build: |
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
@@ -353,7 +353,7 @@ parts:
         chmod -R 0755 ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
     maestro-shell:
       plugin: go
-      source: https://github.com/armPelionEdge/maestro-shell.git
+      source: https://github.com/PelionIoT/maestro-shell.git
       source-commit: aa2336b361555c471daab0d2dc21a7f750bdf813
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
@@ -362,20 +362,20 @@ parts:
         install -d go/src
         install -d go/bin
         install -d go/pkg
-        install -d go/src/github.com/armPelionEdge
-        cd go/src/github.com/armPelionEdge
-        git clone https://github.com/armPelionEdge/maestro-shell.git
+        install -d go/src/github.com/PelionIoT
+        cd go/src/github.com/PelionIoT
+        git clone https://github.com/PelionIoT/maestro-shell.git
         cd maestro-shell
         git checkout aa2336b361555c471daab0d2dc21a7f750bdf813
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
-        cd ${GOPATH}/src/github.com/armPelionEdge/maestro-shell/
+        cd ${GOPATH}/src/github.com/PelionIoT/maestro-shell/
         # Build maestro-shell dependencies
         ./build-deps.sh
         # Build maestro-shell
-        go build github.com/armPelionEdge/maestro-shell
+        go build github.com/PelionIoT/maestro-shell
         # Install maestro-shell into GOPATH/bin
-        go install github.com/armPelionEdge/maestro-shell
+        go install github.com/PelionIoT/maestro-shell
         # Install maestro-shell into the SNAPCRAFT_PART_INSTALL folder so that it is
         # copied into the prime directory during the prime step
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
@@ -386,7 +386,7 @@ parts:
       go-importpath: github.com/mikefarah/yq
     maestro:
       plugin: go
-      source: https://github.com/armPelionEdge/maestro.git
+      source: https://github.com/PelionIoT/maestro.git
       source-commit: 59d781b6b7cc4330889c45ac1aee8d713af6f22b
       build-packages:
         - python
@@ -398,24 +398,24 @@ parts:
         install -d go/src
         install -d go/bin
         install -d go/pkg
-        install -d go/src/github.com/armPelionEdge
-        cd go/src/github.com/armPelionEdge
-        git clone https://github.com/armPelionEdge/maestro.git
+        install -d go/src/github.com/PelionIoT
+        cd go/src/github.com/PelionIoT
+        git clone https://github.com/PelionIoT/maestro.git
         cd maestro
         git checkout 59d781b6b7cc4330889c45ac1aee8d713af6f22b
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
         export GOBIN=${GOPATH}/bin
-        cd ${GOPATH}/src/github.com/armPelionEdge/maestro/
+        cd ${GOPATH}/src/github.com/PelionIoT/maestro/
         # Build maestro dependencies
         DEBUG= ./build-deps.sh
         # Build maestro
         DEBUG= DEBUG2= ./build.sh
         # Install maestro into GOPATH/bin
-        go install github.com/armPelionEdge/maestro
+        go install github.com/PelionIoT/maestro
         # build the grease_echo utility
-        cd ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/
+        cd ${GOPATH}/src/github.com/PelionIoT/maestro/vendor/github.com/PelionIoT/greasego/deps/src/greaseLib/
         make grease_echo
         make standalone_test_logsink
         # Install maestro into the SNAPCRAFT_PART_INSTALL folder so that it is
@@ -430,9 +430,9 @@ parts:
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
         install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
         install ${GOPATH}/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
-        install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/grease_echo ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/grease_echo
-        install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/standalone_test_logsink ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/standalone_test_logsink
-        LIBS_DIR="${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/lib"
+        install ${GOPATH}/src/github.com/PelionIoT/maestro/vendor/github.com/PelionIoT/greasego/deps/src/greaseLib/grease_echo ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/grease_echo
+        install ${GOPATH}/src/github.com/PelionIoT/maestro/vendor/github.com/PelionIoT/greasego/deps/src/greaseLib/standalone_test_logsink ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/standalone_test_logsink
+        LIBS_DIR="${GOPATH}/src/github.com/PelionIoT/maestro/vendor/github.com/PelionIoT/greasego/deps/lib"
         ALL_LIBS="libTW.a libprofiler.a libstacktrace.a libtcmalloc.la libtcmalloc_debug.a libtcmalloc_minimal.la libuv.a libgrease.so libprofiler.la libstacktrace.la libtcmalloc_and_profiler.a libtcmalloc_debug.la libtcmalloc_minimal_debug.a libgrease.so.1 libtcmalloc.a libtcmalloc_and_profiler.la  libtcmalloc_minimal.a libtcmalloc_minimal_debug.la libtcmalloc_minimal.so*"
         for f in $ALL_LIBS; do
           install -m 0755 $LIBS_DIR/$f ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
@@ -507,7 +507,7 @@ parts:
         - $cni_conf
     kubelet:
       plugin: go
-      source: git@github.com:armPelionEdge/edge-kubelet.git
+      source: git@github.com:PelionIoT/edge-kubelet.git
       source-commit: 83b266ae6939012883611d6dbda745f2490a67c4
       go-importpath: k8s.io/kubernetes
       override-pull: |
@@ -519,7 +519,7 @@ parts:
         install -d go/pkg
         install -d go/src/k8s.io
         cd go/src/k8s.io
-        git clone git@github.com:armPelionEdge/edge-kubelet.git kubernetes
+        git clone git@github.com:PelionIoT/edge-kubelet.git kubernetes
         cd kubernetes
         git checkout 83b266ae6939012883611d6dbda745f2490a67c4
       override-build: |
