@@ -325,10 +325,7 @@ parts:
         - python
         - build-essential
       source: https://github.com/PelionIoT/edge-node-modules.git
-      source-commit: a70efd3dd4c35904937c2707403313cc3023b025
-      override-build: |
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-node-modules/patches/0001-Added-package.json.patch
-        snapcraftctl build
+      source-commit: 64b058622402ae0f7680a61cab84c507672db0a6
       organize:
         'DevStateManager/': wigwag/wigwag-core-modules/DevStateManager/
         'LEDController/': wigwag/wigwag-core-modules/LEDController/
