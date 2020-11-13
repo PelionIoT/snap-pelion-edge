@@ -41,17 +41,7 @@ function checkIp4()
 
 function getEdgeNetAddr()
 {
-   #EDGENET_SUBNET should be of the form 10.0.0.0/24
-   #we want to pul the highest available address for that subnet (10.255.255.254 in the example)
-   EDGENET_SUBNET=$(docker network inspect --format='{{range .IPAM.Config}}{{.Subnet}}{{end}}' edgenet)
-   net=$(echo $EDGENET_SUBNET | cut -d '/' -f 1)
-   hexnet=$(printf '%02x' ${net//./ })
-   masknum=$(echo $EDGENET_SUBNET | cut -d '/' -f 2)
-   mask=$((2**$masknum - 1))
-   hexmask=$(printf '%x' $mask)
-   hexip=$(printf '%08x' $((0x$hexnet | 0x$hexmask - 1)) )
-   dotip=$(printf '%d.%d.%d.%d' $(echo $hexip | sed 's/../0x& /g') )
-   echo $dotip
+    echo $(snapctl get kubelet.edgenet-gateway)
 }
 
 # Get the IP address of the interface with Internet access
