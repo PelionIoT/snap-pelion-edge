@@ -1,6 +1,6 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and affiliates.
+# Copyright (c) 2020, Pelion and affiliates.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -17,17 +17,20 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------
 
-export PATH=${SNAP}/wigwag/system/bin:${PATH}
+# $1: install path to the parent of the wigwag folder (i.e., SNAP)
+# $2: destination path to RW storage (i.e., SNAP_DATA)
 
-#NOTE: The following use of `false` will cause this subsequent while loop to
-# run its loop body. This implements a construct similar to C's `do { ... } while`.
-# This makes this shell script a bit hard to reason about, so if the loop body
-# grows beyond a single sleep and shell call, replace it with more idiomatic bash.
-false
-while [ $? -ne 0 ]
-do
-  sleep 5
-  exec $1/wigwag/pe-utils/identity-tools/generate-identity.sh\
-	8081 $2/userdata/edge_gw_identity
-done
+IDENTITY_JSON_DIR=${2}/userdata/edge_gw_identity
+export IDENTITY_JSON=${IDENTITY_JSON_DIR}/identity.json
 
+LOCKFILE=/tmp/wait-for-pelion-identity.lck
+(
+    # only run one instance of generate-identity.sh at a time
+    flock -w 30 9 || exit 1
+
+    while [ ! -f ${IDENTITY_JSON} ]; do
+        sleep 5
+        $1/wigwag/pe-utils/identity-tools/generate-identity.sh \
+            8081 ${IDENTITY_JSON_DIR}
+    done
+) 9>${LOCKFILE}
