@@ -97,6 +97,29 @@ function check_snap_refresh() {
 	return $retval
 }
 
+function check_error() {
+    if [ $2 != 0 ]; then
+        echo "$1 failed: $2"
+        rm -rf "${UPGRADE_WORKDIR_FAILED}"
+        mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
+        rm -f "${UPGRADE_TGZ}"
+        exit $3
+    fi
+}
+
+# check that the upgrade payload contains required files
+# $1: path to the extracted upgrade payload
+function validate_fota_payload() {
+    local retval=0
+    local upgrade_workdir=$1
+    pushd "${upgrade_workdir}"
+    if [ ! -f "${PLATFORM_MD5}" ]; then
+        retval=1
+    fi
+    popd
+    return $retval
+}
+
 echo "Checking for ${UPGRADE_TGZ}"
 if [ -e "${UPGRADE_TGZ}" ]; then
     if [ -e "${UPGRADE_WORKDIR}" ]; then
@@ -106,20 +129,17 @@ if [ -e "${UPGRADE_TGZ}" ]; then
     echo "Unpacking ${UPGRADE_TGZ} to ${UPGRADE_WORKDIR}..."
     mkdir -p "${UPGRADE_WORKDIR}"
     tar --no-same-owner -xzf "${UPGRADE_TGZ}" -C "${UPGRADE_WORKDIR}"
+
+    # validate the upgrade payload
+    echo "Validating the upgrade payload..."
+    validate_fota_payload "${UPGRADE_WORKDIR}"
+    check_error "validate upgrade payload" $? 1
+
     # remove the upgrade tgz file so that we don't fall into an upgrade loop
     rm "${UPGRADE_TGZ}"
 else
     echo "No upgrade payload found...continue to look for upgrade in progress"
 fi
-
-function check_error() {
-    if [ $2 != 0 ]; then
-        echo "$1 failed: $2"
-        rm -rf "${UPGRADE_WORKDIR_FAILED}"
-        mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
-        exit $3
-    fi
-}
 
 # move into folder and call pre-refresh if exists
 if [ -e "${UPGRADE_WORKDIR}" ]; then
