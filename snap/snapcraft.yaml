@@ -505,7 +505,7 @@ parts:
     kubelet:
       plugin: go
       source: git@github.com:armPelionEdge/edge-kubelet.git
-      source-commit: 83b266ae6939012883611d6dbda745f2490a67c4
+      source-commit: remove-offline-errors
       go-importpath: k8s.io/kubernetes
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored depdnencies.
@@ -518,7 +518,7 @@ parts:
         cd go/src/k8s.io
         git clone git@github.com:armPelionEdge/edge-kubelet.git kubernetes
         cd kubernetes
-        git checkout 83b266ae6939012883611d6dbda745f2490a67c4
+        git checkout remove-offline-errors
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_SRC}/go
         cd ${GOPATH}/src/k8s.io/kubernetes/hack/make-rules

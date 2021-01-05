@@ -72,4 +72,5 @@ exec ${SNAP}/wigwag/system/bin/kubelet \
     --node-status-update-frequency=150s \
     --register-node=true \
     --docker-endpoint=unix://${SNAP_COMMON}/var/run/docker.sock \
+    --v 2 \
     $NODE_IP_OPTION
