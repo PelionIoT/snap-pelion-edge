@@ -633,7 +633,7 @@ parts:
       plugin: make
       source: https://github.com/containerd/containerd.git
       # from : https://github.com/docker/docker-ce/blob/v18.06.1-ce/components/engine/hack/dockerfile/install/containerd.installer
-      source-commit: 468a545b9edcd5932818eb9de8e72413e616e86e
+      source-tag: v1.1.2
       override-build: |
         # setup the go build environment for containerd
         . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
