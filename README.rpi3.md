@@ -148,7 +148,7 @@
     ```
 1. Clone the 'snap-pelion-edge' repository:
     ```bash
-    git clone https://github.com/armpelionedge/snap-pelion-edge
+    git clone https://github.com/PelionIoT/snap-pelion-edge
     ```
 1. Generate a device certificate from the Device Management Portal:
 
