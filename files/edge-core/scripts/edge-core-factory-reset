@@ -17,6 +17,12 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------
 
+# we write to a tmp file so that it is automatically deleted when
+# the device is rebooted, yet persists through a simple restart.  by
+# doing this, we prevent edge-core from immediately re-registering
+# after the factory reset is completed.
+touch /tmp/factory-reset-in-progress
+
 # Stop and remove all existing docker containers and images
 snapctl stop ${SNAP_INSTANCE_NAME}.kubelet || true
 docker stop $(docker ps -a -q) || true
