@@ -384,7 +384,7 @@ parts:
     maestro:
       plugin: go
       source: https://github.com/PelionIoT/maestro.git
-      source-commit: a0adef8c579db2eaa15f08d1813eef417850f7d6
+      source-commit: 80f85b7c9f14f01c0fa5da76e9ffeee43185803d
       build-packages:
         - python
         - build-essential
@@ -399,7 +399,7 @@ parts:
         cd go/src/github.com/PelionIoT
         git clone https://github.com/PelionIoT/maestro.git
         cd maestro
-        git checkout a0adef8c579db2eaa15f08d1813eef417850f7d6
+        git checkout 80f85b7c9f14f01c0fa5da76e9ffeee43185803d
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
