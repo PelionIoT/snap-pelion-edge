@@ -21,6 +21,11 @@ export PLATFORM_VERSION=${SNAP_DATA}/etc/platform_version
 export READABLE_VERSION=${SNAP_DATA}/etc/readable_version
 export VERSION_MAP=${SNAP_DATA}/etc/version_map.json
 
+if [ -e /tmp/factory-reset-in-progress ]; then
+    echo "edge-core refusing to start, factory reset in progress.  To complete the reset, reboot the device."
+    exit 0
+fi
+
 # make sure the PAL_FS_MOUNT_POINT_PRIMARY directory exists so it can be populated
 # with mcc_config
 if [ ! -d ${SNAP_DATA}/userdata/mbed ]; then
