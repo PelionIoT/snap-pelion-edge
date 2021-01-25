@@ -292,9 +292,9 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
     edge-proxy:
       plugin: go
-      source: git@github.com:armPelionEdge/edge-proxy.git
-      source-commit: 1e03559a81fe974e346598b5025862337c2c9081
-      go-importpath: github.com/armPelionEdge/edge-proxy
+      source: git@github.com:PelionIoT/edge-proxy.git
+      source-commit: 4fe1ccad2555062f7eef05f9bffebf650a1a4a06
+      go-importpath: github.com/PelionIoT/edge-proxy
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
