@@ -93,7 +93,7 @@ apps:
         - snapd-control
         - system-files-logs
     help:
-      command: cat ${SNAP}/help.md
+      command: bin/cat $SNAP/help.md
     devicedb:
       command: wigwag/system/bin/devicedb start -conf $SNAP_DATA/wigwag/etc/devicejs/devicedb.yaml
       passthrough:
@@ -127,7 +127,7 @@ apps:
       daemon: simple
       plugs: [network, network-control]
     platform-version:
-      command: platform-version.sh
+      command: bin/platform-version.sh
       plugs: [snapd-control]
     kubelet:
       passthrough:
@@ -157,7 +157,7 @@ apps:
         - system-observe
         - system-trace
     docker:
-      command: docker
+      command: bin/docker
       aliases:
       - docker
       environment:
@@ -173,7 +173,7 @@ apps:
         - home
         - network-control
     dockerd:
-      command: dockerd-wrapper
+      command: bin/dockerd-wrapper
       daemon: simple
       environment:
         DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
@@ -187,7 +187,7 @@ apps:
       slots:
         - docker-daemon
     machine:
-      command: docker-machine
+      command: bin/docker-machine
       environment:
         DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
       plugs:
@@ -196,7 +196,7 @@ apps:
         - home
         - network-bind
     docker-help:
-      command: help
+      command: bin/help
 parts:
     help:
       plugin: dump
