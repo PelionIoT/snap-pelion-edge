@@ -186,15 +186,6 @@ apps:
         - kernel-module-observe
       slots:
         - docker-daemon
-    compose:
-      command: docker-compose
-      environment:
-        DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
-      plugs:
-        - docker-cli
-        - network
-        - home
-        - mount-observe
     machine:
       command: docker-machine
       environment:
@@ -701,12 +692,6 @@ parts:
       - build-essential
       prime:
       - -bin/tini
-    docker-compose:
-      plugin: python
-      python-version: python2
-      source: https://github.com/docker/compose.git
-      source-tag: 1.22.0
-      source-depth: 1
     docker-machine:
       plugin: make
       source: https://github.com/docker/machine.git
