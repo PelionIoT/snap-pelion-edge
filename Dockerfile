@@ -1,4 +1,4 @@
-FROM snapcore/snapcraft@sha256:33f891e3c7ad6981b217460e2e903fabbfd4b9db4dced14f1ad982c4529130cf
+FROM snapcore/snapcraft@sha256:6d771575c134569e28a590f173f7efae8bf7f4d1746ad8a474c98e02f4a3f627
 
 # Install dependencies
 # Gosu is installed so that we can run snapcraft as the current user instead of as root
