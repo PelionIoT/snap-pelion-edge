@@ -263,6 +263,7 @@ parts:
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0004-allow-resources-to-be-named.patch
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Increasing-Path-Size.patch
         git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Call-a-restart-script-during-fota.patch
+        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Add-support-for-network-proxy.patch
         if [ "${COAP_PORT_OVERRIDE_443}" = "true" ]; then
             echo "PATCHING PORT 443 OVERRIDE"
             [ -f config/mbed_cloud_dev_credentials.c ] && sed -i 's,\(coaps://[^:]*:\)5684,\1443,' config/mbed_cloud_dev_credentials.c
@@ -278,6 +279,7 @@ parts:
         - -DBYOC_MODE=OFF
         - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
         - -DMBED_CLOUD_DEV_UPDATE_ID=ON
+        - -DNETWORK_PROXY_SUPPORT=ON
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
