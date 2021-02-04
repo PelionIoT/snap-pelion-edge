@@ -238,7 +238,7 @@ parts:
         - cmake
         - git
       build-environment:
-        - COAP_PORT_OVERRIDE_443: "true"
+        - COAP_PORT_OVERRIDE_443: "false"
       override-pull: |
         snapcraftctl pull
         # mbed_cloud_dev_credentials.c is required if DEVELOPER_MODE=ON
