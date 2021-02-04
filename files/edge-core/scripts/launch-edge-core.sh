@@ -80,5 +80,11 @@ if [ -f "${CONF_FILE}" ]; then
     ARGS="${ARGS} $(cat "${CONF_FILE}")"
 fi
 
+# add conf from the environment
+EXTERN_HTTP_PROXY=$(snapctl get edge-core.proxy)
+if [[ -n "$EXTERN_HTTP_PROXY" ]]; then
+    ARGS="${ARGS} -x ${EXTERN_HTTP_PROXY}"
+fi
+
 # add ${SNAP} to PATH edge-core can run the factory reset script: edge-core-factory-reset
 exec env PATH=${PATH}:${SNAP} ${SNAP}/wigwag/mbed/edge-core ${ARGS}
