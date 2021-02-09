@@ -55,7 +55,7 @@ find /var/log -type f -print0 | xargs -0 truncate --size=0
 
 # delete custom environment variables
 snapctl unset edge-proxy.debug
-snapctl unset edge-proxy.extern-http-proxy
+snapctl unset edge-proxy.extern-http-proxy-uri
 snapctl unset kubelet.edgenet-gateway
 snapctl unset kubelet.edgenet-subnet
 
