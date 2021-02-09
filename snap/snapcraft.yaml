@@ -294,7 +294,7 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
     edge-proxy:
       plugin: go
-      source: git@github.com:PelionIoT/edge-proxy.git
+      source: https://github.com/PelionIoT/edge-proxy.git
       source-commit: 4fe1ccad2555062f7eef05f9bffebf650a1a4a06
       go-importpath: github.com/PelionIoT/edge-proxy
       override-build: |
@@ -306,7 +306,7 @@ parts:
         bin/edge-proxy: wigwag/system/bin/edge-proxy
     devicedb:
       plugin: go
-      source: git@github.com:armPelionEdge/devicedb.git
+      source: https://github.com/PelionIoT/devicedb.git
       source-commit: a4ee46f3d9bc58b694e7563502142dfe265110cb
       go-importpath: github.com/armPelionEdge/devicedb
       organize:
@@ -372,7 +372,7 @@ parts:
         install ${GOPATH}/bin/maestro-shell ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro-shell
     yq:
       plugin: go
-      source: git@github.com:mikefarah/yq.git
+      source: https://github.com/mikefarah/yq.git
       go-importpath: github.com/mikefarah/yq
     maestro:
       plugin: go
@@ -497,7 +497,7 @@ parts:
         - $cni_conf
     kubelet:
       plugin: go
-      source: git@github.com:armPelionEdge/edge-kubelet.git
+      source: https://github.com/PelionIoT/edge-kubelet.git
       source-commit: remove-offline-errors
       go-importpath: k8s.io/kubernetes
       override-pull: |
@@ -509,7 +509,7 @@ parts:
         install -d go/pkg
         install -d go/src/k8s.io
         cd go/src/k8s.io
-        git clone git@github.com:armPelionEdge/edge-kubelet.git kubernetes
+        git clone https://github.com/PelionIoT/edge-kubelet.git kubernetes
         cd kubernetes
         git checkout remove-offline-errors
       override-build: |
