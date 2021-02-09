@@ -57,7 +57,7 @@ find /var/log -type f -print0 | xargs -0 truncate --size=0
 snapctl unset edge-core.proxy
 snapctl unset edge-core.refresh-timeout
 snapctl unset edge-proxy.debug
-snapctl unset edge-proxy.extern-http-proxy
+snapctl unset edge-proxy.extern-http-proxy-uri
 snapctl unset kubelet.edgenet-gateway
 snapctl unset kubelet.edgenet-subnet
 
