@@ -318,7 +318,7 @@ parts:
         - python
         - build-essential
       source: https://github.com/armPelionEdge/edge-node-modules.git
-      source-commit: 64b058622402ae0f7680a61cab84c507672db0a6
+      source-commit: 1ea6080fcc17e588c4f53c86a6c2b2bd7df3f05c
       organize:
         'DevStateManager/': wigwag/wigwag-core-modules/DevStateManager/
         'LEDController/': wigwag/wigwag-core-modules/LEDController/
