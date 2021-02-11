@@ -27,16 +27,6 @@ useradd --shell /bin/bash -u ${USER_ID} -o -c "" -m user
 usermod -aG sudo user
 echo "user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# Copy ssh keys, netrc, and other necessary config files so that snapcraft
-# can clone private repos
-cp -rf ${HOME}/.ssh /home/user/
-cp -f ${HOME}/.netrc /home/user/
-cp -f ${HOME}/.gitconfig /home/user/
-chown -R user:user /home/user/
-
-# Issue a warning if the ssh key has a password
-ssh-keygen -y -P "" -f ${HOME}/.ssh/id_rsa >/dev/null
-
 # Run the command as user
 export HOME=/home/user
 exec gosu user "$@"
