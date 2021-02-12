@@ -253,22 +253,22 @@ parts:
         cp ${SNAPCRAFT_PART_SRC}/cmake/toolchains/mcc-linux-x86.cmake config/toolchain.cmake
         sed -i 's!/dev/random!/dev/urandom!' lib/mbed-cloud-client/mbed-client-pal/Source/Port/Reference-Impl/OS_Specific/Linux/Board_Specific/TARGET_x86_x64/pal_plat_x86_x64.c
         sed -i 's!\(MAX_RECONNECT_TIMEOUT\).*!\1 60!' lib/mbed-cloud-client/mbed-client/mbed-client/m2mconstants.h
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Read-platform-version-files-into-LWM2M-resources.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-PELEDGE19-1193-Call-a-script-on-factory-reset.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-use-customized-edge-core-update-scripts.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-fix-calculation-of-remaining-buffer-size-when-callin.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-fix-bug-dynamic-resources-should-be-updatable-by-the.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0002-Fixed-edge-cloud-write-errors.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0003-Broadcast-gateway-stats-to-LWM2M-resources.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0004-allow-resources-to-be-named.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Increasing-Path-Size.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Call-a-restart-script-during-fota.patch
-        git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Add-support-for-network-proxy.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Read-platform-version-files-into-LWM2M-resources.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-PELEDGE19-1193-Call-a-script-on-factory-reset.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-use-customized-edge-core-update-scripts.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-fix-calculation-of-remaining-buffer-size-when-callin.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-fix-bug-dynamic-resources-should-be-updatable-by-the.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0002-Fixed-edge-cloud-write-errors.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0003-Broadcast-gateway-stats-to-LWM2M-resources.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0004-allow-resources-to-be-named.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Increasing-Path-Size.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Call-a-restart-script-during-fota.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Add-support-for-network-proxy.patch
         if [ "${COAP_PORT_OVERRIDE_443}" = "true" ]; then
             echo "PATCHING PORT 443 OVERRIDE"
             [ -f config/mbed_cloud_dev_credentials.c ] && sed -i 's,\(coaps://[^:]*:\)5684,\1443,' config/mbed_cloud_dev_credentials.c
-            git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-patch-mbed-edge-with-the-ability-to-override-pelion-.patch
-            git am ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-force-port-443.patch
+            git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-patch-mbed-edge-with-the-ability-to-override-pelion-.patch
+            git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-force-port-443.patch
         fi
       configflags:
         - -DCMAKE_BUILD_TYPE=Release
