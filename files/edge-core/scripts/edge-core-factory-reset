@@ -60,6 +60,10 @@ snapctl unset edge-proxy.debug
 snapctl unset edge-proxy.extern-http-proxy-uri
 snapctl unset kubelet.edgenet-gateway
 snapctl unset kubelet.edgenet-subnet
+# snapctl-unset doesn't call the configure hook, so we need to
+# call it manually so that default values are configured.
+# https://snapcraft.io/docs/using-snapctl
+${SNAP}/meta/hooks/configure
 
 # it's very important for this script to return success, otherwise
 # edge-core won't clean up mbed credentials
