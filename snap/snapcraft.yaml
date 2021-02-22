@@ -297,6 +297,8 @@ parts:
       source: https://github.com/PelionIoT/edge-proxy.git
       source-commit: 4fe1ccad2555062f7eef05f9bffebf650a1a4a06
       go-importpath: github.com/PelionIoT/edge-proxy
+      build-environment:
+        - GOFLAGS:  "$GOFLAGS -modcacherw"
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
@@ -309,6 +311,8 @@ parts:
       source: https://github.com/PelionIoT/devicedb.git
       source-commit: a4ee46f3d9bc58b694e7563502142dfe265110cb
       go-importpath: github.com/armPelionEdge/devicedb
+      build-environment:
+        - GOFLAGS:  "$GOFLAGS -modcacherw"
       organize:
         'bin/*': wigwag/system/bin/
     edge-node-modules:
@@ -345,6 +349,8 @@ parts:
       plugin: go
       source: https://github.com/armPelionEdge/maestro-shell.git
       source-commit: aa2336b361555c471daab0d2dc21a7f750bdf813
+      build-environment:
+        - GOFLAGS:  "$GOFLAGS -modcacherw"
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
         # Create the go workspace. This is normally done by the plugin
@@ -372,12 +378,16 @@ parts:
         install ${GOPATH}/bin/maestro-shell ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro-shell
     yq:
       plugin: go
+      build-environment:
+        - GOFLAGS:  "$GOFLAGS -modcacherw"
       source: https://github.com/mikefarah/yq.git
       go-importpath: github.com/mikefarah/yq
     maestro:
       plugin: go
       source: https://github.com/armPelionEdge/maestro.git
       source-commit: a0adef8c579db2eaa15f08d1813eef417850f7d6
+      build-environment:
+        - GOFLAGS:  "$GOFLAGS -modcacherw"
       build-packages:
         - python
         - build-essential
@@ -459,7 +469,7 @@ parts:
         cd plugins
         git checkout ec8f6c99d030bd75337ae8bfc62fc02cdc462528
       override-build: |
-        export GOFLAGS="${GOFLAGS} -mod=vendor"
+        export GOFLAGS="${GOFLAGS} -mod=vendor -modcacherw"
         export GOPATH=${SNAPCRAFT_PART_SRC}/go
         export PROJECT_DIR=${GOPATH}/src/github.com/containernetworking/plugins
 
@@ -500,6 +510,8 @@ parts:
       source: https://github.com/PelionIoT/edge-kubelet.git
       source-commit: remove-offline-errors
       go-importpath: k8s.io/kubernetes
+      build-environment:
+        - GOFLAGS:  "$GOFLAGS -modcacherw"
       override-pull: |
         # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored depdnencies.
         # Create the go workspace. This is normally done by the plugin
