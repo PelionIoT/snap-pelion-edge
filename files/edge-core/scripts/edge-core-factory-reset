@@ -53,13 +53,11 @@ find /var/log -type f -print0 | xargs -0 truncate --size=0
 # delete unversioned r/w data
 [ -n "${SNAP_COMMON}" ] && rm -rf ${SNAP_COMMON}
 
-# delete custom environment variables
-snapctl unset edge-core.proxy
-snapctl unset edge-core.refresh-timeout
-snapctl unset edge-proxy.debug
-snapctl unset edge-proxy.extern-http-proxy-uri
-snapctl unset kubelet.edgenet-gateway
-snapctl unset kubelet.edgenet-subnet
+# delete custom environment variables.  we delete the whole
+# top-level key so that unknown keys are also cleaned up.
+snapctl unset edge-core
+snapctl unset edge-proxy
+snapctl unset kubelet
 # snapctl-unset doesn't call the configure hook, so we need to
 # call it manually so that default values are configured.
 # https://snapcraft.io/docs/using-snapctl
