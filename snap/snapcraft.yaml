@@ -151,8 +151,6 @@ apps:
         - system-trace
     docker:
       command: bin/docker
-      aliases:
-      - docker
       environment:
         GIT_TEMPLATE_DIR: $SNAP/share/git-core/templates
         GIT_CONFIG_NOSYSTEM: "true"
