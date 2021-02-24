@@ -45,18 +45,17 @@ slots:
         interface: content
         read:
           - .
-passthrough:
-    layout:
-        /var/lib/dockershim:
-            bind: $SNAP_DATA/var/lib/dockershim
-        /etc/docker:
-            bind: $SNAP_DATA/etc/docker
-        /var/lib/kubelet:
-            bind: $SNAP_COMMON/var/lib/kubelet
-        /var/log/pods:
-            bind: $SNAP_COMMON/var/log/pods
-        /var/log/containers:
-            bind: $SNAP_COMMON/var/log/containers
+layout:
+    /var/lib/dockershim:
+        bind: $SNAP_DATA/var/lib/dockershim
+    /etc/docker:
+        bind: $SNAP_DATA/etc/docker
+    /var/lib/kubelet:
+        bind: $SNAP_COMMON/var/lib/kubelet
+    /var/log/pods:
+        bind: $SNAP_COMMON/var/log/pods
+    /var/log/containers:
+        bind: $SNAP_COMMON/var/log/containers
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
     relay-term:
