@@ -65,7 +65,7 @@ apps:
       daemon: simple
       environment:
         NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
-        LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
+        LD_LIBRARY_PATH: $SNAP/wigwag/system/lib
         PATH: $PATH:$SNAP/wigwag/system/bin
         DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
       plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, snapd-control, shutdown, network-manager, modem-manager, log-observe]
@@ -100,7 +100,7 @@ apps:
     maestro:
       command: launch-maestro.sh
       environment:
-        LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
+        LD_LIBRARY_PATH: $SNAP/wigwag/system/lib
       restart-delay: 5s
       restart-condition: always
       daemon: simple
@@ -108,7 +108,7 @@ apps:
     maestro-shell:
       command: wigwag/system/bin/maestro-shell
       environment:
-        LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
+        LD_LIBRARY_PATH: $SNAP/wigwag/system/lib
       plugs: [network-bind, network-control, network-observe]
     edge-proxy:
       restart-delay: 5s
