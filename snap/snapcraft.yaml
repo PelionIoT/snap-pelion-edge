@@ -59,8 +59,7 @@ layout:
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
     relay-term:
-      passthrough:
-        restart-delay: 5s
+      restart-delay: 5s
       restart-condition: always
       command: bin/node $SNAP/wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP_DATA/wigwag/etc/relayterm-config.json
       daemon: simple
@@ -71,8 +70,7 @@ apps:
         DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
       plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, snapd-control, shutdown, network-manager, modem-manager, log-observe]
     edge-core:
-      passthrough:
-        restart-delay: 5s
+      restart-delay: 5s
       restart-condition: always
       command: launch-edge-core.sh
       daemon: simple
@@ -95,8 +93,7 @@ apps:
       command: bin/cat $SNAP/help.md
     devicedb:
       command: wigwag/system/bin/devicedb start -conf $SNAP_DATA/wigwag/etc/devicejs/devicedb.yaml
-      passthrough:
-        restart-delay: 5s
+      restart-delay: 5s
       restart-condition: always
       daemon: simple
       plugs: [hardware-observe, network-bind, network-control, network-observe, snapd-control]
@@ -104,8 +101,7 @@ apps:
       command: launch-maestro.sh
       environment:
         LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
-      passthrough:
-        restart-delay: 5s
+      restart-delay: 5s
       restart-condition: always
       daemon: simple
       plugs: [account-control, bluetooth-control, dbus-wpa, firewall-control, hardware-observe, log-observe, modem-manager, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-manager, network-observe, x11, system-files-logs]
@@ -115,8 +111,7 @@ apps:
         LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/wigwag/system/lib
       plugs: [network-bind, network-control, network-observe]
     edge-proxy:
-      passthrough:
-        restart-delay: 5s
+      restart-delay: 5s
       restart-condition: always
       command: launch-edge-proxy.sh
       daemon: simple
@@ -129,9 +124,8 @@ apps:
       command: bin/platform-version.sh
       plugs: [snapd-control]
     kubelet:
-      passthrough:
-        restart-delay: 5s
-        after: [dockerd]
+      restart-delay: 5s
+      after: [dockerd]
       restart-condition: always
       command: launch-kubelet.sh
       daemon: simple
