@@ -67,5 +67,4 @@ exec dockerd \
 	--pidfile="$SNAP_COMMON/var/run/docker.pid" \
 	--host="unix://$SNAP_COMMON/var/run/docker.sock" \
 	--config-file="$SNAP_DATA/config/daemon.json" \
-	--bridge=none \
 	"$@"
