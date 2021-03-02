@@ -36,6 +36,10 @@ if [[ -z $(snapctl get kubelet.edgenet-gateway) ]]; then
     snapctl set kubelet.edgenet-gateway="10.0.0.1"
 fi
 
+if [[ -z $(snapctl get kubelet.offline-mode) ]]; then
+    snapctl set kubelet.offline-mode=true
+fi
+
 if [[ -z $(snapctl get edge-core.refresh-timeout) ]]; then
     snapctl set edge-core.refresh-timeout=300
 fi

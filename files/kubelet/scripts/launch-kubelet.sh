@@ -59,9 +59,13 @@ APPARMOR_PROFILE=/var/lib/snapd/apparmor/profiles/snap.${SNAP_INSTANCE_NAME}.kub
 sed -i 's/^\(deny ptrace\)/#\1/' $APPARMOR_PROFILE
 /sbin/apparmor_parser -r $APPARMOR_PROFILE
 
+if [[ $(snapctl get kubelet.offline-mode) = "true" ]]; then
+    OFFLINE_CACHE_OPTION="--offline-cache-path=${SNAP_COMMON}/var/lib/kubelet/store"
+fi
+
 exec ${SNAP}/wigwag/system/bin/kubelet \
     --root-dir=${SNAP_COMMON}/var/lib/kubelet \
-    --offline-cache-path=${SNAP_COMMON}/var/lib/kubelet/store \
+    $OFFLINE_CACHE_OPTION \
     --fail-swap-on=false \
     --image-pull-progress-deadline=2m \
     --hostname-override=${DEVICE_ID} \
