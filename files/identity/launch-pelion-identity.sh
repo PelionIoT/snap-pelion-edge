@@ -28,9 +28,14 @@ LOCKFILE=/tmp/wait-for-pelion-identity.lck
     # only run one instance of generate-identity.sh at a time
     flock -w 30 9 || exit 1
 
+    IDENTITY_JSON_CREATED=false
     while [ ! -f ${IDENTITY_JSON} ]; do
+        IDENTITY_JSON_CREATED=true
         sleep 5
         $1/wigwag/pe-utils/identity-tools/generate-identity.sh \
             8081 ${IDENTITY_JSON_DIR}
     done
+    if ${IDENTITY_JSON_CREATED}; then
+        snapctl restart ${SNAP_INSTANCE_NAME}.edge-proxy
+    fi
 ) 9>${LOCKFILE}
