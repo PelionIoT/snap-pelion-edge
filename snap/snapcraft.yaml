@@ -499,7 +499,7 @@ parts:
     kubelet:
       plugin: go
       source: https://github.com/PelionIoT/edge-kubelet.git
-      source-commit: remove-offline-errors
+      source-commit: 35225842cd6b20d98613d8c1b08b7a376bd3209d
       go-importpath: k8s.io/kubernetes
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
@@ -514,7 +514,7 @@ parts:
         cd go/src/k8s.io
         git clone https://github.com/PelionIoT/edge-kubelet.git kubernetes
         cd kubernetes
-        git checkout remove-offline-errors
+        git checkout 35225842cd6b20d98613d8c1b08b7a376bd3209d
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_SRC}/go
         cd ${GOPATH}/src/k8s.io/kubernetes/hack/make-rules
