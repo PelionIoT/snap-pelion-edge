@@ -247,7 +247,6 @@ parts:
         git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Read-platform-version-files-into-LWM2M-resources.patch
         git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-PELEDGE19-1193-Call-a-script-on-factory-reset.patch
         git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-use-customized-edge-core-update-scripts.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-fix-calculation-of-remaining-buffer-size-when-callin.patch
         git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-fix-bug-dynamic-resources-should-be-updatable-by-the.patch
         git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0002-Fixed-edge-cloud-write-errors.patch
         git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0003-Broadcast-gateway-stats-to-LWM2M-resources.patch
