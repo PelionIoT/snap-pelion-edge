@@ -326,8 +326,8 @@ parts:
         'src': wigwag/wigwag-core-modules/relay-term/src
     pe-utils:
       plugin: nil
-      source: https://github.com/armPelionEdge/pe-utils.git
-      source-commit: e18c85638f7fa555b586d60679beccc6cd4be821
+      source: https://github.com/PelionIoT/pe-utils.git
+      source-commit: 810b73f3dcfd15a21b179bc58319d68f11aaa838
       override-build: |
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
         install ${SNAPCRAFT_PROJECT_DIR}/files/pe-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/
