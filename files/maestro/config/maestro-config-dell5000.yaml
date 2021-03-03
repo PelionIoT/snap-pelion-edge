@@ -39,6 +39,19 @@ var_defs:
      value: "{{SNAP}}/wigwag/etc/versions.json"
    - key: "UPGRADE_VERSIONS_FILE"
      value: "{{SNAP}}/wigwag/etc/versions.json"
+gateway_capabilities:
+  edge_core_socketpath: "/tmp/edge.sock"
+  lwm2m_objectid: 33457
+  gateway_resources:
+  - name: "urn:fid:pelion.com:log:1.0.0"
+    enable: true
+    config_filepath: "{{SNAP_DATA}}/maestro-config.yaml"
+  - name: "urn:fid:pelion.com:terminal:1.0.0"
+    enable: true
+    config_filepath: "{{SNAP_DATA}}/wigwag/etc/relayterm-config.json"
+  - name: "urn:fid:pelion.com:kaas:1.0.0"
+    enable: true
+    config_filepath: "{{SNAP}}/wigwag/system/var/lib/kubelet/kubeconfig"
 mdns:
   # disable: true
   static_records:

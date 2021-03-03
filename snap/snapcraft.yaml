@@ -223,7 +223,7 @@ parts:
     edge-core:
       plugin: cmake
       source: https://github.com/ARMmbed/mbed-edge.git
-      source-tag: 0.13.0
+      source-tag: 0.15.0
       build-packages:
         - build-essential
         - cmake
@@ -267,6 +267,8 @@ parts:
         - -DFIRMWARE_UPDATE=ON
         - -DDEVELOPER_MODE=ON
         - -DFACTORY_MODE=OFF
+        - -DFOTA_ENABLE=OFF
+        - -DMBED_CLOUD_CLIENT_CURL_DYNAMIC_LINK=OFF
         - -DBYOC_MODE=OFF
         - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
         - -DMBED_CLOUD_DEV_UPDATE_ID=ON
@@ -376,7 +378,7 @@ parts:
     maestro:
       plugin: go
       source: https://github.com/armPelionEdge/maestro.git
-      source-commit: a0adef8c579db2eaa15f08d1813eef417850f7d6
+      source-commit: fefa83bfe64f3505f043c73302aef337215b07f8
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
       build-packages:
@@ -393,7 +395,7 @@ parts:
         cd go/src/github.com/armPelionEdge
         git clone https://github.com/armPelionEdge/maestro.git
         cd maestro
-        git checkout a0adef8c579db2eaa15f08d1813eef417850f7d6
+        git checkout fefa83bfe64f3505f043c73302aef337215b07f8
       override-build: |
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
