@@ -61,7 +61,7 @@ apps:
     relay-term:
       restart-delay: 5s
       restart-condition: always
-      command: bin/node $SNAP/wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP_DATA/wigwag/etc/relayterm-config.json
+      command: bin/node $SNAP/wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP/wigwag/wigwag-core-modules/relay-term/config/config.json
       daemon: simple
       environment:
         NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
@@ -311,25 +311,19 @@ parts:
       organize:
         'bin/*': wigwag/system/bin/
     edge-node-modules:
-      plugin: nodejs-improved
+      plugin: nodejs
+      nodejs-version: 12.20.1
       nodejs-package-manager: npm
       build-packages:
         - python
         - build-essential
-      source: https://github.com/armPelionEdge/edge-node-modules.git
-      source-commit: 1ea6080fcc17e588c4f53c86a6c2b2bd7df3f05c
+      source: https://github.com/PelionIoT/edge-node-modules.git
+      source-commit: bcafcba2e6602ef486a8975c67a1df3872289499
+      source-subdir: relay-term
       organize:
-        'DevStateManager/': wigwag/wigwag-core-modules/DevStateManager/
-        'LEDController/': wigwag/wigwag-core-modules/LEDController/
-        'RelayStatsSender/': wigwag/wigwag-core-modules/RelayStatsSender/
-        'VirtualDeviceDriver/': wigwag/wigwag-core-modules/VirtualDeviceDriver/
-        'onsite-enterprise-server/': wigwag/wigwag-core-modules/onsite-enterprise-server/
-        'relay-term/': wigwag/wigwag-core-modules/relay-term/
-        'rsmi/': wigwag/devicejs-core-modules/rsmi/
-        'zigbeeHA/': wigwag/devicejs-core-modules/zigbeeHA/
-        'node_modules/': wigwag/devicejs-core-modules/node_modules/
-        'maestroRunner/': wigwag/devicejs-core-modules/maestroRunner/
-        'core-interfaces/': wigwag/devicejs-core-modules/core-interfaces/
+        'config': wigwag/wigwag-core-modules/relay-term/config
+        'node_modules': wigwag/wigwag-core-modules/relay-term/node_modules
+        'src': wigwag/wigwag-core-modules/relay-term/src
     pe-utils:
       plugin: nil
       source: https://github.com/armPelionEdge/pe-utils.git
