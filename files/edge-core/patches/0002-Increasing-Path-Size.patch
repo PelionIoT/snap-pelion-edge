@@ -1,11 +1,11 @@
-From baf1509fc38903668b2c58398504bc5f036bbc8e Mon Sep 17 00:00:00 2001
+From e112d5068786abad86b2bf5994794629abbda2af Mon Sep 17 00:00:00 2001
 From: "J. Michael Welsh" <mike.welsh@arm.com>
 Date: Tue, 15 Sep 2020 20:47:16 +0000
-Subject: [PATCH] Increasing Path Size
+Subject: [PATCH 02/15] Increasing Path Size
 
 Increasing the path size to fix overflow issues.
 ---
- .../mbed-client-pal/Source/PAL-Impl/Services-API/pal_fileSystem.h       | 2 +-
+ .../Source/PAL-Impl/Services-API/pal_fileSystem.h               | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/lib/mbed-cloud-client/mbed-client-pal/Source/PAL-Impl/Services-API/pal_fileSystem.h b/lib/mbed-cloud-client/mbed-client-pal/Source/PAL-Impl/Services-API/pal_fileSystem.h
@@ -22,5 +22,5 @@ index ae606eb..11ddb3e 100644
  #define PAL_MAX_FULL_FILE_NAME	(PAL_MAX_FILE_NAME_SUFFIX + PAL_MAX_FOLDER_DEPTH_CHAR + 1) //!< Maximum combined file name. Plus 1 is for the period that separates file name and file suffix.
  
 -- 
-2.7.4
+2.17.1
 

@@ -1,0 +1,590 @@
+From c060d7633ee824fffc3016e06445f23304eea6ee Mon Sep 17 00:00:00 2001
+From: Nic Costa <nic.costa@gmail.com>
+Date: Fri, 5 Mar 2021 10:05:49 -0600
+Subject: [PATCH 01/15] Allow LwM2M resources to be optionally named by
+ Protocol Translators and Gateway Resource Managers (#972)
+
+* Add support for optional name for resources registered by PT and GRM
+
+* Add default names to gateway resources
+
+* Add test expectations
+
+* Restrict Component object id in GRM resources
+
+* Add edgeclient_add_resource mock change
+
+* Add resource name support for example client
+
+* Add comments
+
+Co-authored-by: Yash Goyal <Yash.Goyal@arm.com>
+---
+ edge-client/edge-client/edge_client.h         |  7 ++++++-
+ edge-client/edge_client.cpp                   | 15 ++++++++++++---
+ edge-client/reset_factory_settings.c          |  1 +
+ edge-client/subdevice_client.cpp              |  5 +++++
+ edge-core/edge-core/server.h                  |  8 ++++++++
+ edge-core/grm_api.c                           | 13 +++++++++++--
+ edge-core/protocol_api.c                      | 19 +++++++++++++++----
+ include/pt-client-2/pt_api.h                  |  4 ++++
+ pt-client-2/pt-client-2/pt_api_internal.h     |  1 +
+ pt-client-2/pt_api.c                          |  7 +++++++
+ pt-client-2/pt_certificate_api.c              |  2 ++
+ pt-client-2/pt_device_object.c                |  5 +++++
+ .../pt_firmware_download_api_internal.c       | 10 ++++++++++
+ 13 files changed, 87 insertions(+), 10 deletions(-)
+
+diff --git a/edge-client/edge-client/edge_client.h b/edge-client/edge-client/edge_client.h
+index bed8da3..c9e0647 100644
+--- a/edge-client/edge-client/edge_client.h
++++ b/edge-client/edge-client/edge_client.h
+@@ -109,13 +109,14 @@ int ARM_UC_SUBDEVICE_ReportUpdateResult(const char *endpoint_name,char *error_ma
+ 
+ pt_api_result_code_e subdevice_set_resource_value(const char *endpoint_name, const uint16_t object_id,
+                                                    const uint16_t object_instance_id, const uint16_t resource_id,
+-                                                   const uint8_t *value, const uint32_t value_length,
++                                                   const char* resource_name, const uint8_t *value, const uint32_t value_length,
+                                                    Lwm2mResourceType resource_type, int opr, void *ctx);
+ 
+ bool edgeclient_create_resource_structure(const char *endpoint_name,
+                                           const uint16_t object_id,
+                                           const uint16_t object_instance_id,
+                                           const uint16_t resource_id,
++                                          const char *resource_name,
+                                           Lwm2mResourceType resource_type,
+                                           int opr,
+                                           void *ctx);
+@@ -297,6 +298,7 @@ bool edgeclient_remove_object_instance(const char *endpoint_name, const uint16_t
+  * \param object_id The ID of the object under which the resource should be created, a 16-bit unsigned integer.
+  * \param object_instance_id The ID of the object instance under which the resource should be created, a 16-bit unsigned integer.
+  * \param resource_id The ID of the resource to create, a 16-bit unsigned integer.
++ * \param resource_name const The optional name of the resource to create.
+  * \param resource_type Type of the resource
+  * \param opr Operations allowed on the resource
+  * \param connection is the current connection.
+@@ -306,6 +308,7 @@ bool edgeclient_add_resource(const char *endpoint_name,
+                              const uint16_t object_id,
+                              const uint16_t object_instance_id,
+                              const uint16_t resource_id,
++                             const char *resource_name,
+                              Lwm2mResourceType resource_type,
+                              int opr,
+                              void *connection);
+@@ -390,6 +393,7 @@ pt_api_result_code_e edgeclient_update_resource_value(const char *endpoint_name,
+  * \param object_id The ID of the object under which the resource is located, a 16-bit unsigned integer.
+  * \param object_instance_id The ID of the object instance under which the resource is located, a 16-bit unsigned integer.
+  * \param resource_id The ID of the resource, a 16-bit unsigned integer.
++ * \param resource_name const The optional name of the resource to create.
+  * \param value const The uint8_t* pointing to a new value buffer.
+  *        For different LWM2M data types there are byte-order restrictions:
+  *        String: UTF-8
+@@ -414,6 +418,7 @@ pt_api_result_code_e edgeclient_set_resource_value(const char *endpoint_name,
+                                                    const uint16_t object_id,
+                                                    const uint16_t object_instance_id,
+                                                    const uint16_t resource_id,
++                                                   const char *resource_name,
+                                                    const uint8_t *value,
+                                                    uint32_t value_length,
+                                                    Lwm2mResourceType resource_type,
+diff --git a/edge-client/edge_client.cpp b/edge-client/edge_client.cpp
+index 733d5f1..c1d22f4 100644
+--- a/edge-client/edge_client.cpp
++++ b/edge-client/edge_client.cpp
+@@ -934,7 +934,7 @@ EDGE_LOCAL M2MResourceBase::ResourceType resolve_resource_type(Lwm2mResourceType
+ }
+ 
+ bool edgeclient_add_resource(const char *endpoint_name, const uint16_t object_id, const uint16_t object_instance_id,
+-                  const uint16_t resource_id, Lwm2mResourceType resource_type, int opr, void *connection)
++                  const uint16_t resource_id, const char *resource_name, Lwm2mResourceType resource_type, int opr, void *connection)
+ {
+     AsyncCallbackParamsBase *acp = NULL;
+     tr_debug("add_resource for endpoint: %s, object_id: %u, object_instance_id: %u, resource_id: %u",
+@@ -954,7 +954,13 @@ bool edgeclient_add_resource(const char *endpoint_name, const uint16_t object_id
+ 
+     m2m::itoa_c(resource_id, res_name);
+     M2MResourceBase::ResourceType resolved_resource_type = resolve_resource_type(resource_type);
+-    M2MResource *res = inst->create_dynamic_resource(String(res_name), "", resolved_resource_type, true, false, false);
++    M2MResource *res;
++    if(resource_name) {
++        res = inst->create_dynamic_resource(String(res_name), resource_name, resolved_resource_type, true, false, false);
++    } else {
++        res = inst->create_dynamic_resource(String(res_name), "", resolved_resource_type, true, false, false);
++    }
++
+     if (res == NULL) {
+         return false;
+     }
+@@ -1140,6 +1146,7 @@ bool edgeclient_create_resource_structure(const char *endpoint_name,
+                                           const uint16_t object_id,
+                                           const uint16_t object_instance_id,
+                                           const uint16_t resource_id,
++                                          const char *resource_name,
+                                           Lwm2mResourceType resource_type,
+                                           int opr,
+                                           void *ctx)
+@@ -1199,6 +1206,7 @@ bool edgeclient_create_resource_structure(const char *endpoint_name,
+                                      object_id,
+                                      object_instance_id,
+                                      resource_id,
++                                     resource_name,
+                                      resource_type,
+                                      opr,
+                                      ctx)) {
+@@ -1280,13 +1288,14 @@ pt_api_result_code_e edgeclient_update_resource_value(const char *endpoint_name,
+ 
+ pt_api_result_code_e edgeclient_set_resource_value(const char *endpoint_name, const uint16_t object_id,
+                                                    const uint16_t object_instance_id, const uint16_t resource_id,
+-                                                   const uint8_t *value, const uint32_t value_length,
++                                                   const char *resource_name, const uint8_t *value, const uint32_t value_length,
+                                                    Lwm2mResourceType resource_type, int opr, void *ctx)
+ {
+     if (!edgeclient_create_resource_structure(endpoint_name,
+                                               object_id,
+                                               object_instance_id,
+                                               resource_id,
++                                              resource_name,
+                                               resource_type,
+                                               opr,
+                                               ctx)) {
+diff --git a/edge-client/reset_factory_settings.c b/edge-client/reset_factory_settings.c
+index 9b588d0..af0b78a 100644
+--- a/edge-client/reset_factory_settings.c
++++ b/edge-client/reset_factory_settings.c
+@@ -138,6 +138,7 @@ void rfs_add_factory_reset_resource()
+                                   EDGE_DEVICE_OBJECT_ID,
+                                   0,
+                                   EDGE_FACTORY_RESET_RESOURCE_ID,
++                                  "",
+                                   (uint8_t *) NULL,
+                                   0,
+                                   LWM2M_OPAQUE,
+diff --git a/edge-client/subdevice_client.cpp b/edge-client/subdevice_client.cpp
+index 5b8b993..5f92f78 100644
+--- a/edge-client/subdevice_client.cpp
++++ b/edge-client/subdevice_client.cpp
+@@ -48,6 +48,7 @@ int ARM_UC_SUBDEVICE_ReportUpdateResult(const char *endpoint_name, char *error_m
+                                             MANIFEST_OBJECT,
+                                             MANIFEST_INSTANCE,
+                                             MANIFEST_ASSET_HASH,
++                                            "",
+                                             (const uint8_t *) "0",
+                                             1,
+                                             LWM2M_STRING,
+@@ -57,6 +58,7 @@ int ARM_UC_SUBDEVICE_ReportUpdateResult(const char *endpoint_name, char *error_m
+                                             MANIFEST_OBJECT,
+                                             MANIFEST_INSTANCE,
+                                             MANIFEST_VERSION,
++                                            "",
+                                             (const uint8_t *) "0",
+                                             1,
+                                             LWM2M_STRING,
+@@ -67,6 +69,7 @@ int ARM_UC_SUBDEVICE_ReportUpdateResult(const char *endpoint_name, char *error_m
+                                             MANIFEST_OBJECT,
+                                             MANIFEST_INSTANCE,
+                                             MANIFEST_RESOURCE_RESULT,
++                                            "",
+                                             (const uint8_t *) error_manifest,
+                                             strlen(error_manifest),
+                                             LWM2M_STRING,
+@@ -124,6 +127,7 @@ pt_api_result_code_e subdevice_set_resource_value(const char *endpoint_name,
+                                                   const uint16_t object_id,
+                                                   const uint16_t object_instance_id,
+                                                   const uint16_t resource_id,
++                                                  const char* resource_name,
+                                                   const uint8_t *value,
+                                                   const uint32_t value_length,
+                                                   Lwm2mResourceType resource_type,
+@@ -134,6 +138,7 @@ pt_api_result_code_e subdevice_set_resource_value(const char *endpoint_name,
+                                               object_id,
+                                               object_instance_id,
+                                               resource_id,
++                                              resource_name,
+                                               resource_type,
+                                               opr,
+                                               ctx)) {
+diff --git a/edge-core/edge-core/server.h b/edge-core/edge-core/server.h
+index ee1c1a6..871d599 100644
+--- a/edge-core/edge-core/server.h
++++ b/edge-core/edge-core/server.h
+@@ -72,10 +72,18 @@ typedef enum {
+  * \brief The ID for the resource storing the protocol translator name in a protocol translator object.
+  */
+ #define PROTOCOL_TRANSLATOR_OBJECT_NAME_RESOURCE_ID 0
++/**
++ * \brief The Name for the resource storing the protocol translator name in a protocol translator object.
++ */
++#define PROTOCOL_TRANSLATOR_OBJECT_NAME_RESOURCE_NAME "Protocol Translator Name"
+ /**
+  * \brief The ID for the resource storing the number of endpoint devices in the protocol translator.
+  */
+ #define PROTOCOL_TRANSLATOR_OBJECT_COUNT_RESOURCE_ID 1
++/**
++ * \brief The Name for the resource storing the number of endpoint devices in the protocol translator.
++ */
++#define PROTOCOL_TRANSLATOR_OBJECT_COUNT_RESOURCE_NAME "Protocol Translator Device Count"
+ 
+ struct connection_list_elem {
+     connection_t *conn;
+diff --git a/edge-core/grm_api.c b/edge-core/grm_api.c
+index d5f855d..87fa0bd 100644
+--- a/edge-core/grm_api.c
++++ b/edge-core/grm_api.c
+@@ -407,6 +407,7 @@ static pt_api_result_code_e update_json_gateway_objects(json_t *json_structure,
+         // All default/reserved objects in edge-core should not be overwritten.
+         if (object_id == 1
+             || object_id == 3
++            || object_id == 14
+             || object_id == 10252
+             || object_id == 10255
+             || object_id == 26241
+@@ -470,9 +471,9 @@ static pt_api_result_code_e update_json_gateway_objects(json_t *json_structure,
+             }
+ 
+             for (size_t resource_index = 0; resource_index < resource_count; resource_index++) {
+-                // Get handle to object instance
++                // Get handle to resource
+                 json_t *resource_dict_handle = json_array_get(resource_array_handle, resource_index);
+-                // And get objectInstanceId
++                // And get resourceId
+                 json_t *resource_id_handle = json_object_get(resource_dict_handle, "resourceId");
+                 if (!resource_id_handle) {
+                     *error_detail = "Invalid or missing resource resourceId key.";
+@@ -484,6 +485,13 @@ static pt_api_result_code_e update_json_gateway_objects(json_t *json_structure,
+ 
+                 tr_debug("JSON parsed resource, id = %d", resource_id);
+ 
++                // Get resourceName
++                json_t *resource_name_handle = json_object_get(resource_dict_handle, "resourceName");
++                const char *resource_name = json_string_value(resource_name_handle);
++                if (resource_name) {
++                    tr_debug("JSON parsed resource, name = %s", resource_name);
++                }
++
+                 json_t *resource_value_handle = json_object_get(resource_dict_handle, "value");
+                 uint32_t decoded_len = 0;
+                 if (resource_value_handle) {
+@@ -520,6 +528,7 @@ static pt_api_result_code_e update_json_gateway_objects(json_t *json_structure,
+                                                                                             object_id,
+                                                                                             object_instance_id,
+                                                                                             resource_id,
++                                                                                            resource_name,
+                                                                                             resource_value,
+                                                                                             decoded_len,
+                                                                                             resource_type,
+diff --git a/edge-core/protocol_api.c b/edge-core/protocol_api.c
+index 0ba26b9..e9f5fe8 100644
+--- a/edge-core/protocol_api.c
++++ b/edge-core/protocol_api.c
+@@ -338,13 +338,13 @@ static void initialize_pt_resources(char *name, int pt_id){
+     // Set pt name
+     uint32_t length = strlen(name);
+     edgeclient_set_resource_value(NULL, PROTOCOL_TRANSLATOR_OBJECT_ID, pt_id,
+-                                  PROTOCOL_TRANSLATOR_OBJECT_NAME_RESOURCE_ID, (uint8_t*) name, length,
++                                  PROTOCOL_TRANSLATOR_OBJECT_NAME_RESOURCE_ID, PROTOCOL_TRANSLATOR_OBJECT_NAME_RESOURCE_NAME, (uint8_t*) name, length,
+                                   LWM2M_OPAQUE, OPERATION_READ /*GET_ALLOWED*/, /* userdata */ NULL);
+ 
+     //Set device counter to zero, the API expects values in network byte-order.
+     uint16_t zero = htons(0);
+     edgeclient_set_resource_value(NULL, PROTOCOL_TRANSLATOR_OBJECT_ID, pt_id,
+-                                  PROTOCOL_TRANSLATOR_OBJECT_COUNT_RESOURCE_ID, (uint8_t*) &zero, sizeof(uint16_t),
++                                  PROTOCOL_TRANSLATOR_OBJECT_COUNT_RESOURCE_ID, PROTOCOL_TRANSLATOR_OBJECT_COUNT_RESOURCE_NAME, (uint8_t*) &zero, sizeof(uint16_t),
+                                   LWM2M_INTEGER, OPERATION_READ /*GET_ALLOWED*/, /* userdata */ NULL);
+ }
+ 
+@@ -479,6 +479,7 @@ static void update_device_amount_resource_by_delta(struct connection* connection
+             NULL, PROTOCOL_TRANSLATOR_OBJECT_ID,
+             connection->client_data->id,
+             PROTOCOL_TRANSLATOR_OBJECT_COUNT_RESOURCE_ID,
++            PROTOCOL_TRANSLATOR_OBJECT_COUNT_RESOURCE_NAME,
+             (uint8_t*) &pt_device_amount, sizeof(int16_t),
+             LWM2M_INTEGER,
+             /* operations = allow read */ OPERATION_READ,
+@@ -818,9 +819,9 @@ pt_api_result_code_e update_json_device_objects(json_t *json_structure,
+             size_t resource_count = json_array_size(resource_array_handle);
+             tr_debug("JSON parsed resource count = %zu", resource_count);
+             for (size_t resource_index = 0; resource_index < resource_count; resource_index++) {
+-                // Get handle to object instance
++                // Get handle to resource
+                 json_t *resource_dict_handle = json_array_get(resource_array_handle, resource_index);
+-                // And get objectInstanceId
++                // And get resourceId
+                 json_t *resource_id_handle = json_object_get(resource_dict_handle, "resourceId");
+                 if (!resource_id_handle) {
+                     *error_detail = "Invalid or missing resource resourceId key.";
+@@ -831,6 +832,14 @@ pt_api_result_code_e update_json_device_objects(json_t *json_structure,
+                 resource_id = json_integer_value(resource_id_handle);
+ 
+                 tr_debug("JSON parsed resource, id = %d", resource_id);
++
++                // Get resourceName
++                json_t *resource_name_handle = json_object_get(resource_dict_handle, "resourceName");
++                const char *resource_name = json_string_value(resource_name_handle);
++                if (resource_name) {
++                    tr_debug("JSON parsed resource, name = %s", resource_name);
++                }
++
+                 json_t *resource_value_handle = json_object_get(resource_dict_handle, "value");
+                 uint32_t decoded_len = 0;
+                 if (resource_value_handle) {
+@@ -862,6 +871,7 @@ pt_api_result_code_e update_json_device_objects(json_t *json_structure,
+                                                                                             object_id,
+                                                                                             object_instance_id,
+                                                                                             resource_id,
++                                                                                            resource_name,
+                                                                                             resource_value,
+                                                                                             decoded_len,
+                                                                                             resource_type,
+@@ -872,6 +882,7 @@ pt_api_result_code_e update_json_device_objects(json_t *json_structure,
+                                                                                             object_id,
+                                                                                             object_instance_id,
+                                                                                             resource_id,
++                                                                                            resource_name,
+                                                                                             resource_value,
+                                                                                             decoded_len,
+                                                                                             resource_type,
+diff --git a/include/pt-client-2/pt_api.h b/include/pt-client-2/pt_api.h
+index d215b76..580204c 100644
+--- a/include/pt-client-2/pt_api.h
++++ b/include/pt-client-2/pt_api.h
+@@ -438,6 +438,7 @@ bool pt_device_resource_exists(const connection_id_t connection_id,
+  * \param[in] object_id The object ID to which to add the resource.
+  * \param[in] object_instance_id The object instance ID to which to add the resource.
+  * \param[in] resource_id The resource ID for the added resource.
++ * \param[in] resource_name The optional resource name for the added resource.
+  * \param[in] type The resource type.
+  * \param[in] value A pointer to the value buffer.
+  *            The ownership of the value buffer is within the `pt_client_t`.
+@@ -467,6 +468,7 @@ pt_status_t pt_device_add_resource(const connection_id_t connection_id,
+                                    const uint16_t object_id,
+                                    const uint16_t object_instance_id,
+                                    const uint16_t resource_id,
++                                   const char *resource_name,
+                                    const Lwm2mResourceType type,
+                                    uint8_t *value,
+                                    uint32_t value_size,
+@@ -484,6 +486,7 @@ pt_status_t pt_device_add_resource(const connection_id_t connection_id,
+  * \param[in] object_id The object ID to which to add the resource.
+  * \param[in] object_instance_id The object instance ID to which to add the resource.
+  * \param[in] resource_id The resource ID for the added resource.
++ * \param[in] resource_name The optional resource name for the added resource.
+  * \param[in] type The resource type.
+  * \param[in] operations The operations this resource will allow.\n
+  *                       For example, GET/#OPERATION_READ and PUT/#OPERATION_WRITE. The value is a bit field of
+@@ -527,6 +530,7 @@ pt_status_t pt_device_add_resource_with_callback(const connection_id_t connectio
+                                                  const uint16_t object_id,
+                                                  const uint16_t object_instance_id,
+                                                  const uint16_t resource_id,
++                                                 const char *resource_name,
+                                                  const Lwm2mResourceType type,
+                                                  const uint8_t operations,
+                                                  uint8_t *value,
+diff --git a/pt-client-2/pt-client-2/pt_api_internal.h b/pt-client-2/pt-client-2/pt_api_internal.h
+index 5e31556..d28b7e8 100644
+--- a/pt-client-2/pt-client-2/pt_api_internal.h
++++ b/pt-client-2/pt-client-2/pt_api_internal.h
+@@ -154,6 +154,7 @@ struct pt_resource {
+     Lwm2mResourceType type;
+     uint16_t id;
+     uint8_t operations;
++    const char *name;
+     uint8_t changed_status;
+     uint8_t *value;
+     uint32_t value_size;
+diff --git a/pt-client-2/pt_api.c b/pt-client-2/pt_api.c
+index 33eaafe..a71f7b0 100644
+--- a/pt-client-2/pt_api.c
++++ b/pt-client-2/pt_api.c
+@@ -597,6 +597,9 @@ static pt_status_t parse_objects(pt_object_list_t *objects, json_t *j_objects)
+                             assert(encoded_length == encoded_length2);
+                             tr_debug("Adding resource %d", current_resource->id);
+                             json_object_set_new(j_resource, "resourceId", json_integer(current_resource->id));
++                            if (current_resource->name) {
++                                json_object_set_new(j_resource, "resourceName", json_string(current_resource->name));
++                            }
+                             json_object_set_new(j_resource, "operations", json_integer(current_resource->operations));
+                             json_object_set_new(j_resource,
+                                                 "type",
+@@ -1206,6 +1209,7 @@ pt_status_t pt_device_add_resource(const connection_id_t connection_id,
+                             const uint16_t object_id,
+                             const uint16_t object_instance_id,
+                             const uint16_t resource_id,
++                            const char *resource_name,
+                             const Lwm2mResourceType type,
+                             uint8_t *value,
+                             uint32_t value_size,
+@@ -1216,6 +1220,7 @@ pt_status_t pt_device_add_resource(const connection_id_t connection_id,
+                                                 object_id,
+                                                 object_instance_id,
+                                                 resource_id,
++                                                resource_name,
+                                                 type,
+                                                 OPERATION_READ,
+                                                 value,
+@@ -1236,6 +1241,7 @@ pt_status_t pt_device_add_resource_with_callback(const connection_id_t connectio
+                                           const uint16_t object_id,
+                                           const uint16_t object_instance_id,
+                                           const uint16_t resource_id,
++                                          const char *resource_name,
+                                           const Lwm2mResourceType type,
+                                           const uint8_t operations,
+                                           uint8_t *value,
+@@ -1296,6 +1302,7 @@ pt_status_t pt_device_add_resource_with_callback(const connection_id_t connectio
+     }
+     resource->id = resource_id;
+     resource->type = type;
++    resource->name = resource_name;
+     resource->operations = operations;
+     resource->value = value;
+     resource->value_size = value_size;
+diff --git a/pt-client-2/pt_certificate_api.c b/pt-client-2/pt_certificate_api.c
+index c28aed0..9d5e971 100644
+--- a/pt-client-2/pt_certificate_api.c
++++ b/pt-client-2/pt_certificate_api.c
+@@ -537,6 +537,7 @@ pt_status_t pt_device_init_certificate_renewal_resources(connection_id_t connect
+                                                   PT_CERTIFICATE_RENEWAL_OBJECT_ID,
+                                                   0,
+                                                   PT_CERTIFICATE_RENEWAL_RENEW_RESOURCE_ID,
++                                                  /* resource name */ NULL,
+                                                   LWM2M_STRING,
+                                                   OPERATION_EXECUTE,
+                                                   NULL,
+@@ -553,6 +554,7 @@ pt_status_t pt_device_init_certificate_renewal_resources(connection_id_t connect
+                                     PT_CERTIFICATE_RENEWAL_OBJECT_ID,
+                                     0,
+                                     PT_CERTIFICATE_RENEWAL_STATUS_RESOURCE_ID,
++                                    /* resource name */ NULL,
+                                     LWM2M_OPAQUE,
+                                     NULL,
+                                     0,
+diff --git a/pt-client-2/pt_device_object.c b/pt-client-2/pt_device_object.c
+index bd1647f..0903515 100644
+--- a/pt-client-2/pt_device_object.c
++++ b/pt-client-2/pt_device_object.c
+@@ -72,6 +72,7 @@ pt_status_t ptdo_initialize_device_object(connection_id_t connection_id,
+                                                               PT_DEVICE_OBJECT_ID,
+                                                               0,
+                                                               PT_REBOOT_RESOURCE_ID,
++                                                              /* resource name */ NULL,
+                                                               LWM2M_OPAQUE,
+                                                               OPERATION_EXECUTE,
+                                                               /* value */ NULL,
+@@ -91,6 +92,7 @@ pt_status_t ptdo_initialize_device_object(connection_id_t connection_id,
+                                                       PT_DEVICE_OBJECT_ID,
+                                                       0,
+                                                       PT_FACTORY_RESET_RESOURCE_ID,
++                                                      /* resource name */ NULL,
+                                                       LWM2M_OPAQUE,
+                                                       OPERATION_EXECUTE,
+                                                       /* value */ NULL,
+@@ -131,6 +133,7 @@ static pt_status_t ptdo_initialize_error_code_resource(connection_id_t connectio
+                                     PT_DEVICE_OBJECT_ID,
+                                     0,
+                                     PT_ERROR_CODE_RESOURCE_ID,
++                                    /* resource name */ NULL,
+                                     LWM2M_INTEGER,
+                                     (uint8_t *) error_code,
+                                     sizeof(uint16_t),
+@@ -146,6 +149,7 @@ static pt_status_t ptdo_initialize_error_code_resource(connection_id_t connectio
+                                                       PT_DEVICE_OBJECT_ID,
+                                                       0,
+                                                       PT_RESET_ERROR_CODE_RESOURCE_ID,
++                                                      /* resource name */ NULL,
+                                                       LWM2M_OPAQUE,
+                                                       OPERATION_EXECUTE,
+                                                       /* value */ NULL,
+@@ -176,6 +180,7 @@ static pt_status_t ptdo_initialize_string_resource(connection_id_t connection_id
+                                             PT_DEVICE_OBJECT_ID,
+                                             0,
+                                             resource_id,
++                                            /* resource name */ NULL,
+                                             LWM2M_STRING,
+                                             (uint8_t *) temp_buf,
+                                             strlen(temp_buf),
+diff --git a/pt-client-2/pt_firmware_download_api_internal.c b/pt-client-2/pt_firmware_download_api_internal.c
+index 402e6dd..625cc6b 100644
+--- a/pt-client-2/pt_firmware_download_api_internal.c
++++ b/pt-client-2/pt_firmware_download_api_internal.c
+@@ -177,6 +177,7 @@ pt_status_t pt_device_init_firmware_update_resources(connection_id_t connection_
+                                                   MANIFEST_OBJECT,
+                                                   MANIFEST_INSTANCE,
+                                                   MANIFEST_RESOURCE_PAYLOAD,
++                                                  /* resource name */ NULL,
+                                                   LWM2M_STRING,
+                                                   OPERATION_EXECUTE,
+                                                   NULL,
+@@ -194,6 +195,7 @@ pt_status_t pt_device_init_firmware_update_resources(connection_id_t connection_
+                                     MANIFEST_OBJECT,
+                                     MANIFEST_INSTANCE,
+                                     MANIFEST_RESOURCE_HASH,
++                                    /* resource name */ NULL,
+                                     LWM2M_STRING,
+                                     hash,
+                                     strlen(hash),
+@@ -210,6 +212,7 @@ pt_status_t pt_device_init_firmware_update_resources(connection_id_t connection_
+                                     MANIFEST_OBJECT,
+                                     MANIFEST_INSTANCE,
+                                     MANIFEST_RESOURCE_STATE,
++                                    /* resource name */ NULL,
+                                     LWM2M_INTEGER,
+                                     status_version,
+                                     1,
+@@ -225,6 +228,7 @@ pt_status_t pt_device_init_firmware_update_resources(connection_id_t connection_
+                                     MANIFEST_OBJECT,
+                                     MANIFEST_INSTANCE,
+                                     MANIFEST_RESOURCE_RESULT,
++                                    /* resource name */ NULL,
+                                     LWM2M_INTEGER,
+                                     manifest_status,
+                                     1,
+@@ -239,6 +243,7 @@ pt_status_t pt_device_init_firmware_update_resources(connection_id_t connection_
+                                     MANIFEST_OBJECT,
+                                     MANIFEST_INSTANCE,
+                                     MANIFEST_RESOURCE_VERSION,
++                                    /* resource name */ NULL,
+                                     LWM2M_STRING,
+                                     version,
+                                     strlen(version),
+@@ -255,6 +260,7 @@ pt_status_t pt_device_init_firmware_update_resources(connection_id_t connection_
+                                     DEVICE_META_OBJECT,
+                                     MANIFEST_INSTANCE,
+                                     MANIFEST_RESOURCE_PROTOCOL,
++                                    /* resource name */ NULL,
+                                     LWM2M_INTEGER,
+                                     protocol_version,
+                                     1,
+@@ -272,6 +278,7 @@ pt_status_t pt_device_init_firmware_update_resources(connection_id_t connection_
+                                     DEVICE_META_OBJECT,
+                                     MANIFEST_INSTANCE,
+                                     MANIFEST_RESOURCE_BOOT_HASH,
++                                    /* resource name */ NULL,
+                                     LWM2M_STRING,
+                                     boot_hash,
+                                     strlen(boot_hash),
+@@ -289,6 +296,7 @@ pt_status_t pt_device_init_firmware_update_resources(connection_id_t connection_
+                                     DEVICE_META_OBJECT,
+                                     MANIFEST_INSTANCE,
+                                     MANIFEST_RESOURCE_OEMBOOT_HASH,
++                                    /* resource name */ NULL,
+                                     LWM2M_STRING,
+                                     oem_boot_hash,
+                                     strlen(oem_boot_hash),
+@@ -306,6 +314,7 @@ pt_status_t pt_device_init_firmware_update_resources(connection_id_t connection_
+                                     DEVICE_META_OBJECT,
+                                     MANIFEST_INSTANCE,
+                                     MANIFEST_RESOURCE_VENDOR,
++                                    /* resource name */ NULL,
+                                     LWM2M_STRING,
+                                     vendor_id,
+                                     strlen(vendor_id),
+@@ -323,6 +332,7 @@ pt_status_t pt_device_init_firmware_update_resources(connection_id_t connection_
+                                     DEVICE_META_OBJECT,
+                                     MANIFEST_INSTANCE,
+                                     MANIFEST_RESOURCE_CLASS,
++                                    /* resource name */ NULL,
+                                     LWM2M_STRING,
+                                     class_id,
+                                     strlen(class_id),
+-- 
+2.17.1
+

@@ -1,9 +1,10 @@
-From 08ba27962caf655a9ad94042da029bfb7c7adae0 Mon Sep 17 00:00:00 2001
+From fc95e9762c9f685437774f96e7476ffba84faa1c Mon Sep 17 00:00:00 2001
 From: Kyle Stein <kyle.stein@arm.com>
 Date: Wed, 25 Mar 2020 09:14:14 -0500
-Subject: [PATCH] PELEDGE19-1193: Call a script on factory reset
+Subject: [PATCH 07/15] Call a script on factory reset
 
-    Add a hook to a script on factory reset.  This gives us a chance to delete persistent customer logs from the gateway.
+Add a hook to a script on factory reset.  This gives us a chance
+to delete persistent customer logs from the gateway.
 
 Signed-off-by: Kyle Stein <kyle.stein@arm.com>
 ---
@@ -39,5 +40,5 @@ index 4ab25a0..bdc3908 100644
  }
  
 -- 
-2.14.3
+2.17.1
 

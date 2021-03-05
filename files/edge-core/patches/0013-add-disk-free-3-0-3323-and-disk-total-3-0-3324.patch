@@ -1,0 +1,66 @@
+From ccb5c6182fe66cdf59a4bf1e31e96c8d5a94b908 Mon Sep 17 00:00:00 2001
+From: Nic Costa <nic.costa@gmail.com>
+Date: Thu, 11 Mar 2021 12:20:33 -0600
+Subject: [PATCH 13/15] add disk free /3/0/3323 and disk total /3/0/3324
+
+---
+ edge-client/gateway_stats.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+
+diff --git a/edge-client/gateway_stats.c b/edge-client/gateway_stats.c
+index ad9bc21..2477443 100644
+--- a/edge-client/gateway_stats.c
++++ b/edge-client/gateway_stats.c
+@@ -34,6 +34,8 @@
+ #define GATEWAY_STATS_CPU_PCT_RES_ID 3320
+ #define GATEWAY_STATS_RAM_FREE_RES_ID 3321
+ #define GATEWAY_STATS_RAM_TOTAL_RES_ID 3322
++#define GATEWAY_STATS_DISK_FREE_RES_ID 3323
++#define GATEWAY_STATS_DISK_TOTAL_RES_ID 3324
+ 
+ /**
+  * \struct cpu_info
+@@ -232,6 +234,10 @@ void gsr_update_gateway_stats_resources(void *arg)
+     const char cmd_ram_free[] = "awk '/^MemFree:/{ print $2*1024 }' /proc/meminfo";
+     gsr_set_resource_helper_int(GATEWAY_STATS_OBJ_ID, GATEWAY_STATS_RAM_FREE_RES_ID, int_exec(cmd_ram_free));
+ 
++    // disk info in megabytes
++    const char cmd_disk_free[] = "df /home --output=avail | sed '$!d;s/ *//'";
++    gsr_set_resource_helper_int(GATEWAY_STATS_OBJ_ID, GATEWAY_STATS_DISK_FREE_RES_ID, int_exec(cmd_disk_free));
++
+     return;
+ }
+ 
+@@ -288,5 +294,29 @@ void gsr_add_gateway_stats_resources()
+                         sizeof(int_default),
+                         NULL);
+ 
++    // disk total
++    const char cmd_disk_total[] = "df /home --output=size | sed '$!d;s/ *//'";
++    int_actual = int_exec(cmd_disk_total);
++    gsr_create_resource(GATEWAY_STATS_OBJ_ID,
++                        0,
++                        GATEWAY_STATS_DISK_TOTAL_RES_ID,
++                        "disk total",
++                        LWM2M_INTEGER,
++                        OPERATION_READ,
++                        (uint8_t *)&int_actual,
++                        sizeof(int_actual),
++                        NULL);
++
++    // disk free
++    gsr_create_resource(GATEWAY_STATS_OBJ_ID,
++                        0,
++                        GATEWAY_STATS_DISK_FREE_RES_ID,
++                        "disk free",
++                        LWM2M_INTEGER,
++                        OPERATION_READ,
++                        (uint8_t *)&int_default,
++                        sizeof(int_default),
++                        NULL);
++
+     return;
+ }
+-- 
+2.17.1
+

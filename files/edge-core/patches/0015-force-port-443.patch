@@ -1,0 +1,24 @@
+From d7e1fecd1e6d8979b1854892a8bf813dc40c6fff Mon Sep 17 00:00:00 2001
+From: Nic Costa <nic.costa@gmail.com>
+Date: Thu, 11 Mar 2021 14:06:32 -0600
+Subject: [PATCH 15/15] force port 443
+
+---
+ config/mbed_cloud_client_user_config.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/config/mbed_cloud_client_user_config.h b/config/mbed_cloud_client_user_config.h
+index 48f1365..5ee4e38 100644
+--- a/config/mbed_cloud_client_user_config.h
++++ b/config/mbed_cloud_client_user_config.h
+@@ -41,5 +41,7 @@
+ #define MBED_CLIENT_TCP_KEEPALIVE_INTERVAL 60
+ #define MBED_CLIENT_TCP_KEEPALIVE_TIME 60
+ 
++#define MBED_CLOUD_CLIENT_CUSTOM_URI_PORT 443
++
+ #endif /* MBED_CLIENT_USER_CONFIG_H */
+ 
+-- 
+2.17.1
+

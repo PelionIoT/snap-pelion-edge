@@ -1,0 +1,217 @@
+From d41870a819136902579e395a1cf25ea8d6985d41 Mon Sep 17 00:00:00 2001
+From: Nic Costa <nic.costa@gmail.com>
+Date: Mon, 8 Mar 2021 15:33:28 -0600
+Subject: [PATCH 09/15] add stubs for gateway statistics resources
+
+---
+ edge-client/edge-client/gateway_stats.h | 44 +++++++++++++
+ edge-client/gateway_stats.c             | 88 +++++++++++++++++++++++++
+ edge-core/edge_server.c                 | 22 +++++++
+ 3 files changed, 154 insertions(+)
+ create mode 100644 edge-client/edge-client/gateway_stats.h
+ create mode 100644 edge-client/gateway_stats.c
+
+diff --git a/edge-client/edge-client/gateway_stats.h b/edge-client/edge-client/gateway_stats.h
+new file mode 100644
+index 0000000..85540c8
+--- /dev/null
++++ b/edge-client/edge-client/gateway_stats.h
+@@ -0,0 +1,44 @@
++/*
++ * ----------------------------------------------------------------------------
++ * Copyright 2021 ARM Ltd.
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ * ----------------------------------------------------------------------------
++ */
++
++#ifndef _GATEWAY_STATS_H_
++#define _GATEWAY_STATS_H_
++
++/**
++ * \ingroup GATEWAY_STATS_RESOURCES Gateway Statistics API
++ * @{
++ */
++
++/**
++ * \file gateway_stats.h
++ * \brief Definition Gateway Statistics Resources internal API (internal).
++ */
++
++/**
++ * \brief Adds the gateway statistics resources
++ */
++void gsr_add_gateway_stats_resources();
++
++/**
++ * \brief Single-shot function for updating gateway stats
++ */
++void gsr_update_gateway_stats_resources(void *arg);
++
++#endif /* _GATEWAY_STATS_H_ */
+diff --git a/edge-client/gateway_stats.c b/edge-client/gateway_stats.c
+new file mode 100644
+index 0000000..a9c41e3
+--- /dev/null
++++ b/edge-client/gateway_stats.c
+@@ -0,0 +1,88 @@
++/*
++ * ----------------------------------------------------------------------------
++ * Copyright 2021 ARM Ltd.
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ * ----------------------------------------------------------------------------
++ */
++
++#define TRACE_GROUP "edgegsr"
++
++#include "edge-client/gateway_stats.h"
++#include "edge-client/edge_client.h"
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#define GATEWAY_STATS_OBJ_ID 3
++
++// run shell cmd and copy results to out_buffer
++// return 0 for success or -1 on failure
++static int sys_exec(const char *cmd, char *out_buffer, size_t out_buffer_size)
++{
++    FILE *fp;
++    char buffer[128];
++    fp = popen(cmd, "r");
++    if (fp == NULL)
++        return -1;
++    size_t rem = out_buffer_size;
++    while (fgets(buffer, sizeof(buffer), fp) != NULL) {
++        strncat(out_buffer, buffer, rem);
++        rem -= strlen(buffer);
++        if (rem < 0) {
++            rem = 0;
++        }
++    }
++    pclose(fp);
++    return 0;
++}
++
++static pt_api_result_code_e gsr_create_resource(const uint16_t object_id,
++                                                const uint16_t object_instance_id,
++                                                const uint16_t resource_id,
++                                                const char *resource_name,
++                                                Lwm2mResourceType resource_type,
++                                                int ops,
++                                                const uint8_t *value,
++                                                const uint32_t value_length,
++                                                void *ctx)
++{
++    if (!edgeclient_create_resource_structure(NULL,
++                                              object_id,
++                                              object_instance_id,
++                                              resource_id,
++                                              resource_name,
++                                              resource_type,
++                                              ops,
++                                              ctx)) {
++        tr_error("gsr: could not create resource structure: %u/%u/%u", object_id, object_instance_id, resource_id);
++        return PT_API_INTERNAL_ERROR;
++    }
++
++    return edgeclient_set_resource_value_native(NULL, object_id, object_instance_id, resource_id, value, value_length);
++}
++
++// updates gateway statistics resources
++void gsr_update_gateway_stats_resources(void *arg)
++{
++    return;
++}
++
++// add gateway statistics
++void gsr_add_gateway_stats_resources()
++{
++    return;
++}
+diff --git a/edge-core/edge_server.c b/edge-core/edge_server.c
+index eb41fc4..49cbaeb 100644
+--- a/edge-core/edge_server.c
++++ b/edge-core/edge_server.c
+@@ -50,6 +50,7 @@
+ #include "common/test_support.h"
+ #include "edge_core_clip.h"
+ #include "edge-client/reset_factory_settings.h"
++#include "edge-client/gateway_stats.h"
+ #include "edge_version_info.h"
+ #include "edge-rpc/rpc_timeout_api.h"
+ #include "common/msg_api.h"
+@@ -67,6 +68,9 @@
+ #define SERVER_MGMT_WEBSOCKET_VERSION_PATH "/1/mgmt"
+ #define SERVER_GRM_WEBSOCKET_VERSION_PATH "/1/grm"
+ 
++#ifndef GATEWAY_STATS_REFRESH_INTERVAL
++    #define GATEWAY_STATS_REFRESH_INTERVAL 10
++#endif
+ 
+ EDGE_LOCAL connection_id_t g_connection_id_counter = 1;
+ EDGE_LOCAL struct context *g_program_context = NULL;
+@@ -585,9 +589,26 @@ EDGE_LOCAL void clean(struct context *ctx)
+     }
+ }
+ 
++static void edgeclient_gsr_update_gateway_stats_resources(evutil_socket_t fd, short what, void *arg)
++{
++    gsr_update_gateway_stats_resources(arg);
++}
++
+ void register_cb(void)
+ {
++    // who woulda thought register_cb gets called twice?
++    if ((g_program_context->ctx_data)->cloud_connection_status == EDGE_STATE_CONNECTED)
++        return;
+     (g_program_context->ctx_data)->cloud_connection_status = EDGE_STATE_CONNECTED;
++
++    // kick off the gateway stats update thread
++    struct timeval interval = {GATEWAY_STATS_REFRESH_INTERVAL, 0};
++    struct event *ev1 = event_new(g_program_context->ev_base,
++                                  -1,
++                                  EV_TIMEOUT | EV_PERSIST,
++                                  edgeclient_gsr_update_gateway_stats_resources,
++                                  NULL);
++    event_add(ev1, &interval);
+ }
+ 
+ void unregister_cb(void)
+@@ -807,6 +828,7 @@ int testable_main(int argc, char **argv)
+ 
+         edgeclient_create(&edgeclient_create_params, byoc_data);
+         rfs_add_factory_reset_resource();
++        gsr_add_gateway_stats_resources();
+ 
+         // Connect client
+         edgeclient_connect();
+-- 
+2.17.1
+
