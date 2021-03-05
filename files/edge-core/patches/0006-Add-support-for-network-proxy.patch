@@ -1,7 +1,7 @@
-From 1c170d7950a306c3cf08a990e054c3fc2ba98562 Mon Sep 17 00:00:00 2001
+From 07775c14b2553d931e29a4f7a134d4e5928ba405 Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Mon, 1 Feb 2021 11:27:22 -0600
-Subject: [PATCH] Add support for network proxy
+Subject: [PATCH 06/15] Add support for network proxy
 
 A new CLI argument '-x' is added to specify a network proxy
 through which mbed-edge should connect to the cloud.
@@ -18,23 +18,23 @@ WARNING: only http proxies are supported at this time.
  edge-client/edge_client.cpp                   |   3 +
  edge-core/edge_core_clip.h                    |  19 +-
  edge-core/edge_server.c                       |   3 +
- .../m2mconnectionhandlerpimpl.h               |  49 ++++-
+ .../m2mconnectionhandlerpimpl.h               |  52 ++++-
  .../source/m2mconnectionhandler.cpp           |   7 +
- .../source/m2mconnectionhandlerpimpl.cpp      | 178 +++++++++++++++++-
+ .../source/m2mconnectionhandlerpimpl.cpp      | 183 +++++++++++++++++-
  .../mbed-client/m2mconnectionhandler.h        |   6 +
  .../mbed-client/m2mconnectionproxy.h          |  90 +++++++++
- .../mbed-client/mbed-client/m2minterface.h    |   6 +
+ .../mbed-client/mbed-client/m2minterface.h    |   7 +
  .../source/include/m2minterfaceimpl.h         |   6 +
- .../mbed-client/source/m2mconnectionproxy.cpp | 117 ++++++++++++
+ .../mbed-client/source/m2mconnectionproxy.cpp | 117 +++++++++++
  .../mbed-client/source/m2minterfaceimpl.cpp   |   7 +
  .../mbed-cloud-client/MbedCloudClient.h       |   9 +
  .../source/MbedCloudClient.cpp                |  10 +
- 17 files changed, 520 insertions(+), 7 deletions(-)
+ 17 files changed, 526 insertions(+), 10 deletions(-)
  create mode 100644 lib/mbed-cloud-client/mbed-client/mbed-client/m2mconnectionproxy.h
  create mode 100644 lib/mbed-cloud-client/mbed-client/source/m2mconnectionproxy.cpp
 
 diff --git a/cmake/edge_configure.cmake b/cmake/edge_configure.cmake
-index 85ae44c..42cfe59 100644
+index 69a1a5a..a77f438 100644
 --- a/cmake/edge_configure.cmake
 +++ b/cmake/edge_configure.cmake
 @@ -8,6 +8,9 @@
@@ -47,7 +47,7 @@ index 85ae44c..42cfe59 100644
  # Provisioning mode
  # Use -D[DEVELOPER|BYOC|FACTORY]_MODE=ON
  option (DEVELOPER_MODE "Developer mode" OFF)
-@@ -110,6 +113,10 @@ if (${FIRMWARE_UPDATE})
+@@ -147,6 +150,10 @@ if (${FIRMWARE_UPDATE})
  
  endif()
  
@@ -59,10 +59,10 @@ index 85ae44c..42cfe59 100644
  # Custom mbedtls configuration header file can be given with argument -DMBEDTLS_CONFIG
  SET (TLS_LIBRARY "mbedTLS")
 diff --git a/edge-client/edge-client/edge_client.h b/edge-client/edge-client/edge_client.h
-index 7ad9bf4..cd5a896 100644
+index c9e0647..d5c7af2 100644
 --- a/edge-client/edge-client/edge_client.h
 +++ b/edge-client/edge-client/edge_client.h
-@@ -109,6 +109,9 @@ typedef struct {
+@@ -149,6 +149,9 @@ typedef struct {
      handle_est_status_cb handle_est_status_cb;
      void *cert_renewal_ctx;
      bool reset_storage;
@@ -73,10 +73,10 @@ index 7ad9bf4..cd5a896 100644
  
  /**
 diff --git a/edge-client/edge-client/edge_client_impl.h b/edge-client/edge-client/edge_client_impl.h
-index 9c26ab0..57c5aff 100644
+index 360d3d0..8b5d721 100644
 --- a/edge-client/edge-client/edge_client_impl.h
 +++ b/edge-client/edge-client/edge_client_impl.h
-@@ -97,6 +97,13 @@ public:
+@@ -103,6 +103,13 @@ public:
          _on_est_result_cb = est_result_cb;
      }
  
@@ -91,10 +91,10 @@ index 9c26ab0..57c5aff 100644
      {
          _cloud_client.est_free_cert_chain_context(chain_ctx);
 diff --git a/edge-client/edge_client.cpp b/edge-client/edge_client.cpp
-index 0a690b1..4bab35e 100644
+index c1d22f4..9d5722c 100644
 --- a/edge-client/edge_client.cpp
 +++ b/edge-client/edge_client.cpp
-@@ -627,6 +627,9 @@ void edgeclient_create(const edgeclient_create_parameters_t *params, byoc_data_t
+@@ -671,6 +671,9 @@ void edgeclient_create(const edgeclient_create_parameters_t *params, byoc_data_t
          client->set_on_error_callback(edgeclient_on_error_callback);
          client->set_on_certificate_renewal_callback(edgeclient_on_certificate_renewal_callback);
          client->set_on_est_result_callback(edgeclient_on_est_status_callback);
@@ -165,10 +165,10 @@ index ebde5e4..4f07f25 100644
      ts = tokens_new(argc, argv);
      if (parse_args(&ts, &elements))
 diff --git a/edge-core/edge_server.c b/edge-core/edge_server.c
-index 0477bb7..aac77a9 100644
+index 6a896d8..eb41fc4 100644
 --- a/edge-core/edge_server.c
 +++ b/edge-core/edge_server.c
-@@ -687,6 +687,9 @@ int testable_main(int argc, char **argv)
+@@ -791,6 +791,9 @@ int testable_main(int argc, char **argv)
          edgeclient_create_params.handle_est_status_cb = (handle_est_status_cb)
              est_enrollment_result_notifier;
          edgeclient_create_params.cert_renewal_ctx = &g_program_context->ctx_data->registered_translators;
@@ -179,7 +179,7 @@ index 0477bb7..aac77a9 100644
          // args.cbor_conf is in stack
          #ifdef DEVELOPER_MODE
 diff --git a/lib/mbed-cloud-client/mbed-client/mbed-client-classic/mbed-client-classic/m2mconnectionhandlerpimpl.h b/lib/mbed-cloud-client/mbed-client/mbed-client-classic/mbed-client-classic/m2mconnectionhandlerpimpl.h
-index 06bedf4..0047833 100644
+index 78bb935..bb5606e 100644
 --- a/lib/mbed-cloud-client/mbed-client/mbed-client-classic/mbed-client-classic/m2mconnectionhandlerpimpl.h
 +++ b/lib/mbed-cloud-client/mbed-client/mbed-client-classic/mbed-client-classic/m2mconnectionhandlerpimpl.h
 @@ -23,6 +23,7 @@
@@ -190,26 +190,18 @@ index 06bedf4..0047833 100644
  #include "mbed-client/m2mconnectionsecurity.h"
  #include "nsdl-c/sn_nsdl.h"
  #include "pal.h"
-@@ -126,6 +127,12 @@ public:
+@@ -194,6 +195,29 @@ public:
       */
-     void set_platform_network_handler(void *handler = NULL);
+     bool is_cid_available();
  
 +#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
 +    /**
++     * \brief Specify an upstream proxy
 +     */
 +    void set_proxy(const char *proxy);
-+#endif
-+
-     /**
-     * \brief Claims mutex to prevent thread clashes
-     * in multithreaded environment.
-@@ -176,6 +183,22 @@ public:
-      */
-     void unregister_network_handler();
- 
 +
 +    /**
-+     * \brief Cestablishes a connection to a network proxy server specified in
++     * \brief Establishes a connection to a network proxy server specified in
 +     * MBED_CLOUD_CLIENT_NETWORK_PROXY_HOST and issues a http CONNECT
 +     * request to the proxy server, requesting that the proxy open a
 +     * tunnel to the destination specified at _server_address:_server_port
@@ -223,22 +215,26 @@ index 06bedf4..0047833 100644
 +    palStatus_t proxy_connect(palSocket_t socket);
 +
 +    palStatus_t proxy_receive_handler();
++#endif
++
  private:
  
      /**
-@@ -189,6 +212,11 @@ private:
+@@ -207,6 +231,13 @@ private:
      */
      void socket_connect_handler();
  
++#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
 +    /**
 +    * @brief Callback handler for receiving response from proxy server during proxy tunnel establish request.
 +    */
 +    void receive_proxy_response_handler();
++#endif
 +
      /**
      * @brief Callback handler for receiving data for secured connection.
      */
-@@ -286,7 +314,18 @@ private:
+@@ -304,7 +335,18 @@ private:
          ESocketStateUnsecureConnection,
  
          /** Secure Connection to the server has been established */
@@ -258,7 +254,7 @@ index 06bedf4..0047833 100644
      };
  
      typedef NS_LIST_HEAD(send_data_queue_s, link) send_data_list_t;
-@@ -316,6 +355,14 @@ private:
+@@ -334,6 +376,14 @@ private:
      static int8_t                               _tasklet_id;
      String                                      _server_address;
  
@@ -274,10 +270,10 @@ index 06bedf4..0047833 100644
      // asynchronous events and callbacks. Note: the state may be accessed from
      // event sender and receiver threads.
 diff --git a/lib/mbed-cloud-client/mbed-client/mbed-client-classic/source/m2mconnectionhandler.cpp b/lib/mbed-cloud-client/mbed-client/mbed-client-classic/source/m2mconnectionhandler.cpp
-index ee0506e..e449f26 100644
+index 9db7249..5965a3c 100644
 --- a/lib/mbed-cloud-client/mbed-client/mbed-client-classic/source/m2mconnectionhandler.cpp
 +++ b/lib/mbed-cloud-client/mbed-client/mbed-client-classic/source/m2mconnectionhandler.cpp
-@@ -74,6 +74,13 @@ void M2MConnectionHandler::set_platform_network_handler(void *handler)
+@@ -75,6 +75,13 @@ void M2MConnectionHandler::set_platform_network_handler(void *handler)
      _private_impl->set_platform_network_handler(handler);
  }
  
@@ -292,38 +288,31 @@ index ee0506e..e449f26 100644
  {
      _private_impl->claim_mutex();
 diff --git a/lib/mbed-cloud-client/mbed-client/mbed-client-classic/source/m2mconnectionhandlerpimpl.cpp b/lib/mbed-cloud-client/mbed-client/mbed-client-classic/source/m2mconnectionhandlerpimpl.cpp
-index c647a37..6b8cda5 100644
+index 8754278..9293a30 100644
 --- a/lib/mbed-cloud-client/mbed-client/mbed-client-classic/source/m2mconnectionhandlerpimpl.cpp
 +++ b/lib/mbed-cloud-client/mbed-client/mbed-client-classic/source/m2mconnectionhandlerpimpl.cpp
-@@ -83,18 +83,27 @@ void M2MConnectionHandlerPimpl::event_handler(arm_event_s *event)
-         case M2MConnectionHandlerPimpl::ESocketCallback:
+@@ -84,6 +84,10 @@ void M2MConnectionHandlerPimpl::event_handler(arm_event_s *event)
  
              if (_socket_state == M2MConnectionHandlerPimpl::ESocketStateHandshaking) {
-+                tr_info("event_handler: ESOCKETCALLBACK: Handshaking");
                  receive_handshake_handler();
 +#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
 +            } else if (_socket_state == M2MConnectionHandlerPimpl::ESocketStateEstablishingProxyTunnel) {
-+                tr_info("event_handler: ESOCKETCALLBACK: EstablishingProxyTunnel");
 +                receive_proxy_response_handler();
 +#endif
              } else if ((_socket_state == M2MConnectionHandlerPimpl::ESocketStateUnsecureConnection) ||
                         (_socket_state == M2MConnectionHandlerPimpl::ESocketStateSecureConnection)) {
-+                tr_info("event_handler: ESOCKETCALLBACK: UnsecureConnection || SecureConnection");
                  // the connection is established
-                 receive_handler();
-             } else {
-+                tr_info("event_handler: ESOCKETCALLBACK: default");
-                 socket_connect_handler();
-             }
- 
-             // Receive processing could have changed state, so recheck
-             if ((_socket_state == M2MConnectionHandlerPimpl::ESocketStateUnsecureConnection) ||
-                 (_socket_state == M2MConnectionHandlerPimpl::ESocketStateSecureConnection)) {
-+                tr_info("event_handler: ESOCKETCALLBACK: CHANGED TO UnsecureConnection || SecureConnection");
-                 // the connection is established
-                 send_socket_data();
-             }
-@@ -257,7 +266,15 @@ bool M2MConnectionHandlerPimpl::address_resolver(void)
+@@ -163,6 +167,9 @@ M2MConnectionHandlerPimpl::M2MConnectionHandlerPimpl(M2MConnectionHandler* base,
+  _socket_address_len(0),
+ #elif (PAL_DNS_API_VERSION == 2)
+   _handler_async_DNS(0),
++#endif
++#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
++    _proxy_port(0),
+ #endif
+  _socket_state(ESocketStateDisconnected),
+  _secure_connection(false),
+@@ -258,7 +265,15 @@ bool M2MConnectionHandlerPimpl::address_resolver(void)
  #if (PAL_DNS_API_VERSION == 2)
      tr_debug("M2MConnectionHandlerPimpl::address_resolver:asynchronous DNS");
      _handler_async_DNS = 0;
@@ -340,7 +329,7 @@ index c647a37..6b8cda5 100644
      if (PAL_SUCCESS != status) {
         tr_error("M2MConnectionHandlerPimpl::address_resolver, pal_getAddressInfoAsync fail. %" PRIx32, status);
         _observer.socket_error(M2MConnectionHandler::DNS_RESOLVING_ERROR);
-@@ -267,7 +284,15 @@ bool M2MConnectionHandlerPimpl::address_resolver(void)
+@@ -268,7 +283,15 @@ bool M2MConnectionHandlerPimpl::address_resolver(void)
      }
  #else // #if (PAL_DNS_API_VERSION == 0)
      tr_debug("M2MConnectionHandlerPimpl::address_resolver:synchronous DNS");
@@ -357,7 +346,7 @@ index c647a37..6b8cda5 100644
      if (PAL_SUCCESS != status) {
          tr_error("M2MConnectionHandlerPimpl::getAddressInfo failed with %" PRIx32, status);
          send_event(ESocketDnsError);
-@@ -351,6 +376,9 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
+@@ -356,6 +379,9 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
          case ESocketStateHandshaking:
          case ESocketStateUnsecureConnection:
          case ESocketStateSecureConnection:
@@ -367,23 +356,23 @@ index c647a37..6b8cda5 100644
              // Ignore these events
              break;
  
-@@ -359,7 +387,15 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
+@@ -364,7 +390,14 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
              // Initialize the socket to stable state
              close_socket();
  
+-            status = pal_setSockAddrPort((palSocketAddress_t*)&_socket_address, _server_port);
 +#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
 +            if (_proxy_port > 0) {
 +                status = pal_setSockAddrPort((palSocketAddress_t*)&_socket_address, _proxy_port);
-+            } else {
++            } else
++#endif
++            {
 +                status = pal_setSockAddrPort((palSocketAddress_t*)&_socket_address, _server_port);
 +            }
-+#else
-             status = pal_setSockAddrPort((palSocketAddress_t*)&_socket_address, _server_port);
-+#endif
  
              if (PAL_SUCCESS != status) {
                  tr_error("M2MConnectionHandlerPimpl::socket_connect_handler - setSockAddrPort err: %" PRIx32, status);
-@@ -380,7 +416,12 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
+@@ -385,7 +418,12 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
  
                  _address._address = (void*)_ipV4Addr;
                  _address._length = PAL_IPV4_ADDRESS_SIZE;
@@ -397,7 +386,7 @@ index c647a37..6b8cda5 100644
              } else if (_socket_address.addressType == PAL_AF_INET6) {
                  status = pal_getSockAddrIPV6Addr((palSocketAddress_t*)&_socket_address,_ipV6Addr);
                  if (PAL_SUCCESS != status) {
-@@ -393,7 +434,12 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
+@@ -398,7 +436,12 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
  
                  _address._address = (void*)_ipV6Addr;
                  _address._length = PAL_IPV6_ADDRESS_SIZE;
@@ -411,7 +400,7 @@ index c647a37..6b8cda5 100644
              } else {
                  tr_error("M2MConnectionHandlerPimpl::socket_connect_handler - socket config error, stack: %d", (int)_socket_address.addressType);
                  _observer.socket_error(M2MConnectionHandler::SOCKET_ABORT);
-@@ -414,10 +460,21 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
+@@ -419,9 +462,20 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
          // fall through is intentional
          case ESocketStateConnectBeingCalled:
          case ESocketStateConnecting:
@@ -421,50 +410,49 @@ index c647a37..6b8cda5 100644
              if (is_tcp_connection()) {
  #ifdef PAL_NET_TCP_AND_TLS_SUPPORT
 -                tr_info("M2MConnectionHandlerPimpl::socket_connect_handler - Using TCP");
- 
++
 +#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
 +                if (_proxy_address.size() > 0) {
 +                    tr_info("M2MConnectionHandlerPimpl::socket_connect_handler - Connecting To Proxy");
-+                } else {
++                } else
++#endif
++                {
 +                    tr_info("M2MConnectionHandlerPimpl::socket_connect_handler - Using TCP");
 +                }
-+#else
-+                tr_info("M2MConnectionHandlerPimpl::socket_connect_handler - Using TCP");
-+#endif
+ 
                  status = pal_connect(_socket, (palSocketAddress_t*)&_socket_address, sizeof(_socket_address));
  
-                 if ((status == PAL_ERR_SOCKET_IN_PROGRES) || (status == PAL_ERR_SOCKET_WOULD_BLOCK)) {
-@@ -425,13 +482,29 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
+@@ -430,13 +484,27 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
                      // will be used to detect the end of connect.
                      tr_debug("M2MConnectionHandlerPimpl::socket_connect_handler - pal_connect(): %" PRIx32 ", async connect started", status);
                      // we need to wait for the event
+-                    _socket_state = ESocketStateConnecting;
 +#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
 +                    if (_proxy_address.size() > 0) {
 +                        _socket_state = ESocketStateConnectingToProxy;
-+                    } else {
++                    } else
++#endif
++                    {
 +                        _socket_state = ESocketStateConnecting;
 +                    }
-+#else
-                     _socket_state = ESocketStateConnecting;
-+#endif
                      break;
  
                  } else if (status == PAL_SUCCESS || status == PAL_ERR_SOCKET_ALREADY_CONNECTED) {
  
                      tr_debug("M2MConnectionHandlerPimpl::socket_connect_handler - pal_connect(): success");
+-                    _socket_state = ESocketStateConnected;
 +#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
 +                    if (_proxy_address.size() > 0) {
 +                        _socket_state = ESocketStateConnectedToProxy;
-+                    } else {
++                    } else
++#endif
++                    {
 +                        _socket_state = ESocketStateConnected;
 +                    }
-+#else
-                     _socket_state = ESocketStateConnected;
-+#endif
  
                  } else {
                      tr_error("M2MConnectionHandlerPimpl::socket_connect_handler - pal_connect(): failed: %" PRIx32, status);
-@@ -448,6 +521,24 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
+@@ -453,6 +521,24 @@ void M2MConnectionHandlerPimpl::socket_connect_handler()
              }
  
          // fall through is a normal flow in case the UDP was used or pal_connect() happened to return immediately with PAL_SUCCESS
@@ -489,7 +477,7 @@ index c647a37..6b8cda5 100644
          case ESocketStateConnected:
              if (_security && security_instance_id >= 0) {
                  if (_secure_connection) {
-@@ -669,6 +760,83 @@ void M2MConnectionHandlerPimpl::set_platform_network_handler(void *handler)
+@@ -679,6 +765,87 @@ void M2MConnectionHandlerPimpl::set_platform_network_handler(void *handler)
      tr_debug("M2MConnectionHandlerPimpl::set_platform_network_handler - index = %d", _net_iface);
  }
  
@@ -500,6 +488,10 @@ index c647a37..6b8cda5 100644
 +
 +    tr_debug("M2MConnectionHandlerPimpl::set_proxy: %s", proxy);
 +    if (NULL == proxy) {
++        _proxy_address = "";
++        _proxy_port = 0;
++        _proxy_auth_type = "";
++        _proxy_creds = "";
 +        return;
 +    }
 +
@@ -574,10 +566,10 @@ index c647a37..6b8cda5 100644
  {
      int return_value;
 diff --git a/lib/mbed-cloud-client/mbed-client/mbed-client/m2mconnectionhandler.h b/lib/mbed-cloud-client/mbed-client/mbed-client/m2mconnectionhandler.h
-index 16f5536..d03a46d 100644
+index 4d9ca38..a3fff10 100644
 --- a/lib/mbed-cloud-client/mbed-client/mbed-client/m2mconnectionhandler.h
 +++ b/lib/mbed-cloud-client/mbed-client/mbed-client/m2mconnectionhandler.h
-@@ -133,6 +133,12 @@ public:
+@@ -134,6 +134,12 @@ public:
       */
      void set_platform_network_handler(void *handler = NULL);
  
@@ -592,12 +584,12 @@ index 16f5536..d03a46d 100644
      * in multithreaded environment.
 diff --git a/lib/mbed-cloud-client/mbed-client/mbed-client/m2mconnectionproxy.h b/lib/mbed-cloud-client/mbed-client/mbed-client/m2mconnectionproxy.h
 new file mode 100644
-index 0000000..e403419
+index 0000000..6f1d9d0
 --- /dev/null
 +++ b/lib/mbed-cloud-client/mbed-client/mbed-client/m2mconnectionproxy.h
 @@ -0,0 +1,90 @@
 +/*
-+ * Copyright (c) 2020 ARM Limited. All rights reserved.
++ * Copyright (c) 2020-2021 ARM Limited. All rights reserved.
 + * SPDX-License-Identifier: Apache-2.0
 + * Licensed under the Apache License, Version 2.0 (the License); you may
 + * not use this file except in compliance with the License.
@@ -687,29 +679,30 @@ index 0000000..e403419
 +};
 +#endif // M2M_CONNECTION_PROXY_H
 diff --git a/lib/mbed-cloud-client/mbed-client/mbed-client/m2minterface.h b/lib/mbed-cloud-client/mbed-client/mbed-client/m2minterface.h
-index d5bef2a..fcbac68 100644
+index 4cfcae0..5ac2897 100644
 --- a/lib/mbed-cloud-client/mbed-client/mbed-client/m2minterface.h
 +++ b/lib/mbed-cloud-client/mbed-client/mbed-client/m2minterface.h
-@@ -371,6 +371,12 @@ public:
-      *  register to the LWM2M server.
-      */
-     virtual void resume(void *iface, const M2MBaseList &object_list) = 0;
+@@ -381,6 +381,13 @@ public:
+     virtual nsdl_s* get_nsdl_handle() const = 0;
+ 
+     virtual uint16_t stagger_wait_time(bool boostrap) const = 0;
 +
 +#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
 +    /**
 +     */
 +    virtual void set_proxy(const char *proxy) = 0;
 +#endif
++
  };
  
  #endif // M2M_INTERFACE_H
 diff --git a/lib/mbed-cloud-client/mbed-client/source/include/m2minterfaceimpl.h b/lib/mbed-cloud-client/mbed-client/source/include/m2minterfaceimpl.h
-index 8dc2b71..f3cf088 100644
+index b312f9f..9e93d46 100644
 --- a/lib/mbed-cloud-client/mbed-client/source/include/m2minterfaceimpl.h
 +++ b/lib/mbed-cloud-client/mbed-client/source/include/m2minterfaceimpl.h
-@@ -308,6 +308,12 @@ public:
-      */
-     virtual void resume(void *iface, const M2MBaseList &list);
+@@ -315,6 +315,12 @@ public:
+ 
+     virtual nsdl_s* get_nsdl_handle() const;
  
 +#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
 +    /**
@@ -722,12 +715,12 @@ index 8dc2b71..f3cf088 100644
      virtual void coap_message_ready(uint8_t *data_ptr,
 diff --git a/lib/mbed-cloud-client/mbed-client/source/m2mconnectionproxy.cpp b/lib/mbed-cloud-client/mbed-client/source/m2mconnectionproxy.cpp
 new file mode 100644
-index 0000000..8af99e7
+index 0000000..4bff440
 --- /dev/null
 +++ b/lib/mbed-cloud-client/mbed-client/source/m2mconnectionproxy.cpp
 @@ -0,0 +1,117 @@
 +/*
-+ * Copyright (c) 2020 ARM Limited. All rights reserved.
++ * Copyright (c) 2020-2021 ARM Limited. All rights reserved.
 + * SPDX-License-Identifier: Apache-2.0
 + * Licensed under the Apache License, Version 2.0 (the License); you may
 + * not use this file except in compliance with the License.
@@ -844,12 +837,12 @@ index 0000000..8af99e7
 +    while (i_out % 4) buffer_out[i_out++] = '=';
 +}
 diff --git a/lib/mbed-cloud-client/mbed-client/source/m2minterfaceimpl.cpp b/lib/mbed-cloud-client/mbed-client/source/m2minterfaceimpl.cpp
-index 6a35231..12572bd 100644
+index 39adfb0..cdb1431 100644
 --- a/lib/mbed-cloud-client/mbed-client/source/m2minterfaceimpl.cpp
 +++ b/lib/mbed-cloud-client/mbed-client/source/m2minterfaceimpl.cpp
-@@ -1523,3 +1523,10 @@ void M2MInterfaceImpl::create_random_initial_reconnection_time()
- 
-     }
+@@ -1532,3 +1532,10 @@ uint16_t M2MInterfaceImpl::stagger_wait_time(bool bootstrap) const
+ {
+     return _nsdl_interface.get_network_stagger_estimate(bootstrap);
  }
 +
 +#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
@@ -859,10 +852,10 @@ index 6a35231..12572bd 100644
 +}
 +#endif
 diff --git a/lib/mbed-cloud-client/mbed-cloud-client/MbedCloudClient.h b/lib/mbed-cloud-client/mbed-cloud-client/MbedCloudClient.h
-index f1b463b..6224cd1 100644
+index 1b2e8ac..aed713a 100644
 --- a/lib/mbed-cloud-client/mbed-cloud-client/MbedCloudClient.h
 +++ b/lib/mbed-cloud-client/mbed-cloud-client/MbedCloudClient.h
-@@ -555,6 +555,12 @@ public:
+@@ -608,6 +608,12 @@ public:
      void est_free_cert_chain_context(cert_chain_context_s *context) const;
  #endif // !MBED_CLIENT_DISABLE_EST_FEATURE
  
@@ -875,10 +868,10 @@ index f1b463b..6224cd1 100644
  protected: // from ServiceClientCallback
  
      /**
-@@ -602,6 +608,9 @@ private:
-     FP1<void,int>                                   _on_error;
-     const char                                      *_error_description;
-     bool                                            _init_done;
+@@ -667,6 +673,9 @@ private:
+ #ifdef MBED_CLOUD_CLIENT_SUPPORT_MULTICAST_UPDATE
+     FP2<void, uint32_t, uint32_t>                   _on_external_update;
+ #endif
 +#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
 +    const char                                      *_proxy;
 +#endif
@@ -886,20 +879,20 @@ index f1b463b..6224cd1 100644
  #if MBED_CLOUD_CLIENT_STL_API
      // This API and functionality is being phased out, as it is wasting resources by
 diff --git a/lib/mbed-cloud-client/source/MbedCloudClient.cpp b/lib/mbed-cloud-client/source/MbedCloudClient.cpp
-index a080f96..cd7f8c7 100755
+index 4cc8d4d..7877f02 100755
 --- a/lib/mbed-cloud-client/source/MbedCloudClient.cpp
 +++ b/lib/mbed-cloud-client/source/MbedCloudClient.cpp
-@@ -152,6 +152,9 @@ bool MbedCloudClient::setup(void* iface)
-     if (success) {
-         // set the network interface to M2MInterface
-         _client.connector_client().m2m_interface()->set_platform_network_handler(iface);
-+#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
-+        _client.connector_client().m2m_interface()->set_proxy(_proxy);
-+#endif
-         _client.initialize_and_register(_object_list);
-     }
+@@ -153,6 +153,9 @@ bool MbedCloudClient::setup(void* iface)
  
-@@ -405,3 +408,10 @@ void MbedCloudClient::est_free_cert_chain_context(cert_chain_context_s *context)
+     // set the network interface to M2MInterface
+     _client.connector_client().m2m_interface()->set_platform_network_handler(iface, _client.connector_client().connector_credentials_available());
++#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
++    _client.connector_client().m2m_interface()->set_proxy(_proxy);
++#endif
+     _client.initialize_and_register(_object_list);
+     return true;
+ }
+@@ -425,3 +428,10 @@ void MbedCloudClient::est_free_cert_chain_context(cert_chain_context_s *context)
      _client.connector_client().est_client().free_cert_chain_context(context);
  }
  #endif // !MBED_CLIENT_DISABLE_EST_FEATURE
@@ -911,5 +904,5 @@ index a080f96..cd7f8c7 100755
 +}
 +#endif
 -- 
-2.21.0 (Apple Git-122)
+2.17.1
 

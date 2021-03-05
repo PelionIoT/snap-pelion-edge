@@ -1,0 +1,111 @@
+From 44721b5675960eedbc5fea05feeb7924b11bdee2 Mon Sep 17 00:00:00 2001
+From: Nic Costa <nic.costa@gmail.com>
+Date: Tue, 9 Mar 2021 13:43:52 -0600
+Subject: [PATCH 08/15] add API to set a resource value without forced text
+ conversion
+
+---
+ edge-client/edge-client/edge_client.h | 19 +++++++++
+ edge-client/edge_client.cpp           | 56 +++++++++++++++++++++++++++
+ 2 files changed, 75 insertions(+)
+
+diff --git a/edge-client/edge-client/edge_client.h b/edge-client/edge-client/edge_client.h
+index d5c7af2..b2dc02c 100644
+--- a/edge-client/edge-client/edge_client.h
++++ b/edge-client/edge-client/edge_client.h
+@@ -428,6 +428,25 @@ pt_api_result_code_e edgeclient_set_resource_value(const char *endpoint_name,
+                                                    int opr,
+                                                    void *ctx);
+ 
++/**
++ * \brief Set a value to a resource with given path, consisting of endpoint_name (optional), object_id, object_instance_id and resource_id.
++ * If any of the path elements are missing, a failure is returned.
++ * \param endpoint_name The name of the endpoint under which the resource is located. It can also be NULL for a resource under Edge itself.
++ * \param object_id The ID of the object under which the resource is located, a 16-bit unsigned integer.
++ * \param object_instance_id The ID of the object instance under which the resource is located, a 16-bit unsigned integer.
++ * \param resource_id The ID of the resource, a 16-bit unsigned integer.
++ * \param value const The uint8_t* pointing to a new value buffer.
++ * \param value_length The length of the new value.
++ * \return #PT_API_SUCCESS on success
++ *         Other codes on failure
++ */
++pt_api_result_code_e edgeclient_set_resource_value_native(const char *endpoint_name,
++                                                          const uint16_t object_id,
++                                                          const uint16_t object_instance_id,
++                                                          const uint16_t resource_id,
++                                                          const uint8_t *value,
++                                                          uint32_t value_length);
++
+ /**
+  * \brief Send asynchronous response for the given resource. Use this API to send the asynchronous response after
+  *        getting a post or a request callback.
+diff --git a/edge-client/edge_client.cpp b/edge-client/edge_client.cpp
+index 9d5722c..1b91425 100644
+--- a/edge-client/edge_client.cpp
++++ b/edge-client/edge_client.cpp
+@@ -1322,6 +1322,62 @@ pt_api_result_code_e edgeclient_set_resource_value(const char *endpoint_name, co
+     return PT_API_SUCCESS;
+ }
+ 
++// sets the value of a resource without the forced text conversion
++pt_api_result_code_e edgeclient_set_resource_value_native(const char *endpoint_name,
++                                                          const uint16_t object_id,
++                                                          const uint16_t object_instance_id,
++                                                          const uint16_t resource_id,
++                                                          const uint8_t *value,
++                                                          uint32_t value_length)
++{
++    M2MResource *res = edgelient_get_resource(NULL, object_id, object_instance_id, resource_id);
++    if (res == NULL) {
++        return PT_API_RESOURCE_NOT_FOUND;
++    }
++
++    // set the value correctly for the type
++    switch (res->resource_instance_type()) {
++        case M2MBase::OBJLINK:
++        case M2MBase::OPAQUE:
++        case M2MBase::STRING: {
++            res->set_value((uint8_t *) value, value_length);
++            break;
++        }
++        case M2MBase::TIME:
++        case M2MBase::INTEGER: {
++            int64_t new_value = 0;
++            // convert the int types to int64_t
++            switch (value_length) {
++                case 1: //8 bits
++                    new_value = *((int8_t*)value);
++                break;
++                case 2: //16 bits
++                    new_value = *((int16_t*)value);
++                break;
++                case 4: //32 bits
++                    new_value = *((int32_t*)value);
++                break;
++                case 8: //64 bits
++                    new_value = *((int64_t*)value);
++                break;
++            }
++            res->set_value(new_value);
++            break;
++        }
++        case M2MBase::FLOAT: {
++            float new_value = *((float*)value);
++            res->set_value_float(new_value);
++            break;
++        }
++        case M2MBase::BOOLEAN: {
++            bool new_value = *((bool*)value);
++            res->set_value((int64_t)new_value);
++            break;
++        }
++    }
++
++    return PT_API_SUCCESS;
++}
+ 
+ bool edgeclient_get_resource_value_and_attributes(const char *endpoint_name,
+                                                   const uint16_t object_id,
+-- 
+2.17.1
+
