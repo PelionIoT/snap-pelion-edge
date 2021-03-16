@@ -26,4 +26,6 @@
 . $(dirname "$0")/arm_update_cmdline.sh
 
 # copy header if present
-[ -n "$ACTIVE_HDR" ] && cp "$ACTIVE_HDR" "$HEADER"
+[ -f "$ACTIVE_HDR" ] && cp "$ACTIVE_HDR" "$HEADER"
+
+exit 0

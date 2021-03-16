@@ -28,6 +28,6 @@
 
 . $(dirname "$0")/arm_update_cmdline.sh
 
-[ -e "${UPGRADE_INS}" ] && cp "${UPGRADE_INS}" "${ACTIVE_INS}"
+[ -f "${UPGRADE_INS}" ] && cp "${UPGRADE_INS}" "${ACTIVE_INS}"
 
 exit 0
