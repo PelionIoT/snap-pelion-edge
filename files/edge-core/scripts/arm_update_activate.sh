@@ -28,9 +28,9 @@
 mkdir -p "$UPGRADE_DIR"
 
 # copy header to location to be applied by bootloader
-[ -n "$HEADER" ] && cp "$HEADER" "$UPGRADE_HDR"
+[ -f "$HEADER" ] && cp "$HEADER" "$UPGRADE_HDR"
 # copy firmware to location to be applied by bootloader
-[ -n "$FIRMWARE" ] && cp "$FIRMWARE" "$UPGRADE_TGZ"
+[ -f "$FIRMWARE" ] && cp "$FIRMWARE" "$UPGRADE_TGZ"
 # create fake installer.bin until we figure out if it's needed for anything
 # the size originates from struct _arm_uc_installer_details_t in arm_uc_types.h
 # see https://github.com/ARMmbed/mbed-edge/blob/master/lib/mbed-cloud-client/update-client-hub/modules/common/update-client-common/arm_uc_types.h#L74
