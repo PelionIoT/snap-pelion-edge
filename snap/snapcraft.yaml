@@ -217,11 +217,7 @@ parts:
     edge-core:
       plugin: cmake
       source: https://github.com/ARMmbed/mbed-edge.git
-      source-tag: 0.15.0
-      build-packages:
-        - build-essential
-        - cmake
-        - git
+      source-tag: 0.16.1
       build-environment:
         - COAP_PORT_OVERRIDE_443: "false"
       override-pull: |
@@ -238,24 +234,23 @@ parts:
         cp ${SNAPCRAFT_PART_SRC}/cmake/toolchains/mcc-linux-x86.cmake config/toolchain.cmake
         sed -i 's!/dev/random!/dev/urandom!' lib/mbed-cloud-client/mbed-client-pal/Source/Port/Reference-Impl/OS_Specific/Linux/Board_Specific/TARGET_x86_x64/pal_plat_x86_x64.c
         sed -i 's!\(MAX_RECONNECT_TIMEOUT\).*!\1 60!' lib/mbed-cloud-client/mbed-client/mbed-client/m2mconstants.h
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Allow-LwM2M-resources-to-be-optionally-named-by-Prot.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0002-Increasing-Path-Size.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0003-use-customized-edge-core-update-scripts.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0004-Call-a-restart-script-during-fota.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0005-Read-platform-version-files-into-LWM2M-resources.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0006-Add-support-for-network-proxy.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0007-Call-a-script-on-factory-reset.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0008-add-API-to-set-a-resource-value-without-forced-text-.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0009-add-stubs-for-gateway-statistics-resources.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0010-add-cpu-usage-3-0-3320.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0011-add-cpu-temp-3-0-3303.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0012-add-RAM-total-3-0-3322-and-RAM-free-3-0-3321.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0013-add-disk-free-3-0-3323-and-disk-total-3-0-3324.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0014-add-snap-version-3-0-4001.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Increasing-Path-Size.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0002-use-customized-edge-core-update-scripts.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0003-Call-a-restart-script-during-fota.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0004-Read-platform-version-files-into-LWM2M-resources.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0005-Add-support-for-network-proxy.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0006-Call-a-script-on-factory-reset.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0007-add-API-to-set-a-resource-value-without-forced-text-.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0008-add-stubs-for-gateway-statistics-resources.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0009-add-cpu-usage-3-0-3320.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0010-add-cpu-temp-3-0-3303.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0011-add-RAM-total-3-0-3322-and-RAM-free-3-0-3321.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0012-add-disk-free-3-0-3323-and-disk-total-3-0-3324.patch
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0013-add-snap-version-3-0-4001.patch
         if [ "${COAP_PORT_OVERRIDE_443}" = "true" ]; then
             echo "PATCHING PORT 443 OVERRIDE"
             [ -f config/mbed_cloud_dev_credentials.c ] && sed -i 's,\(coaps://[^:]*:\)5684,\1443,' config/mbed_cloud_dev_credentials.c
-            git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0015-force-port-443.patch
+            git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0014-force-port-443.patch
         fi
       configflags:
         - -DCMAKE_BUILD_TYPE=Release
@@ -269,6 +264,7 @@ parts:
         - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
         - -DMBED_CLOUD_DEV_UPDATE_ID=ON
         - -DNETWORK_PROXY_SUPPORT=ON
+        - -DPARSEC_TPM_SE_SUPPORT=OFF
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed

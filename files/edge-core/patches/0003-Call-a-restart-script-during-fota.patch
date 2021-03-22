@@ -1,7 +1,7 @@
-From 3b83cfe61c6eb457f4dfef57ef718a23af111e5a Mon Sep 17 00:00:00 2001
+From 1db6348d5f66d44bdcbc5ff0de4a2fdc3602cc47 Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@arm.com>
 Date: Thu, 22 Oct 2020 16:34:58 +0000
-Subject: [PATCH 04/15] Call a restart script during fota
+Subject: [PATCH 03/14] Call a restart script during fota
 
 During a FOTA, it may not be necessary or desired to reboot the OS,
 so instead edge-core calls out to a shell script to allow a
@@ -13,10 +13,10 @@ edge-core process.
  1 file changed, 1 insertion(+), 5 deletions(-)
 
 diff --git a/lib/mbed-cloud-client/update-client-hub/source/update_client_hub_state_machine.c b/lib/mbed-cloud-client/update-client-hub/source/update_client_hub_state_machine.c
-index b884d46..d2fb113 100644
+index 1ed0884..0f6466e 100644
 --- a/lib/mbed-cloud-client/update-client-hub/source/update_client_hub_state_machine.c
 +++ b/lib/mbed-cloud-client/update-client-hub/source/update_client_hub_state_machine.c
-@@ -1253,11 +1253,7 @@ void ARM_UC_HUB_setState(arm_uc_hub_state_t new_state)
+@@ -1272,11 +1272,7 @@ void ARM_UC_HUB_setState(arm_uc_hub_state_t new_state)
                  UC_HUB_TRACE("ARM_UC_HUB_STATE_REBOOT");
  
                  // Firmware activated, now reboot the system to apply the new image.

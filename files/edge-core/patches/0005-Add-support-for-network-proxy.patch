@@ -1,7 +1,7 @@
-From 07775c14b2553d931e29a4f7a134d4e5928ba405 Mon Sep 17 00:00:00 2001
+From 0fff76e8cd9c4b9f8f900c7a3429fa81e99899b9 Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Mon, 1 Feb 2021 11:27:22 -0600
-Subject: [PATCH 06/15] Add support for network proxy
+Subject: [PATCH 05/14] Add support for network proxy
 
 A new CLI argument '-x' is added to specify a network proxy
 through which mbed-edge should connect to the cloud.
@@ -59,10 +59,10 @@ index 69a1a5a..a77f438 100644
  # Custom mbedtls configuration header file can be given with argument -DMBEDTLS_CONFIG
  SET (TLS_LIBRARY "mbedTLS")
 diff --git a/edge-client/edge-client/edge_client.h b/edge-client/edge-client/edge_client.h
-index c9e0647..d5c7af2 100644
+index 567ab9a..d40ae29 100644
 --- a/edge-client/edge-client/edge_client.h
 +++ b/edge-client/edge-client/edge_client.h
-@@ -149,6 +149,9 @@ typedef struct {
+@@ -230,6 +230,9 @@ typedef struct {
      handle_est_status_cb handle_est_status_cb;
      void *cert_renewal_ctx;
      bool reset_storage;
@@ -73,7 +73,7 @@ index c9e0647..d5c7af2 100644
  
  /**
 diff --git a/edge-client/edge-client/edge_client_impl.h b/edge-client/edge-client/edge_client_impl.h
-index 360d3d0..8b5d721 100644
+index 4014892..7e29c91 100644
 --- a/edge-client/edge-client/edge_client_impl.h
 +++ b/edge-client/edge-client/edge_client_impl.h
 @@ -103,6 +103,13 @@ public:
@@ -91,10 +91,10 @@ index 360d3d0..8b5d721 100644
      {
          _cloud_client.est_free_cert_chain_context(chain_ctx);
 diff --git a/edge-client/edge_client.cpp b/edge-client/edge_client.cpp
-index c1d22f4..9d5722c 100644
+index 1d9e95f..0e00a96 100644
 --- a/edge-client/edge_client.cpp
 +++ b/edge-client/edge_client.cpp
-@@ -671,6 +671,9 @@ void edgeclient_create(const edgeclient_create_parameters_t *params, byoc_data_t
+@@ -695,6 +695,9 @@ void edgeclient_create(const edgeclient_create_parameters_t *params, byoc_data_t
          client->set_on_error_callback(edgeclient_on_error_callback);
          client->set_on_certificate_renewal_callback(edgeclient_on_certificate_renewal_callback);
          client->set_on_est_result_callback(edgeclient_on_est_status_callback);
@@ -165,10 +165,10 @@ index ebde5e4..4f07f25 100644
      ts = tokens_new(argc, argv);
      if (parse_args(&ts, &elements))
 diff --git a/edge-core/edge_server.c b/edge-core/edge_server.c
-index 6a896d8..eb41fc4 100644
+index 2a0bc84..e91c63a 100644
 --- a/edge-core/edge_server.c
 +++ b/edge-core/edge_server.c
-@@ -791,6 +791,9 @@ int testable_main(int argc, char **argv)
+@@ -781,6 +781,9 @@ int testable_main(int argc, char **argv)
          edgeclient_create_params.handle_est_status_cb = (handle_est_status_cb)
              est_enrollment_result_notifier;
          edgeclient_create_params.cert_renewal_ctx = &g_program_context->ctx_data->registered_translators;
@@ -288,7 +288,7 @@ index 9db7249..5965a3c 100644
  {
      _private_impl->claim_mutex();
 diff --git a/lib/mbed-cloud-client/mbed-client/mbed-client-classic/source/m2mconnectionhandlerpimpl.cpp b/lib/mbed-cloud-client/mbed-client/mbed-client-classic/source/m2mconnectionhandlerpimpl.cpp
-index 8754278..9293a30 100644
+index 325111e..5745509 100644
 --- a/lib/mbed-cloud-client/mbed-client/mbed-client-classic/source/m2mconnectionhandlerpimpl.cpp
 +++ b/lib/mbed-cloud-client/mbed-client/mbed-client-classic/source/m2mconnectionhandlerpimpl.cpp
 @@ -84,6 +84,10 @@ void M2MConnectionHandlerPimpl::event_handler(arm_event_s *event)
@@ -477,7 +477,7 @@ index 8754278..9293a30 100644
          case ESocketStateConnected:
              if (_security && security_instance_id >= 0) {
                  if (_secure_connection) {
-@@ -679,6 +765,87 @@ void M2MConnectionHandlerPimpl::set_platform_network_handler(void *handler)
+@@ -684,6 +770,87 @@ void M2MConnectionHandlerPimpl::set_platform_network_handler(void *handler)
      tr_debug("M2MConnectionHandlerPimpl::set_platform_network_handler - index = %d", _net_iface);
  }
  
@@ -837,10 +837,10 @@ index 0000000..4bff440
 +    while (i_out % 4) buffer_out[i_out++] = '=';
 +}
 diff --git a/lib/mbed-cloud-client/mbed-client/source/m2minterfaceimpl.cpp b/lib/mbed-cloud-client/mbed-client/source/m2minterfaceimpl.cpp
-index 39adfb0..cdb1431 100644
+index 3f9114c..19bc0d6 100644
 --- a/lib/mbed-cloud-client/mbed-client/source/m2minterfaceimpl.cpp
 +++ b/lib/mbed-cloud-client/mbed-client/source/m2minterfaceimpl.cpp
-@@ -1532,3 +1532,10 @@ uint16_t M2MInterfaceImpl::stagger_wait_time(bool bootstrap) const
+@@ -1533,3 +1533,10 @@ uint16_t M2MInterfaceImpl::stagger_wait_time(bool bootstrap) const
  {
      return _nsdl_interface.get_network_stagger_estimate(bootstrap);
  }
@@ -852,7 +852,7 @@ index 39adfb0..cdb1431 100644
 +}
 +#endif
 diff --git a/lib/mbed-cloud-client/mbed-cloud-client/MbedCloudClient.h b/lib/mbed-cloud-client/mbed-cloud-client/MbedCloudClient.h
-index 1b2e8ac..aed713a 100644
+index 6a1ca4b..956ac35 100644
 --- a/lib/mbed-cloud-client/mbed-cloud-client/MbedCloudClient.h
 +++ b/lib/mbed-cloud-client/mbed-cloud-client/MbedCloudClient.h
 @@ -608,6 +608,12 @@ public:
@@ -879,7 +879,7 @@ index 1b2e8ac..aed713a 100644
  #if MBED_CLOUD_CLIENT_STL_API
      // This API and functionality is being phased out, as it is wasting resources by
 diff --git a/lib/mbed-cloud-client/source/MbedCloudClient.cpp b/lib/mbed-cloud-client/source/MbedCloudClient.cpp
-index 4cc8d4d..7877f02 100755
+index d6752cb..0a124a0 100755
 --- a/lib/mbed-cloud-client/source/MbedCloudClient.cpp
 +++ b/lib/mbed-cloud-client/source/MbedCloudClient.cpp
 @@ -153,6 +153,9 @@ bool MbedCloudClient::setup(void* iface)
@@ -892,7 +892,7 @@ index 4cc8d4d..7877f02 100755
      _client.initialize_and_register(_object_list);
      return true;
  }
-@@ -425,3 +428,10 @@ void MbedCloudClient::est_free_cert_chain_context(cert_chain_context_s *context)
+@@ -426,3 +429,10 @@ void MbedCloudClient::est_free_cert_chain_context(cert_chain_context_s *context)
      _client.connector_client().est_client().free_cert_chain_context(context);
  }
  #endif // !MBED_CLIENT_DISABLE_EST_FEATURE
