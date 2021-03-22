@@ -1,7 +1,7 @@
-From fe1c7266cf90c6bc0e746da7e6d3702bde2bb1c0 Mon Sep 17 00:00:00 2001
+From 6e9742dd6b9094b5692db73093b330302360ca46 Mon Sep 17 00:00:00 2001
 From: Michael Ray <mjray@umich.edu>
 Date: Wed, 25 Mar 2020 14:20:17 -0500
-Subject: [PATCH 05/15] Read platform version files into LWM2M resources
+Subject: [PATCH 04/14] Read platform version files into LWM2M resources
 
 Platform Version readable: /10252/0/10
 Platform Version MD5 hash: /10252/0/11

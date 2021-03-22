@@ -1,7 +1,7 @@
-From ccb5c6182fe66cdf59a4bf1e31e96c8d5a94b908 Mon Sep 17 00:00:00 2001
+From 5ca0fe3bda0af83bfa00d1a61d86362c0f59c00c Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Thu, 11 Mar 2021 12:20:33 -0600
-Subject: [PATCH 13/15] add disk free /3/0/3323 and disk total /3/0/3324
+Subject: [PATCH 12/14] add disk free /3/0/3323 and disk total /3/0/3324
 
 ---
  edge-client/gateway_stats.c | 30 ++++++++++++++++++++++++++++++

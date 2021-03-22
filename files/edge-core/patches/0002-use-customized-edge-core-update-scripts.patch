@@ -1,7 +1,7 @@
-From d90c6cfc6d090c2bd3f4b0320cd4eeb14baa8050 Mon Sep 17 00:00:00 2001
+From 40ccdb24898d039d0ec7faf93e30d4686159c501 Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Thu, 2 Apr 2020 16:37:10 -0500
-Subject: [PATCH 03/15] use customized edge-core update scripts
+Subject: [PATCH 02/14] use customized edge-core update scripts
 
 ---
  .../source/arm_uc_pal_linux_generic.c          | 18 +++++++++---------

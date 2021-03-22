@@ -1,7 +1,7 @@
-From fac60a32a0b3f1f76b1bc636f8f4564096d61281 Mon Sep 17 00:00:00 2001
+From 6d1ef481fa3fcc68ce2bb01e116bfe854b1fa0d9 Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Wed, 10 Mar 2021 15:09:28 -0600
-Subject: [PATCH 11/15] add cpu temp /3/0/3303
+Subject: [PATCH 10/14] add cpu temp /3/0/3303
 
 ---
  edge-client/gateway_stats.c | 44 +++++++++++++++++++++++++++++++++++++
