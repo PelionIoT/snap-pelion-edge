@@ -28,6 +28,30 @@ if [[ -z $(snapctl get edge-proxy.extern-http-proxy-uri) ]]; then
     snapctl set edge-proxy.extern-http-proxy-uri=""
 fi
 
+if [[ -z $(snapctl get edge-proxy.http-tunnel-listen) ]]; then
+    snapctl set edge-proxy.http-tunnel-listen=""
+fi
+
+if [[ -z $(snapctl get edge-proxy.https-tunnel-listen) ]]; then
+    snapctl set edge-proxy.https-tunnel-listen=""
+fi
+
+if [[ -z $(snapctl get edge-proxy.https-tunnel-tls-cert) ]]; then
+    snapctl set edge-proxy.https-tunnel-tls-cert=""
+fi
+
+if [[ -z $(snapctl get edge-proxy.https-tunnel-tls-key) ]]; then
+    snapctl set edge-proxy.https-tunnel-tls-key=""
+fi
+
+if [[ -z $(snapctl get edge-proxy.https-tunnel-username) ]]; then
+    snapctl set edge-proxy.https-tunnel-username=""
+fi
+
+if [[ -z $(snapctl get edge-proxy.https-tunnel-password) ]]; then
+    snapctl set edge-proxy.https-tunnel-password=""
+fi
+
 if [[ -z $(snapctl get kubelet.edgenet-subnet) ]]; then
     snapctl set kubelet.edgenet-subnet="10.0.0.0/24"
 fi
