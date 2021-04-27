@@ -115,7 +115,7 @@ apps:
       restart-condition: always
       command: launch-edge-proxy.sh
       daemon: simple
-      plugs: [network-bind, network-control]
+      plugs: [network-bind, network-control, home]
     identity:
       command: launch-pelion-identity.sh $SNAP $SNAP_DATA
       daemon: simple
