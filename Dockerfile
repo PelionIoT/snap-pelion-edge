@@ -1,5 +1,11 @@
 FROM snapcore/snapcraft@sha256:6d771575c134569e28a590f173f7efae8bf7f4d1746ad8a474c98e02f4a3f627
 
+# Optional environment variables that allow the use of an HTTP/HTTPS proxy while building/running
+# ENV http_proxy="http://<user>:<password>@<proxy-ip>:<proxy-port>"
+# ENV https_proxy="https://<user>:<password>@<proxy-ip>:<proxy-port>"
+ENV http_proxy=""
+ENV https_proxy=""
+
 # Install dependencies
 # Gosu is installed so that we can run snapcraft as the current user instead of as root
 RUN apt-get update && apt-get install -y \
