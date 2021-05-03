@@ -411,7 +411,6 @@ parts:
         # copied into the prime directory during the prime step
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates
         install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/config/maestro-config-dell5000.yaml ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/relayTerm.template.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
         install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/template.devicedb.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
         install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
         install -d ${SNAPCRAFT_PART_INSTALL}/etc/init.d
