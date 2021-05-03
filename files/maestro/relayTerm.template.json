@@ -1,6 +1,0 @@
-{
-	"cloud": "http://gateways.local:8080/relay-term",
-	"noValidate": true,
-	"certificate": "",
-	"key": ""
-}

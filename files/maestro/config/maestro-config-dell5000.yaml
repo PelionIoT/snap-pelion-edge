@@ -123,7 +123,4 @@ static_file_generators:
    - name: "devicedb"
      template_file: "{{SNAP}}/wigwag/etc/templates/template.devicedb.conf"
      output_file: "{{SNAP_DATA}}/wigwag/etc/devicejs/devicedb.yaml"
-   - name: "relayTerm"
-     template_file: "{{SNAP}}/wigwag/etc/templates/relayTerm.template.json"
-     output_file: "{{SNAP_DATA}}/wigwag/etc/relayterm-config.json"
 config_end: true
