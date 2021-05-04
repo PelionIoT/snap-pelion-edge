@@ -177,15 +177,6 @@ apps:
         - kernel-module-observe
       slots:
         - docker-daemon
-    machine:
-      command: bin/docker-machine
-      environment:
-        DOCKER_HOST: unix://$SNAP_COMMON/var/run/docker.sock
-      plugs:
-        - docker-cli
-        - network
-        - home
-        - network-bind
     docker-help:
       command: bin/help
 parts:
@@ -676,19 +667,3 @@ parts:
       - build-essential
       prime:
       - -bin/tini
-    docker-machine:
-      plugin: make
-      source: https://github.com/docker/machine.git
-      source-tag: v0.15.0
-      source-depth: 1
-      override-build: |
-        # setup the go build environment for docker machine
-        . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
-        gopartbootstrap github.com/docker/machine
-
-        make build
-
-        install -d "$SNAPCRAFT_PART_INSTALL/bin"
-        install -T bin/docker-machine "$SNAPCRAFT_PART_INSTALL/bin/docker-machine"
-      after:
-      - docker-wrapper-scripts
