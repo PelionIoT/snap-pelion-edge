@@ -41,6 +41,13 @@ else
     EXTERN_ARG=-extern-http-proxy-uri=$EXTERN_HTTP_PROXY
 fi
 
+EXTERN_HTTP_PROXY_CACERT=$(snapctl get edge-proxy.extern-http-proxy-cacert)
+if [[ $EXTERN_HTTP_PROXY_CACERT = "" ]]; then
+    EXTERN_CACERT_ARG=
+else
+    EXTERN_CACERT_ARG=-extern-http-proxy-cacert=$EXTERN_HTTP_PROXY_CACERT
+fi
+
 HTTP_TUNNEL="$(snapctl get edge-proxy.http-tunnel-listen)"
 if [[ "${HTTP_TUNNEL}" = "" ]]; then
     HTTP_TUNNEL_ARGS=
@@ -91,6 +98,7 @@ exec ${SNAP}/wigwag/system/bin/edge-proxy \
     -cert-strategy-options=device-cert-name=mbed.LwM2MDeviceCert \
     -cert-strategy-options=private-key-name=mbed.LwM2MDevicePrivateKey \
     ${EXTERN_ARG} \
+    ${EXTERN_CACERT_ARG} \
     ${HTTP_TUNNEL_ARGS} \
     ${HTTPS_TUNNEL_ARGS} \
     -forwarding-addresses={\"gateways.local\":\"${GATEWAYS_ADDRESS#"https://"}\"}

@@ -28,6 +28,10 @@ if [[ -z $(snapctl get edge-proxy.extern-http-proxy-uri) ]]; then
     snapctl set edge-proxy.extern-http-proxy-uri=""
 fi
 
+if [[ -z $(snapctl get edge-proxy.extern-http-proxy-cacert) ]]; then
+    snapctl set edge-proxy.extern-http-proxy-cacert=""
+fi
+
 if [[ -z $(snapctl get edge-proxy.http-tunnel-listen) ]]; then
     snapctl set edge-proxy.http-tunnel-listen=""
 fi
