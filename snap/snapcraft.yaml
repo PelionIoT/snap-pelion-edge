@@ -290,7 +290,7 @@ parts:
     edge-proxy:
       plugin: go
       source: https://github.com/PelionIoT/edge-proxy.git
-      source-commit: 595c110019cf4360e5fca981028c595e72abce12
+      source-commit: 8f0f10790ac8f98787cc4a4a913dff358a1485c9
       go-importpath: github.com/PelionIoT/edge-proxy
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
