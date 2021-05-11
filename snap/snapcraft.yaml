@@ -123,6 +123,12 @@ apps:
     platform-version:
       command: bin/platform-version.sh
       plugs: [snapd-control]
+    gsm:
+      command: bin/gsm_patch.sh
+      restart-delay: 5s
+      restart-condition: always
+      daemon: simple
+      plugs: [network-manager, modem-manager, snapd-control]
     kubelet:
       restart-delay: 5s
       after: [dockerd]
@@ -197,6 +203,11 @@ parts:
       source: files/platform-version/
       organize:
         platform-version.sh: bin/platform-version.sh
+    gsm:
+      plugin: dump
+      source: files/gsm/
+      organize:
+        gsm_patch.sh: bin/gsm_patch.sh
     identity:
       plugin: dump
       source: files/identity/
