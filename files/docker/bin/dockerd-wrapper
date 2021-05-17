@@ -22,6 +22,16 @@ workaround_lp1606510() {
     fi
 }
 
+workaround_missing_xdg_runtime_dir() {
+    # containerd uses XDG_RUNTIME_DIR for temp storage if defined.
+    # The problem is Ubuntu Core 16 defines the variable in the environment
+    # but does create the directory, which causes containerd to fail.
+    if [ -n "${XDG_RUNTIME_DIR}" ] && [ ! -d "${XDG_RUNTIME_DIR}" ]; then
+        echo "XDG_RUNTIME_DIR ${XDG_RUNTIME_DIR} does not exist! Running workaround."
+        mkdir -p "${XDG_RUNTIME_DIR}"
+    fi
+}
+
 yolo() {
 	"$@" > /dev/null 2>&1 || :
 }
@@ -59,6 +69,8 @@ mkdir -p "$SNAP_DATA/etc/docker"
 workaround_lp1606510
 
 workaround_apparmor_profile_reload
+
+workaround_missing_xdg_runtime_dir
 
 exec dockerd \
 	-G $default_socket_group \
