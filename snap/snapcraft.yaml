@@ -90,7 +90,7 @@ apps:
         - snapd-control
         - system-files-logs
     help:
-      command: bin/cat $SNAP/help.md
+      command: bin/print-help
     devicedb:
       command: wigwag/system/bin/devicedb start -conf $SNAP_DATA/wigwag/etc/devicejs/devicedb.yaml
       restart-delay: 5s
@@ -183,6 +183,9 @@ parts:
     help:
       plugin: dump
       source: files/help/
+      override-build: |
+        snapcraftctl build
+        chmod a+x bin/print-help
     platform-version:
       plugin: dump
       source: files/platform-version/
