@@ -366,54 +366,34 @@ parts:
       source: https://github.com/mikefarah/yq.git
       go-importpath: github.com/mikefarah/yq
     maestro:
-      plugin: go
-      source: https://github.com/armPelionEdge/maestro.git
+      plugin: make
+      source: https://github.com/PelionIot/maestro.git
       source-commit: 20caa5d032424a11146b7923eaaed74e80de96da
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
-      build-packages:
-        - python
-        - build-essential
-      override-pull: |
-        # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
-        # Create the go workspace. This is normally done by the plugin
-        install -d go
-        install -d go/src
-        install -d go/bin
-        install -d go/pkg
-        install -d go/src/github.com/armPelionEdge
-        cd go/src/github.com/armPelionEdge
-        git clone https://github.com/armPelionEdge/maestro.git
-        cd maestro
-        git checkout 20caa5d032424a11146b7923eaaed74e80de96da
       override-build: |
-        export GOPATH=${SNAPCRAFT_PART_BUILD}/go
+        # setup the go build environment
+        . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
+        gopartbootstrap github.com/armPelionEdge/maestro
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
         export GOBIN=${GOPATH}/bin
-        cd ${GOPATH}/src/github.com/armPelionEdge/maestro/
+
         # Build maestro dependencies
         DEBUG= ./build-deps.sh
         # Build maestro
         DEBUG= DEBUG2= ./build.sh
-        # Install maestro into GOPATH/bin
-        go install github.com/armPelionEdge/maestro
-        # build the grease_echo utility
-        cd ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/
-        make grease_echo
-        make standalone_test_logsink
-        # Install maestro into the SNAPCRAFT_PART_INSTALL folder so that it is
+
+        # Install maestro components into the SNAPCRAFT_PART_INSTALL folder so that it is
         # copied into the prime directory during the prime step
+        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
+
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates
         install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/config/maestro-config-dell5000.yaml ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
         install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/template.devicedb.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
-        install -d ${SNAPCRAFT_PART_INSTALL}/etc/init.d
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
         install ${GOPATH}/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
-        install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/grease_echo ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/grease_echo
-        install ${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/src/greaseLib/standalone_test_logsink ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/standalone_test_logsink
+
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
         LIBS_DIR="${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/lib"
         ALL_LIBS="libTW.a libprofiler.a libstacktrace.a libtcmalloc.la libtcmalloc_debug.a libtcmalloc_minimal.la libuv.a libgrease.so libprofiler.la libstacktrace.la libtcmalloc_and_profiler.a libtcmalloc_debug.la libtcmalloc_minimal_debug.a libgrease.so.1 libtcmalloc.a libtcmalloc_and_profiler.la  libtcmalloc_minimal.a libtcmalloc_minimal_debug.la libtcmalloc_minimal.so*"
         for f in $ALL_LIBS; do
@@ -421,18 +401,6 @@ parts:
         done
         # fixup the SNAP and SNAP_DATA variables in the config files based on the snap name
         sed -i "s!/snap/pelion-edge!/snap/${SNAPCRAFT_PROJECT_NAME}!" ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/*.yaml
-      filesets:
-        bin:
-          - wigwag/system/bin/*
-        lib:
-          - wigwag/system/lib/*
-        etc:
-          - wigwag/etc/*
-      stage:
-        - $lib
-        - $bin
-        - $etc
-        - launch-maestro.sh
     cni:
       plugin: go
       source: https://github.com/containernetworking/plugins.git
