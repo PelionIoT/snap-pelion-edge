@@ -466,7 +466,7 @@ parts:
     docker-docker:
       plugin: make
       source: https://github.com/docker/docker-ce.git
-      source-tag: v19.03.12
+      source-tag: v19.03.13
       source-depth: 1
       override-pull: |
         snapcraftctl pull
@@ -556,7 +556,7 @@ parts:
       plugin: go
       source: https://github.com/docker/libnetwork.git
       go-importpath: github.com/docker/libnetwork
-      # from https://github.com/docker/docker-ce/blob/v19.03.12/components/engine/vendor.conf
+      # from https://github.com/docker/docker-ce/blob/v19.03.13/components/engine/vendor.conf
       source-commit: 026aabaa659832804b01754aaadd2c0f420c68b6
       organize:
         'bin/proxy': bin/docker-proxy
@@ -566,7 +566,7 @@ parts:
       plugin: cmake
       source: https://github.com/krallin/tini.git
       source-type: git
-      # from https://github.com/docker/docker-ce/blob/v19.03.12/components/engine/hack/dockerfile/install/tini.installer
+      # from https://github.com/docker/docker-ce/blob/v19.03.13/components/engine/hack/dockerfile/install/tini.installer
       source-tag: v0.18.0
       organize:
         'bin/tini-static': bin/docker-init
