@@ -438,26 +438,12 @@ parts:
       source: https://github.com/containernetworking/plugins.git
       source-commit: 1f33fb729ae2b8900785f896df2dc1f6fe5e8239
       go-importpath: github.com/containernetworking/plugins
-      override-pull: |
-        # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
-        # Create the go workspace. This is normally done by the plugin
-        install -d go
-        install -d go/src
-        install -d go/bin
-        install -d go/pkg
-        install -d go/src/github.com/containernetworking
-        cd go/src/github.com/containernetworking
-        git clone https://github.com/containernetworking/plugins.git
-        cd plugins
-        git checkout 1f33fb729ae2b8900785f896df2dc1f6fe5e8239
+      build-environment:
+        - GOFLAGS: "${GOFLAGS} -mod=vendor -modcacherw"
       override-build: |
-        export GOFLAGS="${GOFLAGS} -mod=vendor -modcacherw"
-        export GOPATH=${SNAPCRAFT_PART_SRC}/go
-        export PROJECT_DIR=${GOPATH}/src/github.com/containernetworking/plugins
+        export GOPATH=${SNAPCRAFT_PART_SRC}/../go
 
-        cd ${PROJECT_DIR}
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin
-
         PLUGINS="plugins/meta/* plugins/main/* plugins/ipam/*"
         for d in $PLUGINS; do
           echo "$d"
@@ -471,22 +457,12 @@ parts:
           fi
         done
 
-        cd ${SNAPCRAFT_PART_SRC}
-
         install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files/cni/c2d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d
         install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files/cni/c2d-inner ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d-inner
 
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d
         install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files/cni/10-c2d.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/10-c2d.conf
         install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files/cni/99-loopback.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/99-loopback.conf
-      filesets:
-        cni_bin:
-          - wigwag/system/opt/cni/bin/*
-        cni_conf:
-          - wigwag/system/etc/cni/net.d/*
-      stage:
-        - $cni_bin
-        - $cni_conf
     kubelet:
       plugin: make
       source: https://github.com/PelionIoT/edge-kubelet.git
