@@ -330,35 +330,19 @@ parts:
         chmod -R 0755 ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
     maestro-shell:
       plugin: go
-      source: https://github.com/armPelionEdge/maestro-shell.git
+      source: https://github.com/PelionIot/maestro-shell.git
       source-commit: aa2336b361555c471daab0d2dc21a7f750bdf813
+      go-importpath: github.com/armPelionEdge/maestro-shell
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
-      override-pull: |
-        # The go plugin also tries to run go get to fetch project dependencies. We just want to use the vendored dependencies.
-        # Create the go workspace. This is normally done by the plugin
-        install -d go
-        install -d go/src
-        install -d go/bin
-        install -d go/pkg
-        install -d go/src/github.com/armPelionEdge
-        cd go/src/github.com/armPelionEdge
-        git clone https://github.com/armPelionEdge/maestro-shell.git
-        cd maestro-shell
-        git checkout aa2336b361555c471daab0d2dc21a7f750bdf813
+        - CGO_LDFLAGS: "-L${SNAPCRAFT_PART_BUILD}/vendor/github.com/armPelionEdge/greasego/deps/lib ${CGO_LDFLAGS}"
       override-build: |
-        export GOPATH=${SNAPCRAFT_PART_BUILD}/go
-        cd ${GOPATH}/src/github.com/armPelionEdge/maestro-shell/
         # Build maestro-shell dependencies
         ./build-deps.sh
         # Build maestro-shell
-        go build github.com/armPelionEdge/maestro-shell
-        # Install maestro-shell into GOPATH/bin
-        go install github.com/armPelionEdge/maestro-shell
-        # Install maestro-shell into the SNAPCRAFT_PART_INSTALL folder so that it is
-        # copied into the prime directory during the prime step
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
-        install ${GOPATH}/bin/maestro-shell ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro-shell
+        snapcraftctl build
+      organize:
+        bin/maestro-shell: wigwag/system/bin/maestro-shell
     yq:
       plugin: go
       build-environment:
