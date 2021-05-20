@@ -68,6 +68,10 @@ if [[ -z $(snapctl get kubelet.offline-mode) ]]; then
     snapctl set kubelet.offline-mode=true
 fi
 
+if [[ -z $(snapctl get docker.bridge) ]]; then
+    snapctl set docker.bridge=enable
+fi
+
 if [[ -z $(snapctl get edge-core.refresh-timeout) ]]; then
     snapctl set edge-core.refresh-timeout=300
 fi
