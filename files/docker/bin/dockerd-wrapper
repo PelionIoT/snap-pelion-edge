@@ -72,6 +72,12 @@ workaround_apparmor_profile_reload
 
 workaround_missing_xdg_runtime_dir
 
+if [ $(snapctl get docker.bridge) = "disable" ]; then
+	BRIDGEOPTS="--bridge=none"
+else
+	BRIDGEOPTS=""
+fi
+
 exec dockerd \
 	-G $default_socket_group \
 	--exec-root="$SNAP_COMMON/var/run/docker" \
@@ -79,4 +85,5 @@ exec dockerd \
 	--pidfile="$SNAP_COMMON/var/run/docker.pid" \
 	--host="unix://$SNAP_COMMON/var/run/docker.sock" \
 	--config-file="$SNAP_DATA/config/daemon.json" \
+	$BRIDGEOPTS \
 	"$@"
