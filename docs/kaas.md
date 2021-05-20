@@ -327,3 +327,16 @@ From the the gateway terminal, or relayterm, use the following commands:
 1. `snap restart pelion-edge`
 
 This should cause existing containers to change their addresses so they're in the 192.168.0.0/24 subnet.
+
+
+## Disabling Default Docker Bridge
+
+In many cases, the administrator will want to disable the default docker
+bridge(`docker0`).
+
+From the the gateway terminal, or relayterm, use the following command:
+
+1. `snap set pelion-edge docker.bridge=disable`
+1. `snap restart pelion-edge`
+
+This should cause the `docker0` network interface to disappear.
