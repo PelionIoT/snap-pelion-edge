@@ -399,6 +399,8 @@ parts:
         done
         # fixup the SNAP and SNAP_DATA variables in the config files based on the snap name
         sed -i "s!/snap/pelion-edge!/snap/${SNAPCRAFT_PROJECT_NAME}!" ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/*.yaml
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
+        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/maestro.VERSION
     cni:
       plugin: go
       source: https://github.com/containernetworking/plugins.git
