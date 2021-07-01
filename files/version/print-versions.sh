@@ -1,10 +1,5 @@
 #!/bin/bash
 
-THISFILE=$(basename $0)
-if [[ -e "${SNAP_DATA}/$THISFILE" ]] && [[ "$0" != "${SNAP_DATA}/$THISFILE" ]]; then
-    exec ${SNAP_DATA}/$THISFILE $@
-fi
-
 SHOW_DOCKER="false"
 
 while [ -n "$1" ]; do
