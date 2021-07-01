@@ -1,4 +1,6 @@
 = Pelion Edge =
+* version
+    Prints the version of each pelion-edge component.
 
 == edge-core ==
 
