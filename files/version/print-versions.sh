@@ -22,7 +22,7 @@ echo -n "devicedb: "; ${SNAP}/wigwag/system/bin/devicedb -version
 echo -n "maestro: "; ${SNAP}/wigwag/system/bin/maestro --version
 echo -n "maestro-shell: "; cat ${SNAP}/wigwag/etc/maestro-shell.VERSION
 echo -n "edge-proxy: "; cat ${SNAP}/wigwag/etc/edge-proxy.VERSION
-echo -n "kubelet: "; ${SNAP}/wigwag/system/bin/kubelet --version
+echo -n "kubelet: "; ${SNAP}/wigwag/system/bin/kubelet --version | cut -d' ' -f2
 if [ "${SHOW_DOCKER}" = "true" ]; then
 	echo -n "docker: "; ${SNAP}/bin/docker --version
 	echo -n "docker-runc: "; ${SNAP}/bin/docker-runc --version
