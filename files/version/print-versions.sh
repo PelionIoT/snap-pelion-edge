@@ -21,7 +21,7 @@ echo -n "edge-core: "; ${SNAP}/wigwag/mbed/edge-core --version
 echo -n "devicedb: "; ${SNAP}/wigwag/system/bin/devicedb -version
 echo -n "maestro: "; ${SNAP}/wigwag/system/bin/maestro --version
 echo -n "maestro-shell: "; ${SNAP}/wigwag/system/bin/maestro-shell -h | grep ver
-echo "edge-proxy: unsupported"
+echo -n "edge-proxy: "; cat ${SNAP}/wigwag/etc/edge-proxy.VERSION
 echo -n "kubelet: "; ${SNAP}/wigwag/system/bin/kubelet --version
 if [ "${SHOW_DOCKER}" = "true" ]; then
 	echo -n "docker: "; ${SNAP}/bin/docker --version
