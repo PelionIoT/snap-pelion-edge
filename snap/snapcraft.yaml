@@ -353,6 +353,8 @@ parts:
         ./build-deps.sh
         # Build maestro-shell
         snapcraftctl build
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
+        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/maestro-shell.VERSION
       organize:
         bin/maestro-shell: wigwag/system/bin/maestro-shell
     yq:
