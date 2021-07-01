@@ -299,6 +299,8 @@ parts:
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/config/edge-proxy.conf.json ${SNAPCRAFT_PART_INSTALL}/
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/scripts/launch-edge-proxy.sh ${SNAPCRAFT_PART_INSTALL}/
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
+        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/edge-proxy.VERSION
       organize:
         bin/edge-proxy: wigwag/system/bin/edge-proxy
     devicedb:
