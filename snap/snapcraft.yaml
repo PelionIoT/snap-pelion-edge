@@ -179,6 +179,8 @@ apps:
         - docker-daemon
     docker-help:
       command: bin/help
+    version:
+      command: bin/print-versions
 parts:
     help:
       plugin: dump
@@ -186,6 +188,14 @@ parts:
       override-build: |
         snapcraftctl build
         chmod a+x bin/print-help
+    version:
+      plugin: dump
+      source: files/version/
+      override-build: |
+        snapcraftctl build
+        chmod a+x print-versions.sh
+      organize:
+        print-versions.sh: bin/print-versions
     platform-version:
       plugin: dump
       source: files/platform-version/
