@@ -322,6 +322,10 @@ parts:
       source: https://github.com/PelionIoT/edge-node-modules.git
       source-commit: bcafcba2e6602ef486a8975c67a1df3872289499
       source-subdir: relay-term
+      override-build: |
+        snapcraftctl build
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
+        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/edge-node-modules.VERSION
       organize:
         'config': wigwag/wigwag-core-modules/relay-term/config
         'node_modules': wigwag/wigwag-core-modules/relay-term/node_modules
