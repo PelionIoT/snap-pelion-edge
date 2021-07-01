@@ -322,7 +322,7 @@ parts:
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
         install ${SNAPCRAFT_PROJECT_DIR}/files/pe-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
-        cp -r . ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
+        cp -r identity-tools ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils/
         chmod -R 0755 ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
     maestro-shell:
       plugin: go
