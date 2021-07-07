@@ -471,7 +471,7 @@ parts:
     kubelet:
       plugin: make
       source: https://github.com/PelionIoT/edge-kubelet.git
-      source-commit: 35225842cd6b20d98613d8c1b08b7a376bd3209d
+      source-tag: v1.0.0
       build-packages:
         - libseccomp-dev
       override-build: |
