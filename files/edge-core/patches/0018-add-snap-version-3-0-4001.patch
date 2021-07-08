@@ -1,4 +1,4 @@
-From 4cc2c90ed3910b6562c91449529687199f07314e Mon Sep 17 00:00:00 2001
+From ef7261816d6126d1e1ab30d7f7ddbfb6114e5ddb Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Thu, 11 Mar 2021 13:01:03 -0600
 Subject: [PATCH 13/14] add snap version /3/0/4001
@@ -53,5 +53,5 @@ index 2477443..b6aab2e 100644
      // cpu temp
      gsr_create_resource(GATEWAY_STATS_OBJ_ID,
 -- 
-2.17.1
+2.30.1 (Apple Git-130)
 
