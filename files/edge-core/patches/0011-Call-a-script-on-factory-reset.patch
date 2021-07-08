@@ -1,4 +1,4 @@
-From 095396d9ea4cfc3b6777935b64f68f0693676c94 Mon Sep 17 00:00:00 2001
+From fc95e9762c9f685437774f96e7476ffba84faa1c Mon Sep 17 00:00:00 2001
 From: Kyle Stein <kyle.stein@arm.com>
 Date: Wed, 25 Mar 2020 09:14:14 -0500
 Subject: [PATCH 06/14] Call a script on factory reset
@@ -40,5 +40,5 @@ index 4ab25a0..bdc3908 100644
  }
  
 -- 
-2.17.1
+2.30.1 (Apple Git-130)
 

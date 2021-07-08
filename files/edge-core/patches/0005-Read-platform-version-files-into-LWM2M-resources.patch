@@ -1,7 +1,7 @@
-From 6e9742dd6b9094b5692db73093b330302360ca46 Mon Sep 17 00:00:00 2001
+From 605d020d67cec6615e30bac1f9c528c10c14f8bd Mon Sep 17 00:00:00 2001
 From: Michael Ray <mjray@umich.edu>
 Date: Wed, 25 Mar 2020 14:20:17 -0500
-Subject: [PATCH 04/14] Read platform version files into LWM2M resources
+Subject: [PATCH 5/5] Read platform version files into LWM2M resources
 
 Platform Version readable: /10252/0/10
 Platform Version MD5 hash: /10252/0/11
@@ -27,10 +27,10 @@ but a FOTA would not complete without setting it to the expected time
  .../source/FirmwareUpdateResource.cpp         | 55 +++++++++++++++++++
  1 file changed, 55 insertions(+)
 
-diff --git a/lib/mbed-cloud-client/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp b/lib/mbed-cloud-client/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp
-index 628c0d2..fbe1e5f 100644
---- a/lib/mbed-cloud-client/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp
-+++ b/lib/mbed-cloud-client/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp
+diff --git a/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp b/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp
+index 798254e..f8accff 100644
+--- a/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp
++++ b/update-client-hub/modules/lwm2m-mbed/source/FirmwareUpdateResource.cpp
 @@ -50,6 +50,14 @@
  #define RESOURCE_VALUE(arg) #arg
  #endif
@@ -108,5 +108,5 @@ index 628c0d2..fbe1e5f 100644
                  /* Create Update resource /10252/0/9 */
                  resourceUpdate = updateInstance->create_dynamic_resource(
 -- 
-2.17.1
+2.30.1 (Apple Git-130)
 
