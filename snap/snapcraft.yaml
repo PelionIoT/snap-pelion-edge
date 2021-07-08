@@ -646,8 +646,8 @@ parts:
         snapcraftctl build
         echo Reverting the go version
         sudo rm /usr/local/bin/go /usr/local/bin/gofmt
-        sudo ln -sf /usr/local/go1.14/bin/go /usr/local/bin/go
-        sudo ln -sf /usr/local/go1.14/bin/gofmt /usr/local/bin/gofmt
+        sudo ln -sf /usr/local/go1.15/bin/go /usr/local/bin/go
+        sudo ln -sf /usr/local/go1.15/bin/gofmt /usr/local/bin/gofmt
     bouncer:
       plugin: cmake
       source: https://github.com/PelionIoT/bouncer.git
