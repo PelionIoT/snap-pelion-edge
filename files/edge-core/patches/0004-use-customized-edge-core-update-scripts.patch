@@ -1,16 +1,16 @@
-From 40ccdb24898d039d0ec7faf93e30d4686159c501 Mon Sep 17 00:00:00 2001
+From 5f1598245a7f0ff7eae2528e321e4a0c9541ef35 Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Thu, 2 Apr 2020 16:37:10 -0500
-Subject: [PATCH 02/14] use customized edge-core update scripts
+Subject: [PATCH 4/5] use customized edge-core update scripts
 
 ---
  .../source/arm_uc_pal_linux_generic.c          | 18 +++++++++---------
  1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c b/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c
+diff --git a/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c b/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c
 index 4f7c0be..09d623d 100644
---- a/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c
-+++ b/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c
+--- a/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c
++++ b/update-client-hub/modules/pal-linux/source/arm_uc_pal_linux_generic.c
 @@ -121,7 +121,7 @@ arm_ucp_worker_t arm_uc_worker_parameters_details = {
  };
  
@@ -59,5 +59,5 @@ index 4f7c0be..09d623d 100644
  
      return ARM_UC_PAL_Linux_Initialize(callback);
 -- 
-2.17.1
+2.30.1 (Apple Git-130)
 

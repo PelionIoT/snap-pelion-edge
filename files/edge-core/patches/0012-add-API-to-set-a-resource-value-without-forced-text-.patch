@@ -1,4 +1,4 @@
-From bb83a5c57fca79df5301c3d66f476d85e2e2c289 Mon Sep 17 00:00:00 2001
+From 44721b5675960eedbc5fea05feeb7924b11bdee2 Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Tue, 9 Mar 2021 13:43:52 -0600
 Subject: [PATCH 07/14] add API to set a resource value without forced text
@@ -10,10 +10,10 @@ Subject: [PATCH 07/14] add API to set a resource value without forced text
  2 files changed, 75 insertions(+)
 
 diff --git a/edge-client/edge-client/edge_client.h b/edge-client/edge-client/edge_client.h
-index d40ae29..a9b2adf 100644
+index d5c7af2..b2dc02c 100644
 --- a/edge-client/edge-client/edge_client.h
 +++ b/edge-client/edge-client/edge_client.h
-@@ -519,6 +519,25 @@ pt_api_result_code_e edgeclient_set_resource_value(const char *endpoint_name,
+@@ -428,6 +428,25 @@ pt_api_result_code_e edgeclient_set_resource_value(const char *endpoint_name,
                                                     int opr,
                                                     void *ctx);
  
@@ -40,10 +40,10 @@ index d40ae29..a9b2adf 100644
   * \brief Send asynchronous response for the given resource. Use this API to send the asynchronous response after
   *        getting a post or a request callback.
 diff --git a/edge-client/edge_client.cpp b/edge-client/edge_client.cpp
-index 0e00a96..e9f061f 100644
+index 9d5722c..1b91425 100644
 --- a/edge-client/edge_client.cpp
 +++ b/edge-client/edge_client.cpp
-@@ -1346,6 +1346,62 @@ pt_api_result_code_e edgeclient_set_resource_value(const char *endpoint_name, co
+@@ -1322,6 +1322,62 @@ pt_api_result_code_e edgeclient_set_resource_value(const char *endpoint_name, co
      return PT_API_SUCCESS;
  }
  
@@ -107,5 +107,5 @@ index 0e00a96..e9f061f 100644
  bool edgeclient_get_resource_value_and_attributes(const char *endpoint_name,
                                                    const uint16_t object_id,
 -- 
-2.17.1
+2.30.1 (Apple Git-130)
 

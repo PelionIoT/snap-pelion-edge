@@ -1,0 +1,227 @@
+From a3e874114873edc3f9cbdb275b8c397dc6627a79 Mon Sep 17 00:00:00 2001
+From: Nic Costa <nic.costa@gmail.com>
+Date: Wed, 30 Jun 2021 14:04:45 +0000
+Subject: [PATCH] Add network proxy support
+
+* add CLI option "--proxy" to set a network proxy config
+* add CMake options to turn on network proxy support
+
+This commit also contains a small change to workaround
+a mbed-cloud-client API memory issue. The mbed-cloud-client
+API expects the caller to maintain the memory buffer that supplies
+the proxy address, auth, and creds, and so the local variables
+used to pass the proxy configs to the mbed-cloud-client library
+had to be declared static so that they are not destroyed after
+the config function ends.
+---
+ cmake/edge_configure.cmake                 |  7 +++
+ edge-client/edge-client/edge_client.h      |  3 ++
+ edge-client/edge-client/edge_client_impl.h | 62 ++++++++++++++++++++++
+ edge-client/edge_client.cpp                |  3 ++
+ edge-core/edge_core_clip.h                 | 19 ++++++-
+ edge-core/edge_server.c                    |  3 ++
+ 6 files changed, 96 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/edge_configure.cmake b/cmake/edge_configure.cmake
+index 9aaedbd..e263552 100644
+--- a/cmake/edge_configure.cmake
++++ b/cmake/edge_configure.cmake
+@@ -8,6 +8,9 @@
+ # Enable firmware update capabilities
+ option (FIRMWARE_UPDATE "Enable firware update" ON)
+ 
++# Support network proxies
++option (NETWORK_PROXY_SUPPORT "Enable support for network proxies" OFF)
++
+ # Provisioning mode
+ # Use -D[DEVELOPER|BYOC|FACTORY]_MODE=ON
+ option (DEVELOPER_MODE "Developer mode" OFF)
+@@ -147,6 +150,10 @@ if (${FIRMWARE_UPDATE})
+ 
+ endif()
+ 
++if (${NETWORK_PROXY_SUPPORT})
++  add_definitions ("-DMBED_CLOUD_CLIENT_NETWORK_PROXY=1")
++endif()
++
+ # mbedtls is supported
+ # Custom mbedtls configuration header file can be given with argument -DMBEDTLS_CONFIG
+ SET (TLS_LIBRARY "mbedTLS")
+diff --git a/edge-client/edge-client/edge_client.h b/edge-client/edge-client/edge_client.h
+index 567ab9a..d40ae29 100644
+--- a/edge-client/edge-client/edge_client.h
++++ b/edge-client/edge-client/edge_client.h
+@@ -230,6 +230,9 @@ typedef struct {
+     handle_est_status_cb handle_est_status_cb;
+     void *cert_renewal_ctx;
+     bool reset_storage;
++#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
++    char *proxy;
++#endif
+ } edgeclient_create_parameters_t;
+ 
+ /**
+diff --git a/edge-client/edge-client/edge_client_impl.h b/edge-client/edge-client/edge_client_impl.h
+index 4014892..11b73b4 100644
+--- a/edge-client/edge-client/edge_client_impl.h
++++ b/edge-client/edge-client/edge_client_impl.h
+@@ -103,6 +103,68 @@ public:
+         _on_est_result_cb = est_result_cb;
+     }
+ 
++#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
++    void set_proxy(const char *proxy)
++    {
++        int c;
++        uint16_t proxy_port;
++        /* TODO: make these non-static when the mbed-cloud-client lib is fixed. */
++        static String proxy_address;
++        static String proxy_auth_type;
++        static String proxy_creds;
++
++        if (NULL == proxy) {
++            tr_debug("EdgeClientImpl::set_proxy: no address configured");
++            return;
++        }
++
++        String addr = proxy;
++        // split host:port
++        c = addr.find_last_of(':');
++        if (c > 0 && c < (int)addr.length()) {
++            int64_t value;
++            proxy_address = addr.substr(0, c);
++            // convert port string to integer
++            String port = addr.substr(c + 1, addr.length() - c);
++            bool converted = String::convert_ascii_to_int(port.c_str(), port.length(), value);
++            if (converted == true && value > 0 && value < 65535) {
++            proxy_port = (uint16_t)value;
++            } else {
++            // failed to convert port to integer, use default
++            proxy_port = 1080;
++            }
++        } else {
++            // no port found, use default
++            proxy_address = proxy;
++            proxy_port = 1080;
++        }
++
++        // strip http://
++        String HTTP = "http://";
++        String HTTPS = "https://";
++        if (proxy_address.compare(0, HTTP.size(), HTTP) == 0) {
++            proxy_address = proxy_address.substr(HTTP.size(), proxy_address.size() - HTTP.size());
++        } else if (proxy_address.compare(0, HTTPS.size(), HTTPS) == 0) {
++            tr_error("EdgeClientImpl::set_proxy: HTTPS proxy is not supported.  Use HTTP");
++            return;
++        }
++
++        // split user:pass@server
++        c = proxy_address.find_last_of('@');
++        if (c > 0 && c < (int)proxy_address.length()) {
++            proxy_auth_type = "Basic";
++            proxy_creds = proxy_address.substr(0, c);
++            proxy_address = proxy_address.substr(c + 1, proxy_address.length() - c);
++        } else {
++            proxy_auth_type = "";
++            proxy_creds = "";
++        }
++
++        pal_proxy_set_configuration(proxy_address.c_str(), proxy_port, proxy_auth_type.c_str(), proxy_creds.c_str());
++        tr_debug("EdgeClientImpl::set_proxy: address=%s, port=%u", proxy_address.c_str(), proxy_port);
++    }
++#endif
++
+     void est_free_cert_chain_context(struct cert_chain_context_s *chain_ctx)
+     {
+         _cloud_client.est_free_cert_chain_context(chain_ctx);
+diff --git a/edge-client/edge_client.cpp b/edge-client/edge_client.cpp
+index 1d9e95f..0e00a96 100644
+--- a/edge-client/edge_client.cpp
++++ b/edge-client/edge_client.cpp
+@@ -695,6 +695,9 @@ void edgeclient_create(const edgeclient_create_parameters_t *params, byoc_data_t
+         client->set_on_error_callback(edgeclient_on_error_callback);
+         client->set_on_certificate_renewal_callback(edgeclient_on_certificate_renewal_callback);
+         client->set_on_est_result_callback(edgeclient_on_est_status_callback);
++#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
++        client->set_proxy(params->proxy);
++#endif
+         tr_debug("create_client - client = %p", client);
+     }
+ }
+diff --git a/edge-core/edge_core_clip.h b/edge-core/edge_core_clip.h
+index ebde5e4..4f07f25 100644
+--- a/edge-core/edge_core_clip.h
++++ b/edge-core/edge_core_clip.h
+@@ -40,6 +40,9 @@ typedef struct {
+     char *cbor_conf;
+     char *edge_pt_domain_socket;
+     char *http_port;
++#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
++    char *proxy;
++#endif
+     /* special */
+     const char *usage_pattern;
+     const char *help_message;
+@@ -67,6 +70,9 @@ const char help_message[] =
+ "                                       This option cannot be used if built with DEVELOPER_MODE or FACTORY_MODE.\n"
+ "                                       If this option is given second time (without --reset-storage) the current\n"
+ "                                       Device Management Client configuration is used.\n"
++#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
++"  -x --proxy                           Connect to the specified proxy and create a HTTP proxy tunnel using HTTP CONNECT\n"
++#endif
+ "";
+ 
+ const char usage_pattern[] =
+@@ -309,6 +315,11 @@ int elems_to_args(Elements *elements, DocoptArgs *args, bool help,
+         } else if (!strcmp(option->olong, "--http-port")) {
+             if (option->argument)
+                 args->http_port = option->argument;
++#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
++        } else if (!strcmp(option->olong, "--proxy")) {
++            if (option->argument)
++                args->proxy = option->argument;
++#endif
+         }
+     }
+     /* commands */
+@@ -330,6 +341,9 @@ int elems_to_args(Elements *elements, DocoptArgs *args, bool help,
+ DocoptArgs docopt(int argc, char *argv[], bool help, const char *version) {
+     DocoptArgs args = {
+         0, 0, 0, 0, NULL, (char*) "/tmp/edge.sock", (char*) "8080",
++#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
++        NULL,
++#endif
+         usage_pattern, help_message
+     };
+     Tokens ts;
+@@ -344,9 +358,12 @@ DocoptArgs docopt(int argc, char *argv[], bool help, const char *version) {
+         {"-v", "--version", 0, 0, NULL},
+         {"-c", "--cbor-conf", 1, 0, NULL},
+         {"-p", "--edge-pt-domain-socket", 1, 0, NULL},
++#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
++        {"-x", "--proxy", 1, 0, NULL},
++#endif
+         {"-o", "--http-port", 1, 0, NULL}
+     };
+-    Elements elements = {0, 0, 7, commands, arguments, options};
++    Elements elements = {0, 0, sizeof(options)/sizeof(options[0]), commands, arguments, options};
+ 
+     ts = tokens_new(argc, argv);
+     if (parse_args(&ts, &elements))
+diff --git a/edge-core/edge_server.c b/edge-core/edge_server.c
+index 2a0bc84..e91c63a 100644
+--- a/edge-core/edge_server.c
++++ b/edge-core/edge_server.c
+@@ -781,6 +781,9 @@ int testable_main(int argc, char **argv)
+         edgeclient_create_params.handle_est_status_cb = (handle_est_status_cb)
+             est_enrollment_result_notifier;
+         edgeclient_create_params.cert_renewal_ctx = &g_program_context->ctx_data->registered_translators;
++#if MBED_CLOUD_CLIENT_NETWORK_PROXY == 1
++        edgeclient_create_params.proxy = args.proxy;
++#endif
+ 
+         // args.cbor_conf is in stack
+         #ifdef DEVELOPER_MODE
+-- 
+2.30.1 (Apple Git-130)
+

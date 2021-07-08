@@ -1,4 +1,4 @@
-From ed930b11c7879955f6ac2874a81025a8695c1e1e Mon Sep 17 00:00:00 2001
+From d41870a819136902579e395a1cf25ea8d6985d41 Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Mon, 8 Mar 2021 15:33:28 -0600
 Subject: [PATCH 08/14] add stubs for gateway statistics resources
@@ -156,7 +156,7 @@ index 0000000..a9c41e3
 +    return;
 +}
 diff --git a/edge-core/edge_server.c b/edge-core/edge_server.c
-index e91c63a..cc02fe9 100644
+index eb41fc4..49cbaeb 100644
 --- a/edge-core/edge_server.c
 +++ b/edge-core/edge_server.c
 @@ -50,6 +50,7 @@
@@ -167,7 +167,7 @@ index e91c63a..cc02fe9 100644
  #include "edge_version_info.h"
  #include "edge-rpc/rpc_timeout_api.h"
  #include "common/msg_api.h"
-@@ -66,6 +67,9 @@
+@@ -67,6 +68,9 @@
  #define SERVER_MGMT_WEBSOCKET_VERSION_PATH "/1/mgmt"
  #define SERVER_GRM_WEBSOCKET_VERSION_PATH "/1/grm"
  
@@ -177,7 +177,7 @@ index e91c63a..cc02fe9 100644
  
  EDGE_LOCAL connection_id_t g_connection_id_counter = 1;
  EDGE_LOCAL struct context *g_program_context = NULL;
-@@ -570,9 +574,26 @@ EDGE_LOCAL void clean(struct context *ctx)
+@@ -585,9 +589,26 @@ EDGE_LOCAL void clean(struct context *ctx)
      }
  }
  
@@ -204,7 +204,7 @@ index e91c63a..cc02fe9 100644
  }
  
  void unregister_cb(void)
-@@ -797,6 +818,7 @@ int testable_main(int argc, char **argv)
+@@ -807,6 +828,7 @@ int testable_main(int argc, char **argv)
  
          edgeclient_create(&edgeclient_create_params, byoc_data);
          rfs_add_factory_reset_resource();
@@ -213,5 +213,5 @@ index e91c63a..cc02fe9 100644
          // Connect client
          edgeclient_connect();
 -- 
-2.17.1
+2.30.1 (Apple Git-130)
 
