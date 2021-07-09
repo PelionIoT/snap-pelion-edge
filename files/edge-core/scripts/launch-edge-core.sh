@@ -29,7 +29,7 @@ fi
 # make sure the PAL_FS_MOUNT_POINT_PRIMARY directory exists so it can be populated
 # with mcc_config
 if [ ! -d ${SNAP_DATA}/userdata/mbed ]; then
-    mkdir -p ${SNAP_DATA}/userdata/mbed
+    mkdir -m 700 -p ${SNAP_DATA}/userdata/mbed
 fi
 
 # make sure the upgrade folder exists in case we need to download updates
