@@ -240,15 +240,14 @@ parts:
         cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/mbed_cloud_client_user_config.h config/mbed_cloud_client_user_config.h
         cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/sotp_fs_linux.h config/sotp_fs_linux.h
         cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/osreboot.c edge-core/osreboot.c
+        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/pal_plat_x86_x64.c lib/mbed-cloud-client/mbed-client-pal/Source/Port/Reference-Impl/OS_Specific/Linux/Board_Specific/TARGET_x86_x64/pal_plat_x86_x64.c
         cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/cmake/target.cmake config/target.cmake
         cp ${SNAPCRAFT_PART_SRC}/cmake/toolchains/mcc-linux-x86.cmake config/toolchain.cmake
         # patch the mbed-cloud-client library
-        sed -i 's!/dev/random!/dev/urandom!' lib/mbed-cloud-client/mbed-client-pal/Source/Port/Reference-Impl/OS_Specific/Linux/Board_Specific/TARGET_x86_x64/pal_plat_x86_x64.c
         sed -i 's!\(MAX_RECONNECT_TIMEOUT\).*!\1 60!' lib/mbed-cloud-client/mbed-client/mbed-client/m2mconstants.h
         git -C lib/mbed-cloud-client/ apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Add-PAL-Proxy-module-using-HTTP.patch
         git -C lib/mbed-cloud-client/ apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0002-Increasing-Path-Size.patch
         git -C lib/mbed-cloud-client/ apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0003-Call-a-restart-script-during-fota.patch
-        git -C lib/mbed-cloud-client/ apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0004-use-customized-edge-core-update-scripts.patch
         git -C lib/mbed-cloud-client/ apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0005-Read-platform-version-files-into-LWM2M-resources.patch
         # patch edge-core
         git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0010-Add-network-proxy-support.patch
@@ -269,10 +268,11 @@ parts:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
         - -DFIRMWARE_UPDATE=ON
+        - -DFOTA_ENABLE=ON
+        - -DFOTA_TRACE=ON
+        - -DMBED_CLOUD_CLIENT_CURL_DYNAMIC_LINK=ON
         - -DDEVELOPER_MODE=ON
         - -DFACTORY_MODE=OFF
-        - -DFOTA_ENABLE=OFF
-        - -DMBED_CLOUD_CLIENT_CURL_DYNAMIC_LINK=OFF
         - -DBYOC_MODE=OFF
         - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
         - -DMBED_CLOUD_DEV_UPDATE_ID=ON
