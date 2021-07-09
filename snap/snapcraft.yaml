@@ -230,6 +230,7 @@ parts:
       source-tag: 0.16.1
       build-environment:
         - COAP_PORT_OVERRIDE_443: "false"
+      stage-packages: [coreutils]
       override-pull: |
         snapcraftctl pull
         # mbed_cloud_dev_credentials.c is required if DEVELOPER_MODE=ON
