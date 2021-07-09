@@ -325,7 +325,7 @@ parts:
     devicedb:
       plugin: go
       source: https://github.com/PelionIoT/devicedb.git
-      source-tag: 1.10.0
+      source-commit: 1a457904f860c510f55477136d68f82ca20f4d7d
       go-importpath: github.com/armPelionEdge/devicedb
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
