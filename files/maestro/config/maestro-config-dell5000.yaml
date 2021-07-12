@@ -45,7 +45,7 @@ gateway_capabilities:
   gateway_resources:
   - name: "urn:fid:pelion.com:log:1.0.0"
     enable: true
-    config_filepath: "{{SNAP_DATA}}/maestro-config.yaml"
+    config_filepath: "{{SNAP_DATA}}/fluent-bit.conf"
   - name: "urn:fid:pelion.com:terminal:1.0.0"
     enable: true
     config_filepath: "{{SNAP_DATA}}/wigwag/etc/relayterm-config.json"
