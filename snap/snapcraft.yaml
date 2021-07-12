@@ -97,6 +97,12 @@ apps:
       restart-condition: always
       daemon: simple
       plugs: [hardware-observe, network-bind, network-control, network-observe, snapd-control]
+    fluent-bit:
+      restart-delay: 5s
+      restart-condition: always
+      command: launch-fluent-bit.sh
+      daemon: simple
+      plugs: [network, network-bind, system-files-logs, log-observe]
     maestro:
       command: launch-maestro.sh
       environment:
@@ -402,6 +408,26 @@ parts:
         sed -i "s!/snap/pelion-edge!/snap/${SNAPCRAFT_PROJECT_NAME}!" ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/*.yaml
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
         git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/maestro.VERSION
+    fluent-bit:
+      plugin: cmake
+      source: https://github.com/fluent/fluent-bit.git
+      source-tag: v1.7.9
+      build-packages:
+        - libsystemd-dev
+        - flex
+        - bison
+      configflags:
+        - -DFLB_JEMALLOC=On
+        - -DFLB_SHARED_LIB=Off
+        - -DFLB_EXAMPLES=Off
+        - -DFLB_IN_SYSTEMD=On
+      override-build: |
+        snapcraftctl build
+        install ${SNAPCRAFT_PROJECT_DIR}/files/fluent-bit/config/fluent-bit.conf ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/fluent-bit/scripts/launch-fluent-bit.sh ${SNAPCRAFT_PART_INSTALL}/
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+      organize:
+        bin/fluent-bit: wigwag/system/bin/fluent-bit
     cni:
       plugin: go
       source: https://github.com/containernetworking/plugins.git
