@@ -239,7 +239,7 @@ parts:
         - snapd
       organize:
         usr/bin/snap: bin/snap
-    edge-core:
+    edge-core-src:
       plugin: cmake
       source: https://github.com/ARMmbed/mbed-edge.git
       source-tag: 0.18.0
@@ -248,11 +248,6 @@ parts:
       stage-packages: [coreutils]
       override-pull: |
         snapcraftctl pull
-        # mbed_cloud_dev_credentials.c is required if DEVELOPER_MODE=ON
-        # update_default_resources.c is required if DEVELOPER_MODE=ON && FIRMWARE_UPDATE=ON
-        # Piping to true allows the cp to not fail when the file is not present
-        cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c || true
-        cp ${SNAPCRAFT_PROJECT_DIR}/update_default_resources.c config/update_default_resources.c || true
         cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/mbed_cloud_client_user_config.h config/mbed_cloud_client_user_config.h
         cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/sotp_fs_linux.h config/sotp_fs_linux.h
         cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/osreboot.c edge-core/osreboot.c
@@ -281,6 +276,50 @@ parts:
             [ -f config/mbed_cloud_dev_credentials.c ] && sed -i 's,\(coaps://[^:]*:\)5684,\1443,' config/mbed_cloud_dev_credentials.c
             git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0019-force-port-443.patch
         fi
+      override-build: |
+        tar -C ${SNAPCRAFT_PART_SRC} -czf ${SNAPCRAFT_PART_BUILD}/edge-core-src.tgz .
+        cp edge-core-src.tgz ${SNAPCRAFT_PART_INSTALL}
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/config/edge-core.conf ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-bootloader.sh ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-factory-reset ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/launch-edge-core.sh ${SNAPCRAFT_PART_INSTALL}/
+        # install the generic update scripts
+        install ${SNAPCRAFT_PART_SRC}/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/scripts/generic/*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
+        # override the generic update scripts with our own
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
+      prime: [ '*', -edge-core-src.tgz ]
+    edge-core:
+      # this variant of edge-core is compiled with factory provisioning mode
+      plugin: cmake
+      after:
+      - edge-core-src
+      source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
+      configflags:
+        - -DCMAKE_BUILD_TYPE=Release
+        - -DTRACE_LEVEL=WARN
+        - -DFIRMWARE_UPDATE=ON
+        - -DDEVELOPER_MODE=OFF
+        - -DFACTORY_MODE=ON
+        - -DFOTA_ENABLE=OFF
+        - -DMBED_CLOUD_CLIENT_CURL_DYNAMIC_LINK=OFF
+        - -DBYOC_MODE=OFF
+        - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
+        - -DMBED_CLOUD_DEV_UPDATE_ID=ON
+        - -DNETWORK_PROXY_SUPPORT=ON
+        - -DPARSEC_TPM_SE_SUPPORT=OFF
+      override-build: |
+        snapcraftctl build
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
+        install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core
+      stage:
+        - wigwag/mbed/edge-core
+    edge-core-dev:
+      # this variant of edge-core is compiled with developer provisioning mode
+      plugin: cmake
+      after:
+      - edge-core-src
+      source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
       configflags:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
@@ -294,18 +333,48 @@ parts:
         - -DMBED_CLOUD_DEV_UPDATE_ID=ON
         - -DNETWORK_PROXY_SUPPORT=ON
         - -DPARSEC_TPM_SE_SUPPORT=OFF
+      override-pull: |
+        snapcraftctl pull
+        # mbed_cloud_dev_credentials.c is required if DEVELOPER_MODE=ON
+        # update_default_resources.c is required if DEVELOPER_MODE=ON && FIRMWARE_UPDATE=ON
+        # Piping to true allows the cp to not fail when the file is not present
+        cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c || true
+        cp ${SNAPCRAFT_PROJECT_DIR}/update_default_resources.c config/update_default_resources.c || true
+      override-build: |
+        # allow devmode to succeed if the credentials don't exist.  if this is the case,
+        # then we won't install the devmode version of edge-core into the snap.
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
+        if [ -f ${SNAPCRAFT_PART_SRC}/config/mbed_cloud_dev_credentials.c ]; then
+            snapcraftctl build
+            install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core-dev
+        fi
+      stage:
+        - wigwag/mbed/*
+    edge-core-byoc:
+      # this variant of edge-core is compiled with byoc provisioning mode
+      plugin: cmake
+      after:
+      - edge-core-src
+      source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
+      configflags:
+        - -DCMAKE_BUILD_TYPE=Release
+        - -DTRACE_LEVEL=WARN
+        - -DDEVELOPER_MODE=OFF
+        - -DFACTORY_MODE=OFF
+        - -DBYOC_MODE=ON
+        - -DFIRMWARE_UPDATE=ON
+        - -DFOTA_ENABLE=OFF
+        - -DMBED_CLOUD_CLIENT_CURL_DYNAMIC_LINK=OFF
+        - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
+        - -DMBED_CLOUD_DEV_UPDATE_ID=ON
+        - -DNETWORK_PROXY_SUPPORT=ON
+        - -DPARSEC_TPM_SE_SUPPORT=OFF
       override-build: |
         snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
-        install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/config/edge-core.conf ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-bootloader.sh ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-factory-reset ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/launch-edge-core.sh ${SNAPCRAFT_PART_INSTALL}/
-        # install the generic update scripts
-        install ${SNAPCRAFT_PART_SRC}/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/scripts/generic/*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
-        # override the generic update scripts with our own
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
+        install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core-byoc
+      stage:
+        - wigwag/mbed/edge-core-byoc
     edge-proxy:
       plugin: go
       source: https://github.com/PelionIoT/edge-proxy.git
