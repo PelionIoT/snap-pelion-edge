@@ -69,23 +69,4 @@ mdns:
      text:
       - "wwid={{ARCH_SERIAL_NUMBER}}"
      hostname: "{{ARCH_SERIAL_NUMBER}}"
-targets:
-   - file: "{{SNAP_DATA}}/userdata/maestro.log"
-     rotate:
-         max_files: 4
-         max_file_size: 10000000  # 10MB max file size
-         max_total_size: 42000000
-         rotate_on_start: true
-     delim: "\n"
-     format_time: "[%ld:%d] "
-     format_level: "<%s> "
-     format_tag: "{%s} "
-     format_origin: "(%s) "
-     filters:
-       - levels: warn
-         format_pre: "\u001B[33m"    # yellow
-         format_post: "\u001B[39m"
-       - levels: error
-         format_pre: "\u001B[31m"    # red
-         format_post: "\u001B[39m"
 config_end: true
