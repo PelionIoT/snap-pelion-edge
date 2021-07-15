@@ -48,27 +48,6 @@ gateway_capabilities:
   - name: "urn:fid:pelion.com:kaas:1.0.0"
     enable: true
     config_filepath: "{{SNAP}}/wigwag/system/var/lib/kubelet/kubeconfig"
-mdns:
-  # disable: true
-  static_records:
-   - name: "WigWagRelay"
-     service: "_wwservices._tcp"  # normally something like https or ftp
-     # domain: "local"     # local is default
-     interfaces: "eth0"
-     not_interfaces: "Witap0"
-     port: 3131
-     text:
-      - "wwid={{ARCH_SERIAL_NUMBER}}"
-     hostname: "wigwaggateway"
-   - name: "WigWagRelay_{{ARCH_SERIAL_NUMBER}}"
-     service: "_wwservices._tcp"  # normally something like https or ftp
-     # domain: "local"     # local is default
-     interfaces: "eth0"
-     not_interfaces: "Witap0"
-     port: 3131
-     text:
-      - "wwid={{ARCH_SERIAL_NUMBER}}"
-     hostname: "{{ARCH_SERIAL_NUMBER}}"
 targets:
    - file: "{{SNAP_DATA}}/userdata/maestro.log"
      rotate:
