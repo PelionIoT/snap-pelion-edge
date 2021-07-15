@@ -98,12 +98,6 @@ apps:
         - system-files-logs
     help:
       command: bin/print-help
-    devicedb:
-      command: wigwag/system/bin/devicedb start -conf $SNAP_DATA/wigwag/etc/devicejs/devicedb.yaml
-      restart-delay: 5s
-      restart-condition: always
-      daemon: simple
-      plugs: [hardware-observe, network-bind, network-control, network-observe, snapd-control]
     fluent-bit:
       restart-delay: 5s
       restart-condition: always
@@ -430,15 +424,6 @@ parts:
         git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/edge-proxy.VERSION
       organize:
         bin/edge-proxy: wigwag/system/bin/edge-proxy
-    devicedb:
-      plugin: go
-      source: https://github.com/PelionIoT/devicedb.git
-      source-commit: 1a457904f860c510f55477136d68f82ca20f4d7d
-      go-importpath: github.com/armPelionEdge/devicedb
-      build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
-      organize:
-        'bin/*': wigwag/system/bin/
     edge-node-modules:
       plugin: nodejs
       nodejs-version: 12.20.1
@@ -515,7 +500,6 @@ parts:
 
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates
         install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/config/maestro-config-dell5000.yaml ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/template.devicedb.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install ${GOPATH}/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
 
