@@ -20,6 +20,9 @@
 export PLATFORM_VERSION=${SNAP_DATA}/etc/platform_version
 export READABLE_VERSION=${SNAP_DATA}/etc/readable_version
 export VERSION_MAP=${SNAP_DATA}/etc/version_map.json
+# make sure this matches the build-time option PAL_FS_MOUNT_POINT_PRIMARY in cmake/target.cmake
+export EDGE_CORE_CREDENTIALS_DIR=${SNAP_DATA}/userdata/mbed/mcc_config
+export DEVICE_CBOR="${SNAP_COMMON}/device.cbor"
 
 if [ -e /tmp/factory-reset-in-progress ]; then
     echo "edge-core refusing to start, factory reset in progress.  To complete the reset, reboot the device."
@@ -28,8 +31,9 @@ fi
 
 # make sure the PAL_FS_MOUNT_POINT_PRIMARY directory exists so it can be populated
 # with mcc_config
-if [ ! -d ${SNAP_DATA}/userdata/mbed ]; then
-    mkdir -m 700 -p ${SNAP_DATA}/userdata/mbed
+edge_core_credentials_parent_dir=$(dirname ${EDGE_CORE_CREDENTIALS_DIR})
+if [ ! -d ${edge_core_credentials_parent_dir} ]; then
+    mkdir -m 700 -p ${edge_core_credentials_parent_dir}
 fi
 
 # make sure the upgrade folder exists in case we need to download updates
@@ -86,5 +90,81 @@ if [[ -n "$EXTERN_HTTP_PROXY" ]]; then
     ARGS="${ARGS} -x ${EXTERN_HTTP_PROXY}"
 fi
 
+# here we determine which mode to boot: factory, developer, or byoc mode.
+# to do that, we first check if we are already provisioned (i.e., we have
+# an mcc_config folder) and if so then boot factory mode. it shouldn't matter
+# which mode created the mcc_config folder because factory mode should still
+# be able to read it and register successfully.
+# if we're not already provisioned then check the configured mode.  if the
+# user configured a specific mode then boot in that mode, else attempt to
+# find byoc credentials or dev credentials on disk.
+edge_core=""
+if [ -d ${EDGE_CORE_CREDENTIALS_DIR} ]; then
+    echo "edge-core is provisioned, booting normally"
+    edge_core=${SNAP}/wigwag/mbed/edge-core
+else
+    echo "edge-core is not provisioned, checking edge-core.provision-mode snap configuration"
+    mode=$(snapctl get edge-core.provision-mode)
+    case "$mode" in
+    factory)
+        echo "edge-core provisioning factory mode"
+        edge_core=${SNAP}/wigwag/mbed/edge-core
+        ;;
+    developer)
+        echo "edge-core provisioning developer mode"
+        edge_core=${SNAP}/wigwag/mbed/edge-core-dev
+        if [ ! -x ${edge_core} ]; then
+            echo "ERROR: edge-core.provision-mode set to developer, but no developer binary is installed"
+            edge_core=""
+        fi
+        ;;
+    byoc)
+        echo "edge-core provisioning byoc mode"
+        edge_core=${SNAP}/wigwag/mbed/edge-core-byoc
+        if [ -x ${edge_core} ]; then
+            ARGS="${ARGS} --cbor-conf ${DEVICE_CBOR}"
+        else
+            echo "ERROR: edge-core.provision-mode set to byoc, but no byoc binary is installed"
+            edge_core=""
+        fi
+        ;;
+    *)
+        if [ ! "$mode" = "auto" ]; then
+            echo "ERROR: unsupported edge-core provision-mode \"${mode}\", falling back to auto"
+        fi
+        edge_core=""
+        echo "edge-core provisioning auto mode"
+        echo "checking for CBOR file ${DEVICE_CBOR}"
+        if [ -f ${DEVICE_CBOR} ]; then
+            echo "found CBOR file, checking for edge-core-byoc binary"
+            edge_core=${SNAP}/wigwag/mbed/edge-core-byoc
+            if [ -x ${edge_core} ]; then
+                echo "found CBOR file and edge-core-byoc, booting byoc mode"
+                ARGS="${ARGS} --cbor-conf ${DEVICE_CBOR}"
+            else
+                echo "WARNING: found CBOR file, but no byoc binary is installed. checking developer mode."
+                edge_core=""
+            fi
+        else
+            echo "CBOR file not found, checking if the snap was built with developer mode"
+        fi
+        if [ -z ${edge_core} ]; then
+            if [ -x ${SNAP}/wigwag/mbed/edge-core-dev ]; then
+                echo "developer mode binary found, booting developer mode"
+                edge_core=${SNAP}/wigwag/mbed/edge-core-dev
+            else
+                echo "developer mode binary not found"
+            fi
+        fi
+        ;;
+    esac
+fi
+if [ -z "$edge_core" ]; then
+    # couldn't find mcc_config credentials, BYOC credentials, or dev credentials and
+    # the user didn't specify a mode.
+    echo "ERROR: device is not provisioned with edge credentials. aborting"
+    exit 1
+fi
+
 # add ${SNAP} to PATH edge-core can run the factory reset script: edge-core-factory-reset
-exec env PATH=${PATH}:${SNAP} ${SNAP}/wigwag/mbed/edge-core ${ARGS}
+exec env PATH=${PATH}:${SNAP} ${edge_core} ${ARGS}

@@ -79,3 +79,9 @@ fi
 if [[ -z $(snapctl get edge-core.proxy) ]]; then
     snapctl set edge-core.proxy=""
 fi
+
+if [[ -z $(snapctl get edge-core.provision-mode) ]]; then
+    snapctl set edge-core.provision-mode="auto"
+fi
+# convert to lowercase to make the launch script simpler
+snapctl set edge-core.provision-mode=$(snapctl get edge-core.provision-mode | tr '[:upper:]' '[:lower:]')
