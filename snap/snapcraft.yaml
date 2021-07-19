@@ -332,12 +332,14 @@ parts:
         cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c || true
         cp ${SNAPCRAFT_PROJECT_DIR}/update_default_resources.c config/update_default_resources.c || true
       override-build: |
-        # allow devmode to succeed if the credentials don't exist.  if this is the case,
-        # then we won't install the devmode version of edge-core into the snap.
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
-        if [ -f ${SNAPCRAFT_PART_SRC}/config/mbed_cloud_dev_credentials.c ]; then
-            snapcraftctl build
-            install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core-dev
+        if [ "${SNAPCRAFT_PROJECT_GRADE}" = "devel" ]; then
+            # allow devmode to succeed if the credentials don't exist.  if this is the case,
+            # then we won't install the devmode version of edge-core into the snap.
+            if [ -f ${SNAPCRAFT_PART_SRC}/config/mbed_cloud_dev_credentials.c ]; then
+                snapcraftctl build
+                install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core-dev
+            fi
         fi
       stage:
         - wigwag/mbed/*
@@ -361,11 +363,13 @@ parts:
         - -DNETWORK_PROXY_SUPPORT=ON
         - -DPARSEC_TPM_SE_SUPPORT=OFF
       override-build: |
-        snapcraftctl build
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
-        install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core-byoc
+        if [ "${SNAPCRAFT_PROJECT_GRADE}" = "devel" ]; then
+            snapcraftctl build
+            install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core-byoc
+        fi
       stage:
-        - wigwag/mbed/edge-core-byoc
+        - wigwag/mbed/*
     edge-proxy:
       plugin: go
       source: https://github.com/PelionIoT/edge-proxy.git
