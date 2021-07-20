@@ -1,4 +1,4 @@
-FROM snapcore/snapcraft@sha256:6d771575c134569e28a590f173f7efae8bf7f4d1746ad8a474c98e02f4a3f627
+FROM snapcore/snapcraft@sha256:8c03355e17ce42d81dee3b915eeea5aea54b3f14a559991e5413ca160c44a1c4
 
 # Optional environment variables that allow the use of an HTTP/HTTPS proxy while building
 # ARG http_proxy="http://<user>:<password>@<proxy-ip>:<proxy-port>"
