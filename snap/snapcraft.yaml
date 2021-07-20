@@ -25,6 +25,10 @@ plugs:
           - /run/log/journal
     home:
         read: all
+    edge-tool-files:
+        interface: personal-files
+        read:
+          - $HOME/.mbed_cloud_config.json
     support:
         interface: docker-support
     privileged:
@@ -71,7 +75,7 @@ apps:
       plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, snapd-control, shutdown, network-manager, modem-manager, log-observe]
     edge-tool:
       command: bin/edge-tool
-      plugs: [home]
+      plugs: [home, edge-tool-files]
     edge-core:
       restart-delay: 5s
       restart-condition: always
