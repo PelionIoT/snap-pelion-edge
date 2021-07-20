@@ -44,3 +44,4 @@ sudo snap connect ${SNAP_NAME}:process-control     :process-control
 sudo snap connect ${SNAP_NAME}:shutdown            :shutdown
 sudo snap connect ${SNAP_NAME}:dbus-wpa            wpa-supplicant:service
 sudo snap connect ${SNAP_NAME}:home                :home
+sudo snap connect ${SNAP_NAME}:edge-tool-files     :personal-files
