@@ -69,6 +69,9 @@ apps:
         PATH: $PATH:$SNAP/wigwag/system/bin
         DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
       plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, snapd-control, shutdown, network-manager, modem-manager, log-observe]
+    edge-tool:
+      command: bin/edge-tool
+      plugs: [home]
     edge-core:
       restart-delay: 5s
       restart-condition: always
@@ -379,6 +382,21 @@ parts:
         fi
       stage:
         - wigwag/mbed/*
+    edge-core-tool:
+      plugin: python
+      after:
+        - edge-core-src
+      source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
+      source-subdir: edge-tool
+      requirements: [ "${SNAPCRAFT_PART_SRC}/edge-tool/requirements.txt" ]
+      build-packages:
+        - libffi-dev
+      override-build: |
+        if [ "${SNAPCRAFT_PROJECT_GRADE}" = "devel" ]; then
+            snapcraftctl build
+        fi
+        install -d ${SNAPCRAFT_PART_INSTALL}/bin
+        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core-tool/edge-core-tool.sh ${SNAPCRAFT_PART_INSTALL}/bin/edge-tool
     edge-proxy:
       plugin: go
       source: https://github.com/PelionIoT/edge-proxy.git
