@@ -90,51 +90,49 @@ if [[ -n "$EXTERN_HTTP_PROXY" ]]; then
     ARGS="${ARGS} -x ${EXTERN_HTTP_PROXY}"
 fi
 
-# here we determine which mode to boot: factory, developer, or byoc mode.
-# to do that, we first check if we are already provisioned (i.e., we have
-# an mcc_config folder) and if so then boot factory mode. it shouldn't matter
-# which mode created the mcc_config folder because factory mode should still
-# be able to read it and register successfully.
-# if we're not already provisioned then check the configured mode.  if the
-# user configured a specific mode then boot in that mode, else attempt to
-# find byoc credentials or dev credentials on disk.
+# Here we determine which mode to boot: factory, developer, or byoc mode.
+# To do that, we first check the configured mode. If the user configured
+# a specific mode then boot in that mode, else check if we are already
+# provisioned (i.e., we have a populated mcc_config/WORKING/ folder) and
+# if so then boot factory mode under the assumption that it shouldn't
+# matter how the mcc_config folder was created as factory mode should
+# still be able to use it to register.  If we're not provisioned, attempt
+# to find byoc credentials and finally dev credentials on disk.
 edge_core=""
-if [ ! $(ls -A ${EDGE_CORE_CREDENTIALS_DIR}/WORKING/ | wc -l) -eq 0 ]; then
-    echo "edge-core is provisioned, booting normally"
+mode=$(snapctl get edge-core.provision-mode)
+case "$mode" in
+factory)
+    echo "edge-core provisioning is set to factory mode"
     edge_core=${SNAP}/wigwag/mbed/edge-core
-else
-    echo "edge-core is not provisioned, checking edge-core.provision-mode snap configuration"
-    mode=$(snapctl get edge-core.provision-mode)
-    case "$mode" in
-    factory)
-        echo "edge-core provisioning factory mode"
-        edge_core=${SNAP}/wigwag/mbed/edge-core
-        ;;
-    developer)
-        echo "edge-core provisioning developer mode"
-        edge_core=${SNAP}/wigwag/mbed/edge-core-dev
-        if [ ! -x ${edge_core} ]; then
-            echo "ERROR: edge-core.provision-mode set to developer, but no developer binary is installed"
-            edge_core=""
-        fi
-        ;;
-    byoc)
-        echo "edge-core provisioning byoc mode"
-        edge_core=${SNAP}/wigwag/mbed/edge-core-byoc
-        if [ -x ${edge_core} ]; then
-            ARGS="${ARGS} --cbor-conf ${DEVICE_CBOR}"
-        else
-            echo "ERROR: edge-core.provision-mode set to byoc, but no byoc binary is installed"
-            edge_core=""
-        fi
-        ;;
-    *)
-        if [ ! "$mode" = "auto" ]; then
-            echo "ERROR: unsupported edge-core provision-mode \"${mode}\", falling back to auto"
-        fi
+    ;;
+developer)
+    echo "edge-core provisioning is set to developer mode"
+    edge_core=${SNAP}/wigwag/mbed/edge-core-dev
+    if [ ! -x ${edge_core} ]; then
+        echo "ERROR: edge-core.provision-mode set to developer, but no developer binary is installed"
         edge_core=""
-        echo "edge-core provisioning auto mode"
-        echo "checking for CBOR file ${DEVICE_CBOR}"
+    fi
+    ;;
+byoc)
+    echo "edge-core provisioning is set to byoc mode"
+    edge_core=${SNAP}/wigwag/mbed/edge-core-byoc
+    if [ -x ${edge_core} ]; then
+        ARGS="${ARGS} --cbor-conf ${DEVICE_CBOR}"
+    else
+        echo "ERROR: edge-core.provision-mode set to byoc, but no byoc binary is installed"
+        edge_core=""
+    fi
+    ;;
+*)
+    if [ ! "$mode" = "auto" ]; then
+        echo "ERROR: unsupported edge-core provision-mode \"${mode}\", falling back to auto"
+    fi
+    echo "edge-core provisioning is set to auto mode"
+    if [ ! $(ls -A ${EDGE_CORE_CREDENTIALS_DIR}/WORKING/ | wc -l) -eq 0 ]; then
+        echo "edge-core is provisioned, booting in factory mode"
+        edge_core=${SNAP}/wigwag/mbed/edge-core
+    else
+        echo "edge-core is not provisioned, checking for CBOR file ${DEVICE_CBOR}"
         if [ -f ${DEVICE_CBOR} ]; then
             echo "found CBOR file, checking for edge-core-byoc binary"
             edge_core=${SNAP}/wigwag/mbed/edge-core-byoc
@@ -156,9 +154,9 @@ else
                 echo "developer mode binary not found"
             fi
         fi
-        ;;
-    esac
-fi
+    fi
+    ;;
+esac
 if [ -z "$edge_core" ]; then
     # couldn't find mcc_config credentials, BYOC credentials, or dev credentials and
     # the user didn't specify a mode.
