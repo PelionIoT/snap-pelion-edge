@@ -99,7 +99,7 @@ fi
 # user configured a specific mode then boot in that mode, else attempt to
 # find byoc credentials or dev credentials on disk.
 edge_core=""
-if [ -d ${EDGE_CORE_CREDENTIALS_DIR} ]; then
+if [ ! $(ls -A ${EDGE_CORE_CREDENTIALS_DIR}/WORKING/ | wc -l) -eq 0 ]; then
     echo "edge-core is provisioned, booting normally"
     edge_core=${SNAP}/wigwag/mbed/edge-core
 else
