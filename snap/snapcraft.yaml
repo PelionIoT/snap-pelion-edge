@@ -274,6 +274,13 @@ parts:
             [ -f config/mbed_cloud_dev_credentials.c ] && sed -i 's,\(coaps://[^:]*:\)5684,\1443,' config/mbed_cloud_dev_credentials.c
             git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0019-force-port-443.patch
         fi
+        # note this patch is specific to edge-core-tool but must be applied here instead of the more
+        # appropriate edge-core-tool override-pull because the default action `snapcraftctl pull` untars
+        # the edge-core-src.tgz into the correct location (all good so far) but then uses pip (since it
+        # uses a python plugin) to download dependencies, which this patch has to fix.  in other words,
+        # there's no hook for us to apply this patch in between the untar step and the pip download step
+        # in snapcraftctl-pull.
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0020-edge-tool-pin-cryptography-to-3.3.patch
       override-build: |
         tar -C ${SNAPCRAFT_PART_SRC} -czf ${SNAPCRAFT_PART_BUILD}/edge-core-src.tgz .
         cp edge-core-src.tgz ${SNAPCRAFT_PART_INSTALL}
