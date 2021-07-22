@@ -116,6 +116,14 @@ apps:
       command: launch-edge-proxy.sh
       daemon: simple
       plugs: [network-bind, network-control, home]
+    pe-terminal:
+      restart-delay: 5s
+      restart-condition: always
+      command: launch-pe-terminal.sh
+      daemon: simple
+      environment:
+        TERM: xterm-256color
+      plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, snapd-control, shutdown, network-manager, modem-manager, log-observe]
     identity:
       command: launch-pelion-identity.sh $SNAP $SNAP_DATA
       daemon: simple
@@ -291,6 +299,21 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/scripts/launch-edge-proxy.sh ${SNAPCRAFT_PART_INSTALL}/
       organize:
         bin/edge-proxy: wigwag/system/bin/edge-proxy
+    pe-terminal:
+      plugin: go
+      source: https://github.com/PelionIoT/pe-terminal.git
+      source-commit: 8d2a020eb0bccf40cd9d9e54188e29df531bc019
+      after: [edge-proxy]
+      go-importpath: github.com/PelionIoT/pe-terminal
+      build-environment:
+        - GOFLAGS:  "$GOFLAGS -modcacherw"
+      override-build: |
+        snapcraftctl build
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+        install ${SNAPCRAFT_PROJECT_DIR}/files/pe-terminal/config/pe-terminal.conf.json ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/pe-terminal/launch-pe-terminal.sh ${SNAPCRAFT_PART_INSTALL}/
+      organize:
+        bin/pe-terminal: wigwag/system/bin/pe-terminal
     devicedb:
       plugin: go
       source: https://github.com/PelionIoT/devicedb.git
