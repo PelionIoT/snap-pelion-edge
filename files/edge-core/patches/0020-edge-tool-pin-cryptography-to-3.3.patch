@@ -1,0 +1,25 @@
+From 6b5ced9f501240d8dac9f8ea0b787c4690527632 Mon Sep 17 00:00:00 2001
+From: Nic Costa <nic.costa@gmail.com>
+Date: Thu, 22 Jul 2021 08:55:05 -0500
+Subject: [PATCH] edge-tool: pin cryptography to < 3.3
+
+cryptography 3.3 doesn't support Python 3.5 which is the version
+used by Snapcraft.
+---
+ edge-tool/requirements.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/edge-tool/requirements.txt b/edge-tool/requirements.txt
+index 3ad107f..3ae6563 100644
+--- a/edge-tool/requirements.txt
++++ b/edge-tool/requirements.txt
+@@ -1,5 +1,5 @@
+ docopt==0.6.2
+ cbor2==4.1.0
+ pyclibrary==0.1.4
+-cryptography==3.3.2
++cryptography<3.3
+ six==1.11.0
+-- 
+2.17.1
+

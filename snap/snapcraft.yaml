@@ -274,6 +274,7 @@ parts:
             [ -f config/mbed_cloud_dev_credentials.c ] && sed -i 's,\(coaps://[^:]*:\)5684,\1443,' config/mbed_cloud_dev_credentials.c
             git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0019-force-port-443.patch
         fi
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0020-edge-tool-pin-cryptography-to-3.3.patch
       override-build: |
         tar -C ${SNAPCRAFT_PART_SRC} -czf ${SNAPCRAFT_PART_BUILD}/edge-core-src.tgz .
         cp edge-core-src.tgz ${SNAPCRAFT_PART_INSTALL}
