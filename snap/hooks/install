@@ -20,3 +20,6 @@
 # disable auto-start on some services.
 # as of snapcraft v3.8, services can't be configured to be disabled by default
 # in snapcraft.yaml and must instead be disabled in the install hook.
+
+# disable relay-term in favour to use pe-terminal.
+snapctl stop --disable ${SNAP_INSTANCE_NAME}.relay-term
