@@ -1,0 +1,22 @@
+From 4bb1b56196051197c55ef7e7162274dcd47c740c Mon Sep 17 00:00:00 2001
+From: Nic Costa <nic.costa@gmail.com>
+Date: Thu, 22 Jul 2021 16:54:35 -0500
+Subject: [PATCH] edge-tool: fix setup.py to install the edge_tool.py script
+
+---
+ edge-tool/setup.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/edge-tool/setup.py b/edge-tool/setup.py
+index 059073c..7c3e7a2 100644
+--- a/edge-tool/setup.py
++++ b/edge-tool/setup.py
+@@ -35,4 +35,5 @@ setup(
+      install_requires=requirements,
+      license='Apache 2.0',
+      description='Tool to convert the development certificate to CBOR formatted object',
++     scripts=['edge_tool.py', 'cbor_converter.py'],
+ )
+-- 
+2.17.1
+
