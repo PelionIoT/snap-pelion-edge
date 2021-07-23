@@ -391,6 +391,9 @@ parts:
       source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
       source-subdir: edge-tool
       requirements: [ "${SNAPCRAFT_PART_SRC}/edge-tool/requirements.txt" ]
+      override-pull: |
+        snapcraftctl pull
+        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0021-edge-tool-fix-setup.py-to-install-the-edge_tool.py-s.patch
       override-build: |
         if [ "${SNAPCRAFT_PROJECT_GRADE}" = "devel" ]; then
             snapcraftctl build
