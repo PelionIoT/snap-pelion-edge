@@ -411,6 +411,9 @@ parts:
         fi
         install -d ${SNAPCRAFT_PART_INSTALL}/bin
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core-tool/edge-core-tool.sh ${SNAPCRAFT_PART_INSTALL}/bin/edge-tool
+      organize:
+        bin/edge_tool.py: wigwag/mbed/edge-tool/edge_tool.py
+        bin/cbor_converter.py: wigwag/mbed/edge-tool/cbor_converter.py
     edge-proxy:
       plugin: go
       source: https://github.com/PelionIoT/edge-proxy.git
