@@ -1,0 +1,25 @@
+name: Build
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Copy mbed_cloud_dev_credentials.c
+        env:
+          MBED_CLOUD_DEV_CREDENTIALS: ${{ secrets.MBED_CLOUD_DEV_CREDENTIALS_C_RYAN }}
+        run: |
+          echo "$MBED_CLOUD_DEV_CREDENTIALS" > mbed_cloud_dev_credentials.c
+      - name: Copy update_default_resources.c
+        env:
+          UPDATE_DEFAULT_RESOURCES: ${{ secrets.UPDATE_DEFAULT_RESOURCES_C_RYAN }}
+        run: |
+          echo "$UPDATE_DEFAULT_RESOURCES" > update_default_resources.c
+      - name: Build Docker image
+        run: |
+          docker build --no-cache -f Dockerfile --label snapcore/snapcraft --tag ${USER}/snapcraft:latest .
+      - name: Build snap
+        run: |
+          docker run --rm -v "$PWD":/build -w /build ${USER}/snapcraft:latest bash -c "sudo apt-get update && snapcraft --debug"
