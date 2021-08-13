@@ -618,3 +618,10 @@ parts:
         'bin/tini-static': bin/docker-init
       prime:
         - bin/docker-init
+    cosign:
+      plugin: go
+      source: https://github.com/sigstore/cosign.git
+      go-importpath: github.com/sigstore/cosign/cmd/cosign
+      source-commit: 33973d078170f586cf27f2cc464844b3f1fa1abb
+      organize:
+        'bin/cosign': bin/cosign
