@@ -626,4 +626,6 @@ parts:
       go-importpath: github.com/sigstore/cosign/cmd/cosign
       source-commit: 33973d078170f586cf27f2cc464844b3f1fa1abb
       override-build: |
-        PATH="/usr/local/go1.17/bin:$PATH" snapcraftctl build
+        export GOROOT=/usr/local/go1.17
+        export PATH="$GOROOT/bin:$PATH"
+        snapcraftctl build
