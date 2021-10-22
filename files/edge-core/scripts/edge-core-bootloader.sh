@@ -35,23 +35,57 @@ function log_msg()
 	echo "$@" |  systemd-cat -p info -t "EDGE-CORE-Bootloader"
 }
 
-function snap_refresh() {
+function snap_refresh_each() {
+    local snapname=${1}
+    log_msg "Refreshing $snapname"
+
     if [ -e "${REFRESH_WATCHID}" ]; then
         echo "Snap refresh already in progress..."
         return 0
     else
-        response=$(curl -sS -H "Content-Type: application/json" --unix-socket /run/snapd.socket http://localhost/v2/snaps -X POST -d '{ "action": "refresh" }')
+        response=$(curl -sS -H "Content-Type: application/json" --unix-socket /run/snapd.socket http://localhost/v2/snaps/$snapname -X POST -d '{ "action": "refresh" }')
         status=$(echo $response | jq -r '.status')
+        kind=$(echo $response | jq -r '.result.kind')
+        type=$(echo respone | jq -r '.type')
         if [ "$status" = "Accepted" ]; then
             change_id=$(echo $response | jq -r '.change')
             echo $change_id > $REFRESH_WATCHID
             return 0
+        elif [[ "$type"=="error"  &&  "$kind" == "snap-no-update-available" ]]; then
+            log_msg "$snapname: $kind. skipping to next snap."
+            return 1
         else
-            echo "Attempted snap refresh.  Returned status " $status
-            echo "Complete response: " $response
+            log_msg "$snapname: Attemped snap refresh; unhandled response."
+            log_msg "Complete response: $response"
             return 1
         fi
     fi
+}
+
+# From https://snapcraft.io/docs/network-requirements api.snapcraft.io:443 should be accessible
+function check_network_access() {
+  stage=$1
+  URI="api.snapcraft.io"
+  local waittime=0
+  local maxwaittime=$2
+  local sleeptime=15
+
+  curl $URI
+  rc=$?
+  log_msg "$stage: Wait for network connectivity for $maxwaittime seconds, rc=$rc" # TODO: rm rc in log
+  while (( rc != 0 ))
+  do
+    sleep $sleeptime
+    (( waittime = waittime + sleeptime ))
+    if (( waittime > maxwaittime ));
+    then
+      log_msg "$stage: Max time exceeded network connectivity"
+      break
+    fi
+    log_msg "$stage: waited $waittime"
+    curl $URI
+    rc=$?
+  done
 }
 
 # if a snap refresh is in progress, wait until it is done
@@ -89,12 +123,48 @@ function check_snap_refresh() {
 			sleep 1
 			tdiff=$(($(date +%s) - timestamp))
 		done
+        if [[ $end_msg = "did not complete in time" ]]; then
+            snap abort $watch_id
+        fi
 		log_msg "Snap refresh $end_msg"
 		rm "$watch_id_file" 2>/dev/null
 	else
-		log_msg "No snap refresh in progress, starting edge-core"
+		log_msg "No snap refresh in progress"
 	fi
 	return $retval
+}
+
+function check_error() {
+    if [ $2 != 0 ]; then
+        echo "$1 failed: $2"
+        rm -rf "${UPGRADE_WORKDIR_FAILED}"
+        mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
+        exit $3
+    fi
+}
+
+function snap_refresh_all_snaps() {
+    log_msg "Refresh all snaps..."
+    # snaplist sorted by snap-name
+    local snaplist=$(curl -sS --unix-socket /run/snapd.socket http://localhost/v2/snaps -X GET |jq -r '.result|sort_by(.name)[].name')
+    local waittime=$(snapctl get edge-core.network-wait-timeout)
+
+    log_msg "snap-refresh-all-snaps nw wait time = $waittime"
+    for eachsnap in ${snaplist}
+    do
+      check_network_access ${eachsnap} ${waittime}
+      snap_refresh_each ${eachsnap}
+      if (( $? == 0 )); then
+        check_snap_refresh
+        rc = $? # store the $rc
+        if (( $rc != 0 )); then
+          (( retval=$rc ))
+        fi
+      else
+        (( retval=$rc ))
+      fi
+    done
+    check_error "snap_refresh_all_snaps" $retval 3
 }
 
 echo "Checking for ${UPGRADE_TGZ}"
@@ -112,15 +182,6 @@ else
     echo "No upgrade payload found...continue to look for upgrade in progress"
 fi
 
-function check_error() {
-    if [ $2 != 0 ]; then
-        echo "$1 failed: $2"
-        rm -rf "${UPGRADE_WORKDIR_FAILED}"
-        mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
-        exit $3
-    fi
-}
-
 # move into folder and call pre-refresh if exists
 if [ -e "${UPGRADE_WORKDIR}" ]; then
     echo "Processing upgrade..."
@@ -137,12 +198,7 @@ if [ -e "${UPGRADE_WORKDIR}" ]; then
         cp map-version.json ${VERSION_MAP}
     fi
 
-    snap_refresh
-    check_error "snap_refresh" $? 2
-
-    # this blocks until snap refresh is complete
-    check_snap_refresh
-    check_error "check_snap_refresh" $? 3
+    snap_refresh_all_snaps
 
     # after snap refresh completes, compare the expected hash values
     if [ "$(cat ${PLATFORM_MD5})" != "$(${SNAP}/bin/platform-version.sh)" ]; then
