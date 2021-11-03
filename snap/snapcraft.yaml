@@ -187,6 +187,8 @@ apps:
       command: bin/help
     version:
       command: bin/print-versions
+    cosign:
+      command: bin/cosign
 parts:
     help:
       plugin: dump
@@ -618,3 +620,20 @@ parts:
         'bin/tini-static': bin/docker-init
       prime:
         - bin/docker-init
+    cosign:
+      plugin: go
+      source: https://github.com/sigstore/cosign.git
+      go-importpath: github.com/sigstore/cosign/cmd/cosign
+      source-commit: 33973d078170f586cf27f2cc464844b3f1fa1abb
+      override-build: |
+        export GOROOT=/usr/local/go1.17
+        export PATH="$GOROOT/bin:$PATH"
+        echo Hacking the go version
+        sudo rm /usr/local/bin/go /usr/local/bin/gofmt
+        sudo ln -sf /usr/local/go1.17/bin/go /usr/local/bin/go
+        sudo ln -sf /usr/local/go1.17/bin/gofmt /usr/local/bin/gofmt
+        snapcraftctl build
+        echo Reverting the go version
+        sudo rm /usr/local/bin/go /usr/local/bin/gofmt
+        sudo ln -sf /usr/local/go1.14/bin/go /usr/local/bin/go
+        sudo ln -sf /usr/local/go1.14/bin/gofmt /usr/local/bin/gofmt
