@@ -65,6 +65,12 @@ if [[ $(snapctl get kubelet.offline-mode) = "true" ]]; then
     OFFLINE_CACHE_OPTION="--offline-cache-path=${SNAP_COMMON}/var/lib/kubelet/store"
 fi
 
+if [[ $(snapctl get kubelet.container-signing) = "true" ]]; then
+    DOCKER_SOCK_PATH="/var/run/docker.sock"
+else
+    DOCKER_SOCK_PATH="/var/run/docker-proxy.sock"
+fi
+
 exec ${SNAP}/wigwag/system/bin/kubelet \
     --root-dir=${SNAP_COMMON}/var/lib/kubelet \
     $OFFLINE_CACHE_OPTION \
