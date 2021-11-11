@@ -5,6 +5,8 @@ default_socket_group=docker
 
 aa_profile_reloaded="$SNAP_COMMON/profile_reloaded"
 
+runtime_path_prefix="/run/snap.$SNAP_INSTANCE_NAME"
+
 workaround_apparmor_profile_reload() {
     #https://github.com/docker/docker-snap/issues/4
     if [ ! -f "$aa_profile_refreshed" ]; then
@@ -60,8 +62,8 @@ if [ ! -f "$SNAP_DATA/config/daemon.json" ]; then
     cp "$SNAP/config/daemon.json" "$SNAP_DATA/config/daemon.json"
 fi
 
-# use SNAP_COMMON for most "data" bits
-mkdir -p "$SNAP_COMMON/var/run/docker"
+# ensure the directory containing runtime state exists
+mkdir -p "$runtime_path_prefix/var/run/docker"
 
 # ensure the layouts dir for /etc/docker exists
 mkdir -p "$SNAP_DATA/etc/docker"
@@ -80,10 +82,10 @@ fi
 
 exec dockerd \
 	-G $default_socket_group \
-	--exec-root="$SNAP_COMMON/var/run/docker" \
-	--data-root="$SNAP_COMMON/var/lib/docker" \
-	--pidfile="$SNAP_COMMON/var/run/docker.pid" \
-	--host="unix://$SNAP_COMMON/var/run/docker.sock" \
+	--exec-root="$runtime_path_prefix/var/run/docker" \
+	--data-root="$runtime_path_prefix/var/lib/docker" \
+	--pidfile="$runtime_path_prefix/var/run/docker.pid" \
+	--host="unix://$runtime_path_prefix/var/run/docker.sock" \
 	--config-file="$SNAP_DATA/config/daemon.json" \
 	$BRIDGEOPTS \
 	"$@"

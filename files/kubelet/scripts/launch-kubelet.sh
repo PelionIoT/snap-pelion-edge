@@ -1,5 +1,7 @@
 #!/bin/bash
 
+runtime_path_prefix="/run/snap.${SNAP_INSTANCE_NAME}"
+
 DEVICE_ID=`jq -r .deviceID ${SNAP_DATA}/userdata/edge_gw_identity/identity.json`
 if [ $? -ne 0 ]; then
     echo "Unable to extract device ID from identity.json"
@@ -75,6 +77,6 @@ exec ${SNAP}/wigwag/system/bin/kubelet \
     --network-plugin=cni \
     --node-status-update-frequency=150s \
     --register-node=true \
-    --docker-endpoint=unix://${SNAP_COMMON}/var/run/docker.sock \
+    --docker-endpoint=unix://$runtime_path_prefix/var/run/docker.sock \
     --v 2 \
     $NODE_IP_OPTION
