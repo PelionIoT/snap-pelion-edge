@@ -189,8 +189,8 @@ apps:
       command: bin/print-versions
     cosign:
       command: bin/cosign
-    socket-proxy:
-      command: launch-socket-proxy.sh
+    bouncer:
+      command: launch-bouncer.sh
 parts:
     help:
       plugin: dump
@@ -642,13 +642,13 @@ parts:
         sudo rm /usr/local/bin/go /usr/local/bin/gofmt
         sudo ln -sf /usr/local/go1.14/bin/go /usr/local/bin/go
         sudo ln -sf /usr/local/go1.14/bin/gofmt /usr/local/bin/gofmt
-    socket-proxy:
+    bouncer:
       plugin: cmake
-      source: https://github.com/PelionIoT/socket-proxy.git
+      source: https://github.com/PelionIoT/bouncer.git
       source-type: git
       source-tag: v1.0.2
       override-build: |
         snapcraftctl build
-        install ${SNAPCRAFT_PROJECT_DIR}/files/socket-proxy/scripts/launch-socket-proxy.sh ${SNAPCRAFT_PART_INSTALL}/
+        install ${SNAPCRAFT_PROJECT_DIR}/files/bouncer/scripts/launch-bouncer.sh ${SNAPCRAFT_PART_INSTALL}/
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/socket-proxy.VERSION
+        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/bouncer.VERSION
