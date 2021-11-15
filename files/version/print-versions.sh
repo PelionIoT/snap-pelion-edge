@@ -18,6 +18,7 @@ echo -n "maestro: "; cat ${SNAP}/wigwag/etc/maestro.VERSION
 echo -n "maestro-shell: "; cat ${SNAP}/wigwag/etc/maestro-shell.VERSION
 echo -n "edge-proxy: "; cat ${SNAP}/wigwag/etc/edge-proxy.VERSION
 echo -n "kubelet: "; ${SNAP}/wigwag/system/bin/kubelet --version | cut -d' ' -f2
+echo -n "bouncer: "; cat ${SNAP}/wigwag/etc/bouncer.VERSION
 if [ "${SHOW_DOCKER}" = "true" ]; then
 	echo -n "docker: "; ${SNAP}/bin/docker --version
 	echo -n "docker-runc: "; ${SNAP}/bin/docker-runc --version

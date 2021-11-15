@@ -18,4 +18,4 @@
 # ----------------------------------------------------------------------------
 
 # add ${SNAP} to PATH edge-core can run the factory reset script: edge-core-factory-reset
-exec env PATH=${PATH}:${SNAP} ${SNAP}/bin/socket-proxy ${SNAP_COMMON}/var/run/docker-proxy.sock ${SNAP_COMMON}/var/run/docker.sock
+exec env PATH=${PATH}:${SNAP} ${SNAP}/bin/bouncer ${SNAP_COMMON}/var/run/docker-proxy.sock ${SNAP_COMMON}/var/run/docker.sock
