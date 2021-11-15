@@ -646,7 +646,7 @@ parts:
       plugin: cmake
       source: https://github.com/PelionIoT/bouncer.git
       source-type: git
-      source-tag: v1.0.2
+      source-tag: v1.0.3
       override-build: |
         snapcraftctl build
         install ${SNAPCRAFT_PROJECT_DIR}/files/bouncer/scripts/launch-bouncer.sh ${SNAPCRAFT_PART_INSTALL}/
