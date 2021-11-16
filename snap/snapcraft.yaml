@@ -514,6 +514,16 @@ parts:
       prime:
       - bin/*
       - config/daemon.json
+    bouncer:
+      plugin: cmake
+      source: https://github.com/PelionIoT/bouncer.git
+      source-type: git
+      source-tag: v1.0.3
+      override-build: |
+        snapcraftctl build
+        install ${SNAPCRAFT_PROJECT_DIR}/files/bouncer/scripts/launch-bouncer.sh ${SNAPCRAFT_PART_INSTALL}/
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
+        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/bouncer.VERSION
     docker-docker:
       plugin: make
       source: https://github.com/docker/docker-ce.git
@@ -642,13 +652,3 @@ parts:
         sudo rm /usr/local/bin/go /usr/local/bin/gofmt
         sudo ln -sf /usr/local/go1.14/bin/go /usr/local/bin/go
         sudo ln -sf /usr/local/go1.14/bin/gofmt /usr/local/bin/gofmt
-    bouncer:
-      plugin: cmake
-      source: https://github.com/PelionIoT/bouncer.git
-      source-type: git
-      source-tag: v1.0.3
-      override-build: |
-        snapcraftctl build
-        install ${SNAPCRAFT_PROJECT_DIR}/files/bouncer/scripts/launch-bouncer.sh ${SNAPCRAFT_PART_INSTALL}/
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        # git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/bouncer.VERSION
