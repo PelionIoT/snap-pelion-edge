@@ -647,8 +647,11 @@ parts:
       source: https://github.com/PelionIoT/bouncer.git
       source-type: git
       source-tag: v1.0.3
+      override-pull: |
+        snapcraftctl pull
+        git describe --tags > bouncer.VERSION
       override-build: |
         snapcraftctl build
         install ${SNAPCRAFT_PROJECT_DIR}/files/bouncer/scripts/launch-bouncer.sh ${SNAPCRAFT_PART_INSTALL}/
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        # git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/bouncer.VERSION
+        install -m 0644 ${SNAPCRAFT_PART_SRC}/bouncer.VERSION ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/
