@@ -66,9 +66,9 @@ if [[ $(snapctl get kubelet.offline-mode) = "true" ]]; then
 fi
 
 if [[ $(snapctl get kubelet.container-signing) = "true" ]]; then
-    DOCKER_SOCK_PATH="/var/run/docker.sock"
-else
     DOCKER_SOCK_PATH="/var/run/docker-proxy.sock"
+else
+    DOCKER_SOCK_PATH="/var/run/docker.sock"
 fi
 
 exec ${SNAP}/wigwag/system/bin/kubelet \
