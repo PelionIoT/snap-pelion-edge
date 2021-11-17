@@ -131,7 +131,7 @@ apps:
       plugs: [snapd-control]
     kubelet:
       restart-delay: 5s
-      after: [dockerd]
+      after: [dockerd, bouncer]
       restart-condition: always
       command: launch-kubelet.sh
       daemon: simple
@@ -191,6 +191,11 @@ apps:
       command: bin/cosign
     bouncer:
       command: launch-bouncer.sh
+      daemon: simple
+      restart-delay: 5s
+      restart-condition: always
+      plugs:
+        - network-bind
 parts:
     help:
       plugin: dump
