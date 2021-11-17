@@ -83,6 +83,6 @@ exec ${SNAP}/wigwag/system/bin/kubelet \
     --network-plugin=cni \
     --node-status-update-frequency=150s \
     --register-node=true \
-    --docker-endpoint=unix://$runtime_path_prefix/var/run/docker.sock \
+    --docker-endpoint=unix://$runtime_path_prefix$DOCKER_SOCK_PATH \
     --v 2 \
     $NODE_IP_OPTION
