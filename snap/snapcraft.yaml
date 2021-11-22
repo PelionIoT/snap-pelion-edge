@@ -378,6 +378,7 @@ parts:
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
       source: https://github.com/mikefarah/yq.git
+      source-tag: 3.4.1
       go-importpath: github.com/mikefarah/yq
     maestro:
       plugin: make
