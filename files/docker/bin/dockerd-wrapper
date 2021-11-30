@@ -83,7 +83,7 @@ fi
 exec dockerd \
 	-G $default_socket_group \
 	--exec-root="$runtime_path_prefix/var/run/docker" \
-	--data-root="$runtime_path_prefix/var/lib/docker" \
+	--data-root="$SNAP_COMMON/var/lib/docker" \
 	--pidfile="$runtime_path_prefix/var/run/docker.pid" \
 	--host="unix://$runtime_path_prefix/var/run/docker.sock" \
 	--config-file="$SNAP_DATA/config/daemon.json" \
