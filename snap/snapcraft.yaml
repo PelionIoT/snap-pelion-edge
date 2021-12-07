@@ -1,6 +1,6 @@
 name: pelion-edge
 base: core
-version: "2.3.0-1"
+version: "2.3.1-1"
 summary: Pelion Edge
 description: Pelion Edge
 confinement: strict
