@@ -112,11 +112,6 @@ apps:
       restart-condition: always
       daemon: simple
       plugs: [account-control, bluetooth-control, dbus-wpa, firewall-control, hardware-observe, log-observe, modem-manager, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-manager, network-observe, x11, system-files-logs]
-    maestro-shell:
-      command: wigwag/system/bin/maestro-shell
-      environment:
-        LD_LIBRARY_PATH: $SNAP/wigwag/system/lib
-      plugs: [network-bind, network-control, network-observe]
     edge-proxy:
       restart-delay: 5s
       restart-condition: always
@@ -452,23 +447,6 @@ parts:
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
         cp -r identity-tools ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils/
         chmod -R 0755 ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
-    maestro-shell:
-      plugin: go
-      source: https://github.com/PelionIot/maestro-shell.git
-      source-commit: aa2336b361555c471daab0d2dc21a7f750bdf813
-      go-importpath: github.com/armPelionEdge/maestro-shell
-      build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
-        - CGO_LDFLAGS: "-L${SNAPCRAFT_PART_BUILD}/vendor/github.com/armPelionEdge/greasego/deps/lib ${CGO_LDFLAGS}"
-      override-build: |
-        # Build maestro-shell dependencies
-        ./build-deps.sh
-        # Build maestro-shell
-        snapcraftctl build
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/maestro-shell.VERSION
-      organize:
-        bin/maestro-shell: wigwag/system/bin/maestro-shell
     yq:
       plugin: go
       build-environment:
