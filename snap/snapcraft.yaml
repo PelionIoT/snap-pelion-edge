@@ -598,13 +598,13 @@ parts:
         - flex
         - bison
     curl:
-      plugin: autotools
-      source: https://github.com/curl/curl.git
-      source-tag: curl-7_65_3
-      install-via: prefix
-      build-packages:
-        - libtool
-      configflags: [--enable-versioned-symbols]
+      plugin: nil
+      stage-packages:
+        - curl
+      stage:
+        - -usr/share/*
+      organize:
+        usr/bin/curl: bin/curl
     docker-wrapper-scripts:
       plugin: dump
       source: files/docker/
