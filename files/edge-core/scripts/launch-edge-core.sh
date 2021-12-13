@@ -29,6 +29,27 @@ if [ -e /tmp/factory-reset-in-progress ]; then
     exit 0
 fi
 
+# we might lose the ability to write to SNAP_DATA if edge-core is restarted
+# while a snap-refresh is in progress so we need to test for this condition and
+# refuse to start in the hopes that the condition clears up on the next restart.
+# Note: we test for access in this way because '-w' doesn't always give proper
+# permission denials since the apparmor policy is enforced in the kernel and -w
+# only seems to test for access in userspace.
+if touch ${SNAP_DATA}/hello; then
+    rm ${SNAP_DATA}/hello
+    snapctl unset edge-core.failed-snap-data-not-writable
+else
+    attempts=$(snapctl get edge-core.failed-snap-data-not-writable)
+    if (( attempts < 30 )); then
+        echo "ERROR: edge-core refusing to start, SNAP_DATA ${SNAP_DATA} is not writable."
+        attempts=$((attempts+1))
+        snapctl set edge-core.failed-snap-data-not-writable=${attempts}
+        exit 1
+    else
+        echo "ERROR: edge-core SNAP_DATA ${SNAP_DATA} is not writable, but because of too many failed restart attempts is starting anyways so that the device registers."
+    fi
+fi
+
 # make sure the PAL_FS_MOUNT_POINT_PRIMARY directory exists so it can be populated
 # with mcc_config
 edge_core_credentials_parent_dir=$(dirname ${EDGE_CORE_CREDENTIALS_DIR})
