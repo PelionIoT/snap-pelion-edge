@@ -1,6 +1,6 @@
 name: pelion-edge
 base: core
-version: "1.20.4"
+version: "1.20.5"
 summary: Pelion Edge
 description: Pelion Edge
 confinement: strict
@@ -359,6 +359,8 @@ parts:
         export GOPATH=${SNAPCRAFT_PART_BUILD}/go
         cd ${GOPATH}/src/github.com/armPelionEdge/maestro-shell/
         # Build maestro-shell dependencies
+        # Pin the version of gyp.git to be used
+        sed -i -e "s,build/gyp,build/gyp\n    cd build/gyp\n    git checkout d6c5dd51dc3a60bf4ff32a5256713690a1a10376\n    cd ../..,g" build-deps.sh
         ./build-deps.sh
         # Build maestro-shell
         go build github.com/armPelionEdge/maestro-shell
@@ -372,6 +374,7 @@ parts:
       plugin: go
       source: git@github.com:mikefarah/yq.git
       go-importpath: github.com/mikefarah/yq
+      source-commit: 5911ab29297e530c69847cea591591cf36675a54
     maestro:
       plugin: go
       source: https://github.com/armPelionEdge/maestro.git
@@ -397,6 +400,8 @@ parts:
         export GOBIN=${GOPATH}/bin
         cd ${GOPATH}/src/github.com/armPelionEdge/maestro/
         # Build maestro dependencies
+        # Pin the version of gyp.git to be used
+        sed -i -e "s,build/gyp,build/gyp\n    cd build/gyp\n    git checkout d6c5dd51dc3a60bf4ff32a5256713690a1a10376\n    cd ../..,g" build-deps.sh
         DEBUG= ./build-deps.sh
         # Build maestro
         DEBUG= DEBUG2= ./build.sh
