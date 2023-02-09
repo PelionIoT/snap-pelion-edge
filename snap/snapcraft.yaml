@@ -62,17 +62,6 @@ layout:
         bind: $SNAP_COMMON/var/log/containers
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
-    relay-term:
-      restart-delay: 5s
-      restart-condition: always
-      command: bin/node $SNAP/wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP/wigwag/wigwag-core-modules/relay-term/config/config.json
-      daemon: simple
-      environment:
-        NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
-        LD_LIBRARY_PATH: $SNAP/wigwag/system/lib
-        PATH: $PATH:$SNAP/wigwag/system/bin
-        DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
-      plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, snapd-control, shutdown, network-manager, modem-manager, log-observe]
     edge-tool:
       command: bin/edge-tool
       plugs: [home, edge-tool-files]
@@ -442,24 +431,6 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/pe-terminal/launch-pe-terminal.sh ${SNAPCRAFT_PART_INSTALL}/
       organize:
         bin/pe-terminal: wigwag/system/bin/pe-terminal
-    edge-node-modules:
-      plugin: nodejs
-      nodejs-version: 12.20.1
-      nodejs-package-manager: npm
-      build-packages:
-        - python
-        - build-essential
-      source: https://github.com/PelionIoT/edge-node-modules.git
-      source-commit: bcafcba2e6602ef486a8975c67a1df3872289499
-      source-subdir: relay-term
-      override-build: |
-        snapcraftctl build
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/edge-node-modules.VERSION
-      organize:
-        'config': wigwag/wigwag-core-modules/relay-term/config
-        'node_modules': wigwag/wigwag-core-modules/relay-term/node_modules
-        'src': wigwag/wigwag-core-modules/relay-term/src
     pe-utils:
       plugin: nil
       source: https://github.com/PelionIoT/pe-utils.git
