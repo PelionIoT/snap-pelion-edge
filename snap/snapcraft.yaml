@@ -491,6 +491,7 @@ parts:
         export GOBIN=${GOPATH}/bin
 
         # Build maestro dependencies
+        sed -i -e "s,build/gyp,build/gyp\n    cd build/gyp\n    git checkout d6c5dd51dc3a60bf4ff32a5256713690a1a10376\n    cd ../..,g" build-deps.sh
         DEBUG= ./build-deps.sh
         # Build maestro
         DEBUG= DEBUG2= ./build.sh
