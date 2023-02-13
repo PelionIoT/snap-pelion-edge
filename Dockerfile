@@ -18,10 +18,10 @@ RUN apt-get update && apt-get install -y \
 # Install Go
 # Download the go binary package, unpack it in the proper place,
 # and link the go binaries to make them available to snapcraft
-RUN curl -L https://dl.google.com/go/go1.15.13.linux-amd64.tar.gz | tar -xz && \
-    mv go /usr/local/go1.15 && \
-    ln -sf /usr/local/go1.15/bin/go /usr/local/bin/go && \
-    ln -sf /usr/local/go1.15/bin/gofmt /usr/local/bin/gofmt
+RUN curl -L https://dl.google.com/go/go1.18.linux-amd64.tar.gz | tar -xz && \
+    mv go /usr/local/go1.18 && \
+    ln -sf /usr/local/go1.18/bin/go /usr/local/bin/go && \
+    ln -sf /usr/local/go1.18/bin/gofmt /usr/local/bin/gofmt
 
 RUN curl -L https://golang.org/dl/go1.17.linux-amd64.tar.gz | tar -xz && \
     mv go /usr/local/go1.17

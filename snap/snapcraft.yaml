@@ -93,14 +93,6 @@ apps:
       command: launch-fluent-bit.sh
       daemon: simple
       plugs: [network, network-bind, system-files-logs, log-observe]
-    maestro:
-      command: launch-maestro.sh
-      environment:
-        LD_LIBRARY_PATH: $SNAP/wigwag/system/lib
-      restart-delay: 5s
-      restart-condition: always
-      daemon: simple
-      plugs: [account-control, bluetooth-control, dbus-wpa, firewall-control, hardware-observe, log-observe, modem-manager, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-manager, network-observe, x11, system-files-logs]
     edge-proxy:
       restart-delay: 5s
       restart-condition: always
@@ -404,7 +396,7 @@ parts:
     edge-proxy:
       plugin: go
       source: https://github.com/PelionIoT/edge-proxy.git
-      source-commit: 8f0f10790ac8f98787cc4a4a913dff358a1485c9
+      source-commit: 856eadc308c613401664e7538a87a6973c05ef25
       go-importpath: github.com/PelionIoT/edge-proxy
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
@@ -420,7 +412,7 @@ parts:
     pe-terminal:
       plugin: go
       source: https://github.com/PelionIoT/pe-terminal.git
-      source-tag: v1.0.0
+      source-commit: 68eb34c477bceb9a5644b220208498cecb9365ff
       go-importpath: github.com/PelionIoT/pe-terminal
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
@@ -452,7 +444,7 @@ parts:
     pe-utils:
       plugin: nil
       source: https://github.com/PelionIoT/pe-utils.git
-      source-tag: 2.0.7
+      source-tag: 2.0.15
       override-build: |
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
         install ${SNAPCRAFT_PROJECT_DIR}/files/pe-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/
@@ -466,44 +458,6 @@ parts:
       source: https://github.com/mikefarah/yq.git
       source-tag: 3.4.1
       go-importpath: github.com/mikefarah/yq
-    maestro:
-      plugin: make
-      source: https://github.com/PelionIot/maestro.git
-      source-commit: 20caa5d032424a11146b7923eaaed74e80de96da
-      build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
-      override-build: |
-        # setup the go build environment
-        . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
-        gopartbootstrap github.com/armPelionEdge/maestro
-        # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
-        export GOBIN=${GOPATH}/bin
-
-        # Build maestro dependencies
-        sed -i -e "s,build/gyp,build/gyp\n    cd build/gyp\n    git checkout d6c5dd51dc3a60bf4ff32a5256713690a1a10376\n    cd ../..,g" build-deps.sh
-        DEBUG= ./build-deps.sh
-        # Build maestro
-        DEBUG= DEBUG2= ./build.sh
-
-        # Install maestro components into the SNAPCRAFT_PART_INSTALL folder so that it is
-        # copied into the prime directory during the prime step
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
-
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/config/maestro-config-dell5000.yaml ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
-        install ${GOPATH}/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
-
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
-        LIBS_DIR="${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/lib"
-        ALL_LIBS="libTW.a libprofiler.a libstacktrace.a libtcmalloc.la libtcmalloc_debug.a libtcmalloc_minimal.la libuv.a libgrease.so libprofiler.la libstacktrace.la libtcmalloc_and_profiler.a libtcmalloc_debug.la libtcmalloc_minimal_debug.a libgrease.so.1 libtcmalloc.a libtcmalloc_and_profiler.la  libtcmalloc_minimal.a libtcmalloc_minimal_debug.la libtcmalloc_minimal.so*"
-        for f in $ALL_LIBS; do
-          install -m 0755 $LIBS_DIR/$f ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
-        done
-        # fixup the SNAP and SNAP_DATA variables in the config files based on the snap name
-        sed -i "s!/snap/pelion-edge!/snap/${SNAPCRAFT_PROJECT_NAME}!" ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/*.yaml
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/maestro.VERSION
     fluent-bit:
       plugin: cmake
       source: https://github.com/fluent/fluent-bit.git
@@ -560,6 +514,8 @@ parts:
       source-commit: 35225842cd6b20d98613d8c1b08b7a376bd3209d
       build-packages:
         - libseccomp-dev
+      build-environment:
+        - GO111MODULE: "auto"
       override-build: |
         # setup the go build environment
         . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
@@ -618,6 +574,8 @@ parts:
             sed "s/pelion-edge/${SNAPCRAFT_PROJECT_NAME}/g" "$patch" | git apply --ignore-space-change --ignore-whitespace -
             echo
         done
+      build-environment:
+        - GO111MODULE: "auto"
       override-build: |
         # docker build specific environment variables
         export DOCKER_GITCOMMIT=$(git rev-parse --short HEAD)
@@ -656,6 +614,8 @@ parts:
       # for source-commit see docker/components/engine/vendor.conf
       # https://github.com/docker/docker-ce/blob/master/components/engine/project/PACKAGERS.md#go-dependencies
       source-commit: 481103c8793316c118d9f795cde18060847c370e
+      build-environment:
+        - GO111MODULE: "auto"
       override-build: |
         # setup the go build environment for containerd
         . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
@@ -682,6 +642,8 @@ parts:
       source: https://github.com/opencontainers/runc.git
       # for source-tag see vendor.conf and RUNC.md in https://github.com/containerd/containerd
       source-tag: v1.0.0-rc8
+      build-environment:
+        - GO111MODULE: "auto"
       override-build: |
         # setup the go build environment for runc
         . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
@@ -700,7 +662,9 @@ parts:
       source: https://github.com/docker/libnetwork.git
       go-importpath: github.com/docker/libnetwork
       # from https://github.com/docker/docker-ce/blob/v19.03.13/components/engine/vendor.conf
-      source-commit: 026aabaa659832804b01754aaadd2c0f420c68b6
+      source-commit: d50e6f7ef106142d9d302352b06f2990586e1a19
+      build-environment:
+        - GO111MODULE: "auto"
       organize:
         'bin/proxy': bin/docker-proxy
       prime:
@@ -732,8 +696,8 @@ parts:
         snapcraftctl build
         echo Reverting the go version
         sudo rm /usr/local/bin/go /usr/local/bin/gofmt
-        sudo ln -sf /usr/local/go1.15/bin/go /usr/local/bin/go
-        sudo ln -sf /usr/local/go1.15/bin/gofmt /usr/local/bin/gofmt
+        sudo ln -sf /usr/local/go1.18/bin/go /usr/local/bin/go
+        sudo ln -sf /usr/local/go1.18/bin/gofmt /usr/local/bin/gofmt
     bouncer:
       plugin: cmake
       source: https://github.com/PelionIoT/bouncer.git
