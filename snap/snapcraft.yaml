@@ -228,7 +228,7 @@ parts:
     edge-core-src:
       plugin: cmake
       source: https://github.com/ARMmbed/mbed-edge.git
-      source-tag: 0.18.0
+      source-tag: 0.20.0
       build-environment:
         - COAP_PORT_OVERRIDE_443: "false"
       stage-packages: [coreutils]
@@ -250,7 +250,6 @@ parts:
         # patch edge-core
         git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0010-Add-network-proxy-support.patch
         git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0011-Call-a-script-on-factory-reset.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0012-add-API-to-set-a-resource-value-without-forced-text-.patch
         git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0013-add-stubs-for-gateway-statistics-resources.patch
         git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0014-add-cpu-usage-3-0-3320.patch
         git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0015-add-cpu-temp-3-0-3303.patch
@@ -383,7 +382,6 @@ parts:
         - libffi-dev
       override-pull: |
         snapcraftctl pull
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0021-edge-tool-fix-setup.py-to-install-the-edge_tool.py-s.patch
       override-build: |
         if [ "${SNAPCRAFT_PROJECT_GRADE}" = "devel" ]; then
             snapcraftctl build
