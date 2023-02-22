@@ -1,6 +1,7 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
 # Copyright (c) 2020, Arm Limited and affiliates.
+# Copyright (c) 2023, Izuma Networks
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -32,7 +33,7 @@ REFRESH_WATCHID=${SNAP_COMMON}/refresh_watch_id
 
 function log_msg()
 {
-	echo "$@" |  systemd-cat -p info -t "EDGE-CORE-Bootloader"
+    echo "$@" |  systemd-cat -p info -t "EDGE-CORE-Bootloader"
 }
 
 function snap_refresh_each() {
@@ -98,40 +99,40 @@ WATCH_ID_STATUS_NONE=1
 WATCH_ID_STATUS_ERROR=2
 WATCH_ID_STATUS_TIMEOUT=3
 function check_snap_refresh() {
-	local watch_id_file=$SNAP_COMMON/refresh_watch_id
-	local timestamp=$(date +%s)
-	local timeout=$(snapctl get edge-core.refresh-timeout)
-	local tdiff=0
-	local retval=$WATCH_ID_STATUS_NONE
-	if [ -f "$watch_id_file" ]; then
-		retval=$WATCH_ID_STATUS_TIMEOUT
-		watch_id=$(cat "$watch_id_file")
-		log_msg "Waiting for snap refresh ID $watch_id, max $timeout seconds"
-		local end_msg="did not complete in time"
-		while [ $tdiff -lt $timeout ]; do
-			status=$(curl -sS --unix-socket /run/snapd.socket http://localhost/v2/changes/$watch_id | jq -r .result.status)
-			[ "$status" = "Done" ] && {
-				retval=$WATCH_ID_STATUS_SUCCESS
-				end_msg="completed successfully"
-				break
-			}
-			[ "$status" = "Error" ] && {
-				retval=$WATCH_ID_STATUS_ERROR
-				end_msg="finished with error"
-				break
-			}
-			sleep 1
-			tdiff=$(($(date +%s) - timestamp))
-		done
+    local watch_id_file=$SNAP_COMMON/refresh_watch_id
+    local timestamp=$(date +%s)
+    local timeout=$(snapctl get edge-core.refresh-timeout)
+    local tdiff=0
+    local retval=$WATCH_ID_STATUS_NONE
+    if [ -f "$watch_id_file" ]; then
+        retval=$WATCH_ID_STATUS_TIMEOUT
+        watch_id=$(cat "$watch_id_file")
+        log_msg "Waiting for snap refresh ID $watch_id, max $timeout seconds"
+        local end_msg="did not complete in time"
+        while [ $tdiff -lt $timeout ]; do
+            status=$(curl -sS --unix-socket /run/snapd.socket http://localhost/v2/changes/$watch_id | jq -r .result.status)
+            [ "$status" = "Done" ] && {
+                retval=$WATCH_ID_STATUS_SUCCESS
+                end_msg="completed successfully"
+                break
+            }
+            [ "$status" = "Error" ] && {
+                retval=$WATCH_ID_STATUS_ERROR
+                end_msg="finished with error"
+                break
+            }
+            sleep 1
+            tdiff=$(($(date +%s) - timestamp))
+        done
         if [[ $end_msg = "did not complete in time" ]]; then
             snap abort $watch_id
         fi
-		log_msg "Snap refresh $end_msg"
-		rm "$watch_id_file" 2>/dev/null
-	else
-		log_msg "No snap refresh in progress"
-	fi
-	return $retval
+        log_msg "Snap refresh $end_msg"
+        rm "$watch_id_file" 2>/dev/null
+    else
+        log_msg "No snap refresh in progress"
+    fi
+    return $retval
 }
 
 function check_error() {
