@@ -1,6 +1,7 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
 # Copyright (c) 2021, Pelion and affiliates.
+# Copyright (c) 2023, Izuma Networks
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -18,9 +19,9 @@
 # ----------------------------------------------------------------------------
 
 edge_tool="${SNAP}/wigwag/mbed/edge-tool/edge_tool.py"
-if [ ! -x ${edge_tool} ]; then
+if [ ! -x "${edge_tool}" ]; then
     echo "ERROR: edge_tool.py is not installed. To install edge_tool.py, rebuild the snap with 'grade: devel'."
     exit 1
 fi
 
-exec python3 ${edge_tool} ${@}
+exec python3 "${edge_tool}" "${@}"
