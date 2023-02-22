@@ -1,6 +1,7 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
 # Copyright (c) 2021, Arm Limited and affiliates.
+# Copyright (c) 2023, Izuma Networks
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -18,4 +19,4 @@
 # ----------------------------------------------------------------------------
 
 # add ${SNAP} to PATH edge-core can run the factory reset script: edge-core-factory-reset
-exec env PATH=${PATH}:${SNAP} ${SNAP}/bin/bouncer /run/snap.${SNAP_INSTANCE_NAME}/var/run/docker-proxy.sock /run/snap.${SNAP_INSTANCE_NAME}/var/run/docker.sock
+exec env PATH="${PATH}:${SNAP}" "${SNAP}/bin/bouncer" "/run/snap.${SNAP_INSTANCE_NAME}/var/run/docker-proxy.sock" "/run/snap.${SNAP_INSTANCE_NAME}/var/run/docker.sock"
