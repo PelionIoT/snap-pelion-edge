@@ -1,6 +1,7 @@
 #!/bin/sh
 # ----------------------------------------------------------------------------
 # Copyright (c) 2020, Arm Limited and affiliates.
+# Copyright (c) 2023, Izuma Networks
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -43,11 +44,11 @@ find /var/log -type f -print0 | xargs -0 truncate --size=0
 # it has different behavior based on whether it's configured for
 # dev mode or factory mode.
 [ -n "${SNAP_DATA}" ] && {
-	find ${SNAP_DATA} -depth \
-		-not -wholename "${SNAP_DATA}" \
-		-not -path "${SNAP_DATA}/userdata/mbed*" \
-		-not -wholename "${SNAP_DATA}/userdata/mbed" \
-		-exec rm -fd {} \;
+    find ${SNAP_DATA} -depth \
+        -not -wholename "${SNAP_DATA}" \
+        -not -path "${SNAP_DATA}/userdata/mbed*" \
+        -not -wholename "${SNAP_DATA}/userdata/mbed" \
+        -exec rm -fd {} \;
 }
 
 # delete unversioned r/w data
