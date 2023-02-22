@@ -1,8 +1,8 @@
 name: pelion-edge
 base: core
 version: "2.4.0-1"
-summary: Pelion Edge
-description: Pelion Edge
+summary: Izuma Edge
+description: Izuma Edge
 confinement: strict
 grade: devel
 architectures:
@@ -480,7 +480,7 @@ parts:
     maestro:
       plugin: make
       source: https://github.com/PelionIot/maestro.git
-      source-commit: 20caa5d032424a11146b7923eaaed74e80de96da
+      source-commit: v3.0.0
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
       override-build: |
