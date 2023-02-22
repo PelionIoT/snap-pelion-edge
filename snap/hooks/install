@@ -22,4 +22,4 @@
 # in snapcraft.yaml and must instead be disabled in the install hook.
 
 # disable relay-term in favour to use pe-terminal.
-snapctl stop --disable ${SNAP_INSTANCE_NAME}.relay-term
+snapctl stop --disable "${SNAP_INSTANCE_NAME}.relay-term"
