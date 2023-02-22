@@ -2,6 +2,7 @@
 
 # ----------------------------------------------------------------------------
 # Copyright (c) 2020, Arm Limited and affiliates.
+# Copyright (c) 2023 Izuma Networks
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -19,9 +20,9 @@
 # ----------------------------------------------------------------------------
 
 # Add local user that matches the $PWD owner and run command as that user
-USER_ID=$(stat -c "%u" ${PWD})
+USER_ID=$(stat -c "%u" "${PWD}")
 echo "${PWD} is owned by UID ${USER_ID}.  Starting as that UID"
-useradd --shell /bin/bash -u ${USER_ID} -o -c "" -m user
+useradd --shell /bin/bash -u "${USER_ID}" -o -c "" -m user
 
 # Give the user sudo privileges so that snapcraft can install required packages
 usermod -aG sudo user
