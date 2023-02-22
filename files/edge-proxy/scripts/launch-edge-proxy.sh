@@ -1,6 +1,7 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
 # Copyright (c) 2020, Arm Limited and affiliates.
+# Copyright (c) 2023, Izuma Networks
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -21,11 +22,11 @@ if [ ! -f "$SNAP_DATA/edge-proxy.conf.json" ]; then
     cp "$SNAP/edge-proxy.conf.json" "$SNAP_DATA/edge-proxy.conf.json"
 fi
 
-EDGE_K8S_ADDRESS=$(jq -r .edgek8sServicesAddress ${SNAP_DATA}/userdata/edge_gw_identity/identity.json)
-GATEWAYS_ADDRESS=$(jq -r .gatewayServicesAddress ${SNAP_DATA}/userdata/edge_gw_identity/identity.json)
-CONTAINERS_ADDRESS=$(jq -r .containerServicesAddress ${SNAP_DATA}/userdata/edge_gw_identity/identity.json)
-DEVICE_ID=$(jq -r .deviceID ${SNAP_DATA}/userdata/edge_gw_identity/identity.json)
-EDGE_PROXY_URI_RELATIVE_PATH=$(jq -r .edge_proxy_uri_relative_path ${SNAP_DATA}/edge-proxy.conf.json)
+EDGE_K8S_ADDRESS=$(jq -r .edgek8sServicesAddress "${SNAP_DATA}/userdata/edge_gw_identity/identity.json")
+GATEWAYS_ADDRESS=$(jq -r .gatewayServicesAddress "${SNAP_DATA}/userdata/edge_gw_identity/identity.json")
+CONTAINERS_ADDRESS=$(jq -r .containerServicesAddress "${SNAP_DATA}/userdata/edge_gw_identity/identity.json")
+DEVICE_ID=$(jq -r .deviceID "${SNAP_DATA}/userdata/edge_gw_identity/identity.json")
+EDGE_PROXY_URI_RELATIVE_PATH=$(jq -r .edge_proxy_uri_relative_path "${SNAP_DATA}/edge-proxy.conf.json")
 
 if ! grep -q "gateways.local" /etc/hosts; then
     echo "127.0.0.1 gateways.local" >> /etc/hosts
@@ -40,14 +41,14 @@ if ! grep -q "$DEVICE_ID" /etc/hosts; then
 fi
 
 EXTERN_HTTP_PROXY=$(snapctl get edge-proxy.extern-http-proxy-uri)
-if [[ $EXTERN_HTTP_PROXY = "" ]]; then
+if [[ "$EXTERN_HTTP_PROXY" = "" ]]; then
     EXTERN_ARG=
 else
     EXTERN_ARG=-extern-http-proxy-uri=$EXTERN_HTTP_PROXY
 fi
 
 EXTERN_HTTP_PROXY_CACERT=$(snapctl get edge-proxy.extern-http-proxy-cacert)
-if [[ $EXTERN_HTTP_PROXY_CACERT = "" ]]; then
+if [[ "$EXTERN_HTTP_PROXY_CACERT" = "" ]]; then
     EXTERN_CACERT_ARG=
 else
     EXTERN_CACERT_ARG=-extern-http-proxy-cacert=$EXTERN_HTTP_PROXY_CACERT
@@ -94,16 +95,16 @@ if [[ $(snapctl get edge-proxy.debug) = "false" ]]; then
     exec >/dev/null 2>&1
 fi
 
-exec ${SNAP}/wigwag/system/bin/edge-proxy \
-    -proxy-uri=${EDGE_K8S_ADDRESS} \
-    -tunnel-uri=ws://gateways.local$EDGE_PROXY_URI_RELATIVE_PATH \
+exec "${SNAP}/wigwag/system/bin/edge-proxy" \
+    -proxy-uri="${EDGE_K8S_ADDRESS}" \
+    -tunnel-uri="ws://gateways.local$EDGE_PROXY_URI_RELATIVE_PATH" \
     -cert-strategy=tpm \
     -cert-strategy-options=socket=/tmp/edge.sock \
     -cert-strategy-options=path=/1/pt \
     -cert-strategy-options=device-cert-name=mbed.LwM2MDeviceCert \
     -cert-strategy-options=private-key-name=mbed.LwM2MDevicePrivateKey \
-    ${EXTERN_ARG} \
-    ${EXTERN_CACERT_ARG} \
-    ${HTTP_TUNNEL_ARGS} \
-    ${HTTPS_TUNNEL_ARGS} \
+    "${EXTERN_ARG}" \
+    "${EXTERN_CACERT_ARG}" \
+    "${HTTP_TUNNEL_ARGS}" \
+    "${HTTPS_TUNNEL_ARGS}" \
     -forwarding-addresses={\"gateways.local\":\"${GATEWAYS_ADDRESS#"https://"}\"\,\"containers.local\":\"${CONTAINERS_ADDRESS#"https://"}\"}
