@@ -1,8 +1,8 @@
 name: pelion-edge
-base: core
-version: "2.4.0-1"
+base: core20
+version: "2.6.0"
 summary: Izuma Edge
-description: Izuma Edge
+description: Izuma Edge Device Management solution
 confinement: strict
 grade: devel
 architectures:
@@ -62,17 +62,6 @@ layout:
         bind: $SNAP_COMMON/var/log/containers
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
-    relay-term:
-      restart-delay: 5s
-      restart-condition: always
-      command: bin/node $SNAP/wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP/wigwag/wigwag-core-modules/relay-term/config/config.json
-      daemon: simple
-      environment:
-        NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
-        LD_LIBRARY_PATH: $SNAP/wigwag/system/lib
-        PATH: $PATH:$SNAP/wigwag/system/bin
-        DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
-      plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, snapd-control, shutdown, network-manager, modem-manager, log-observe]
     edge-tool:
       command: bin/edge-tool
       plugs: [home, edge-tool-files]
@@ -244,20 +233,21 @@ parts:
         - snapd
       organize:
         usr/bin/snap: bin/snap
+
     edge-core-src:
       plugin: cmake
-      source: https://github.com/ARMmbed/mbed-edge.git
-      source-tag: 0.18.0
+      source: https://github.com/PelionIoT/mbed-edge.git
+      source-tag: 0.21.0
       build-environment:
         - COAP_PORT_OVERRIDE_443: "false"
       stage-packages: [coreutils]
       override-pull: |
         snapcraftctl pull
-        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/mbed_cloud_client_user_config.h config/mbed_cloud_client_user_config.h
-        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/sotp_fs_linux.h config/sotp_fs_linux.h
-        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/osreboot.c edge-core/osreboot.c
-        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/cmake/target.cmake config/target.cmake
-        cp ${SNAPCRAFT_PART_SRC}/cmake/toolchains/mcc-linux-x86.cmake config/toolchain.cmake
+        cp "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/mbed_cloud_client_user_config.h" config/mbed_cloud_client_user_config.h
+        cp "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/sotp_fs_linux.h" config/sotp_fs_linux.h
+        cp "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/osreboot.c" edge-core/osreboot.c
+        cp "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/cmake/target.cmake" config/target.cmake
+        cp "${SNAPCRAFT_PART_SRC}/cmake/toolchains/mcc-linux-x86.cmake" config/toolchain.cmake
         # patch the mbed-cloud-client library
         sed -i 's!/dev/random!/dev/urandom!' lib/mbed-cloud-client/mbed-client-pal/Source/Port/Reference-Impl/OS_Specific/Linux/Board_Specific/TARGET_x86_x64/pal_plat_x86_x64.c
         sed -i 's!\(MAX_RECONNECT_TIMEOUT\).*!\1 60!' lib/mbed-cloud-client/mbed-client/mbed-client/m2mconstants.h
@@ -267,47 +257,49 @@ parts:
         git -C lib/mbed-cloud-client/ apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0004-use-customized-edge-core-update-scripts.patch
         git -C lib/mbed-cloud-client/ apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0005-Read-platform-version-files-into-LWM2M-resources.patch
         # patch edge-core
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0010-Add-network-proxy-support.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0011-Call-a-script-on-factory-reset.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0012-add-API-to-set-a-resource-value-without-forced-text-.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0013-add-stubs-for-gateway-statistics-resources.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0014-add-cpu-usage-3-0-3320.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0015-add-cpu-temp-3-0-3303.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0016-add-RAM-total-3-0-3322-and-RAM-free-3-0-3321.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0017-add-disk-free-3-0-3323-and-disk-total-3-0-3324.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0018-add-snap-version-3-0-4001.patch
+        git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0010-Add-network-proxy-support.patch"
+        git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0011-Call-a-script-on-factory-reset.patch"
+        git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0013-add-stubs-for-gateway-statistics-resources.patch"
+        git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0014-add-cpu-usage-3-0-3320.patch"
+        git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0015-add-cpu-temp-3-0-3303.patch"
+        git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0016-add-RAM-total-3-0-3322-and-RAM-free-3-0-3321.patch"
+        git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0017-add-disk-free-3-0-3323-and-disk-total-3-0-3324.patch"
+        git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0018-add-snap-version-3-0-4001.patch"
         if [ "${COAP_PORT_OVERRIDE_443}" = "true" ]; then
             echo "PATCHING PORT 443 OVERRIDE"
             [ -f config/mbed_cloud_dev_credentials.c ] && sed -i 's,\(coaps://[^:]*:\)5684,\1443,' config/mbed_cloud_dev_credentials.c
             git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0019-force-port-443.patch
         fi
-        # note this patch is specific to edge-core-tool but must be applied here instead of the more
-        # appropriate edge-core-tool override-pull because the default action `snapcraftctl pull` untars
-        # the edge-core-src.tgz into the correct location (all good so far) but then uses pip (since it
-        # uses a python plugin) to download dependencies, which this patch has to fix.  in other words,
-        # there's no hook for us to apply this patch in between the untar step and the pip download step
-        # in snapcraftctl-pull.
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0020-edge-tool-pin-cryptography-to-3.3.patch
       override-build: |
-        tar -C ${SNAPCRAFT_PART_SRC} -czf ${SNAPCRAFT_PART_BUILD}/edge-core-src.tgz .
-        cp edge-core-src.tgz ${SNAPCRAFT_PART_INSTALL}
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/config/edge-core.conf ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-bootloader.sh ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-factory-reset ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/launch-edge-core.sh ${SNAPCRAFT_PART_INSTALL}/
+        tar -C "${SNAPCRAFT_PART_SRC}" -czf "${SNAPCRAFT_PART_BUILD}/edge-core-src.tgz" .
+        cp edge-core-src.tgz "${SNAPCRAFT_PART_INSTALL}"
+        install -d "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed"
+        install "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/config/edge-core.conf" "${SNAPCRAFT_PART_INSTALL}/"
+        install "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-bootloader.sh" "${SNAPCRAFT_PART_INSTALL}/"
+        install "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-factory-reset" "${SNAPCRAFT_PART_INSTALL}/"
+        install "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/launch-edge-core.sh" "${SNAPCRAFT_PART_INSTALL}/"
         # install the generic update scripts
         install ${SNAPCRAFT_PART_SRC}/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/scripts/generic/*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
-        # override the generic update scripts with our own
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
+        # Override the generic update scripts with our own
+        echo "Override the generic update scripts with our own"
+        install "${SNAPCRAFT_PROJECT_DIR}"/files/edge-core/scripts/arm_update_*.sh "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed"
       prime: [ '*', -edge-core-src.tgz ]
     edge-core:
       # this variant of edge-core is compiled with factory provisioning mode
       plugin: cmake
+      build-packages:
+      - build-essential
+      - g++
+      - clang
+      - gcc
+      - libc6-dev
+      - libclang-dev
+      - libcurl4-openssl-dev
+      - libgpiod-dev
       after:
       - edge-core-src
       source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
-      configflags:
+      cmake-parameters:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
         - -DFIRMWARE_UPDATE=ON
@@ -322,17 +314,25 @@ parts:
         - -DPARSEC_TPM_SE_SUPPORT=OFF
       override-build: |
         snapcraftctl build
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
-        install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core
+        install -d "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed"
+        install bin/edge-core "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core"
       stage:
         - wigwag/mbed/edge-core
     edge-core-dev:
       # this variant of edge-core is compiled with developer provisioning mode
       plugin: cmake
+      build-packages:
+      - build-essential
+      - clang
+      - gcc
+      - libc6-dev
+      - libclang-dev
+      - libcurl4-openssl-dev
+      - libgpiod-dev
       after:
       - edge-core-src
       source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
-      configflags:
+      cmake-parameters:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
         - -DFIRMWARE_UPDATE=ON
@@ -350,16 +350,16 @@ parts:
         # mbed_cloud_dev_credentials.c is required if DEVELOPER_MODE=ON
         # update_default_resources.c is required if DEVELOPER_MODE=ON && FIRMWARE_UPDATE=ON
         # Piping to true allows the cp to not fail when the file is not present
-        cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c || true
-        cp ${SNAPCRAFT_PROJECT_DIR}/update_default_resources.c config/update_default_resources.c || true
+        cp "${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c" config/mbed_cloud_dev_credentials.c || true
+        cp "${SNAPCRAFT_PROJECT_DIR}/update_default_resources.c" config/update_default_resources.c || true
       override-build: |
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
+        install -d "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed"
         if [ "${SNAPCRAFT_PROJECT_GRADE}" = "devel" ]; then
             # allow devmode to succeed if the credentials don't exist.  if this is the case,
             # then we won't install the devmode version of edge-core into the snap.
-            if [ -f ${SNAPCRAFT_PART_SRC}/config/mbed_cloud_dev_credentials.c ]; then
+            if [ -f "${SNAPCRAFT_PART_SRC}/config/mbed_cloud_dev_credentials.c" ]; then
                 snapcraftctl build
-                install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core-dev
+                install bin/edge-core "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core-dev"
             fi
         fi
       stage:
@@ -367,10 +367,18 @@ parts:
     edge-core-byoc:
       # this variant of edge-core is compiled with byoc provisioning mode
       plugin: cmake
+      build-packages:
+      - build-essential
+      - clang
+      - gcc
+      - libc6-dev
+      - libclang-dev
+      - libcurl4-openssl-dev
+      - libgpiod-dev
       after:
       - edge-core-src
       source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
-      configflags:
+      cmake-parameters:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
         - -DDEVELOPER_MODE=OFF
@@ -397,12 +405,11 @@ parts:
         - edge-core-src
       source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
       source-subdir: edge-tool
+      build-environment:
+        - SNAPCRAFT_PYTHON_INTERPRETER: python3.9
       requirements: [ "${SNAPCRAFT_PART_SRC}/edge-tool/requirements.txt" ]
       build-packages:
         - libffi-dev
-      override-pull: |
-        snapcraftctl pull
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0021-edge-tool-fix-setup.py-to-install-the-edge_tool.py-s.patch
       override-build: |
         if [ "${SNAPCRAFT_PROJECT_GRADE}" = "devel" ]; then
             snapcraftctl build
@@ -416,7 +423,6 @@ parts:
       plugin: go
       source: https://github.com/PelionIoT/edge-proxy.git
       source-commit: 8f0f10790ac8f98787cc4a4a913dff358a1485c9
-      go-importpath: github.com/PelionIoT/edge-proxy
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
       override-build: |
@@ -432,7 +438,6 @@ parts:
       plugin: go
       source: https://github.com/PelionIoT/pe-terminal.git
       source-tag: v1.0.0
-      go-importpath: github.com/PelionIoT/pe-terminal
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
       override-build: |
@@ -442,24 +447,6 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/pe-terminal/launch-pe-terminal.sh ${SNAPCRAFT_PART_INSTALL}/
       organize:
         bin/pe-terminal: wigwag/system/bin/pe-terminal
-    edge-node-modules:
-      plugin: nodejs
-      nodejs-version: 12.20.1
-      nodejs-package-manager: npm
-      build-packages:
-        - python
-        - build-essential
-      source: https://github.com/PelionIoT/edge-node-modules.git
-      source-commit: bcafcba2e6602ef486a8975c67a1df3872289499
-      source-subdir: relay-term
-      override-build: |
-        snapcraftctl build
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/edge-node-modules.VERSION
-      organize:
-        'config': wigwag/wigwag-core-modules/relay-term/config
-        'node_modules': wigwag/wigwag-core-modules/relay-term/node_modules
-        'src': wigwag/wigwag-core-modules/relay-term/src
     pe-utils:
       plugin: nil
       source: https://github.com/PelionIoT/pe-utils.git
@@ -476,7 +463,6 @@ parts:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
       source: https://github.com/mikefarah/yq.git
       source-tag: 3.4.1
-      go-importpath: github.com/mikefarah/yq
     maestro:
       plugin: make
       source: https://github.com/PelionIot/maestro.git
@@ -522,7 +508,7 @@ parts:
         - libsystemd-dev
         - flex
         - bison
-      configflags:
+      cmake-parameters:
         - -DFLB_JEMALLOC=On
         - -DFLB_SHARED_LIB=Off
         - -DFLB_EXAMPLES=Off
@@ -538,7 +524,6 @@ parts:
       plugin: go
       source: https://github.com/containernetworking/plugins.git
       source-commit: 1f33fb729ae2b8900785f896df2dc1f6fe5e8239
-      go-importpath: github.com/containernetworking/plugins
       build-environment:
         - GOFLAGS: "${GOFLAGS} -mod=vendor -modcacherw"
       override-build: |
@@ -589,7 +574,7 @@ parts:
       stage-packages: [systemd, util-linux]
     jq:
       plugin: autotools
-      configflags:
+      autotools-configure-parameters:
         - -disable-docs
       source: https://github.com/stedolan/jq.git
       source-tag: jq-1.6
@@ -708,7 +693,6 @@ parts:
     docker-libnetwork:
       plugin: go
       source: https://github.com/docker/libnetwork.git
-      go-importpath: github.com/docker/libnetwork
       # from https://github.com/docker/docker-ce/blob/v19.03.13/components/engine/vendor.conf
       source-commit: 026aabaa659832804b01754aaadd2c0f420c68b6
       organize:
@@ -728,7 +712,6 @@ parts:
     cosign:
       plugin: go
       source: https://github.com/sigstore/cosign.git
-      go-importpath: github.com/sigstore/cosign/cmd/cosign
       source-commit: 33973d078170f586cf27f2cc464844b3f1fa1abb
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
