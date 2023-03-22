@@ -461,8 +461,8 @@ parts:
 
     maestro:
       plugin: make
-      source: https://github.com/armPelionEdge/maestro.git
-      source-commit: 20caa5d032424a11146b7923eaaed74e80de96da
+      source: https://github.com/PelionIoT/maestro.git
+      source-commit: v3.0.0
       build-packages:
         - libuv1-dev
       build-environment:
@@ -470,17 +470,11 @@ parts:
       override-build: |
         # setup the go build environment
         . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
-        gopartbootstrap github.com/armPelionEdge/maestro
+        gopartbootstrap github.com/PelionIoT/maestro
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
         export GOBIN=${GOPATH}/bin
 
-        # Build maestro dependencies
-        # Pin the version of gyp.git to be used
-        sed -i -e "s,build/gyp,build/gyp\n    cd build/gyp\n    git checkout d6c5dd51dc3a60bf4ff32a5256713690a1a10376\n    cd ../..,g" build-deps.sh
-        DEBUG= ./build-deps.sh
-
-        # Build maestro
-        DEBUG= DEBUG2= ./build.sh
+        go build -o ${GOPATH}/bin/maestro maestro/main.go
 
         # Install maestro components into the SNAPCRAFT_PART_INSTALL folder so that it is
         # copied into the prime directory during the prime step
@@ -491,16 +485,11 @@ parts:
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install ${GOPATH}/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
 
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
-        LIBS_DIR="${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/lib"
-        ALL_LIBS="libTW.a libprofiler.a libstacktrace.a libtcmalloc.la libtcmalloc_debug.a libtcmalloc_minimal.la libuv.a libgrease.so libprofiler.la libstacktrace.la libtcmalloc_and_profiler.a libtcmalloc_debug.la libtcmalloc_minimal_debug.a libgrease.so.1 libtcmalloc.a libtcmalloc_and_profiler.la  libtcmalloc_minimal.a libtcmalloc_minimal_debug.la libtcmalloc_minimal.so*"
-        for f in $ALL_LIBS; do
-          install -m 0755 $LIBS_DIR/$f ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
-        done
         # fixup the SNAP and SNAP_DATA variables in the config files based on the snap name
         sed -i "s!/snap/pelion-edge!/snap/${SNAPCRAFT_PROJECT_NAME}!" ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/*.yaml
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
         git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/maestro.VERSION
+
     fluent-bit:
       plugin: cmake
       source: https://github.com/fluent/fluent-bit.git
