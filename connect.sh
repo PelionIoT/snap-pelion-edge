@@ -18,7 +18,7 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------
 
-SNAP_NAME="$SNAP_NAME:-pelion-edge"
+SNAP_NAME="${SNAP_NAME:-pelion-edge}"
 
 sudo snap connect "${SNAP_NAME}:snapd-control"       :snapd-control
 sudo snap connect "${SNAP_NAME}:modem-manager"       modem-manager:service
