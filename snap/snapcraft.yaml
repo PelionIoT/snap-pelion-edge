@@ -1,5 +1,5 @@
 name: pelion-edge
-base: core18
+base: core20
 version: "2.6.0"
 summary: Izuma Edge
 description: Izuma Edge Device Management solution
@@ -291,9 +291,10 @@ parts:
       after:
       - edge-core-src
       source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
-      configflags:
+# Legacy, core18
+#      configflags:
 # Will be cmake-parameters with core20 onwards
-#      cmake-parameters: 
+      cmake-parameters: 
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
         - -DFIRMWARE_UPDATE=ON
@@ -326,9 +327,10 @@ parts:
       after:
       - edge-core-src
       source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
-      configflags:
+# Legacy, core18
+#      configflags:
 # Will be cmake-parameters with core20 onwards
-#      cmake-parameters:
+      cmake-parameters:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
         - -DFIRMWARE_UPDATE=ON
@@ -374,9 +376,10 @@ parts:
       after:
       - edge-core-src
       source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
-      configflags:
+# Legacy, core18
+#      configflags:
 # Will be cmake-parameters with core20 onwards
-#       cmake-parameters:
+      cmake-parameters:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
         - -DDEVELOPER_MODE=OFF
@@ -417,7 +420,7 @@ parts:
     edge-proxy:
       plugin: go
       source: https://github.com/PelionIoT/edge-proxy.git
-      source-commit: 8f0f10790ac8f98787cc4a4a913dff358a1485c9
+      source-commit: v1.2.0-RC1
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
       override-build: |
@@ -429,23 +432,44 @@ parts:
         git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/edge-proxy.VERSION
       organize:
         bin/edge-proxy: wigwag/system/bin/edge-proxy
+
     pe-terminal:
       plugin: go
       source: https://github.com/PelionIoT/pe-terminal.git
-      source-tag: v1.0.0
+      source-tag: v1.1.0
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
       override-build: |
+        export ALT_GO=go1.18
+        export ORI_GO=go1.15
+        export GOROOT=/usr/local/$ALT_GO
+        export PATH="$GOROOT/bin:$PATH"
+
+        echo Hacking/changing the go version to $ALT_GO
+        sudo rm /usr/local/bin/go /usr/local/bin/gofmt
+        sudo ln -sf "/usr/local/$ALT_GO/bin/go" /usr/local/bin/go
+        sudo ln -sf "/usr/local/$ALT_GO/bin/gofmt" /usr/local/bin/gofmt
+
         snapcraftctl build
+
+        echo Reverting the go version to $ORI_GO
+        sudo rm /usr/local/bin/go /usr/local/bin/gofmt
+        sudo ln -sf "/usr/local/$ORI_GO/bin/go" /usr/local/bin/go
+        sudo ln -sf "/usr/local/$ORI_GO/bin/gofmt" /usr/local/bin/gofmt
+
+        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
+        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/pe-terminal.VERSION
+
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install ${SNAPCRAFT_PROJECT_DIR}/files/pe-terminal/config/pe-terminal.conf.json ${SNAPCRAFT_PART_INSTALL}/
         install ${SNAPCRAFT_PROJECT_DIR}/files/pe-terminal/launch-pe-terminal.sh ${SNAPCRAFT_PART_INSTALL}/
       organize:
         bin/pe-terminal: wigwag/system/bin/pe-terminal
+
     pe-utils:
       plugin: nil
       source: https://github.com/PelionIoT/pe-utils.git
-      source-tag: 2.0.7
+      source-tag: 2.0.15
       override-build: |
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
         install ${SNAPCRAFT_PROJECT_DIR}/files/pe-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/
@@ -489,6 +513,8 @@ parts:
         sed -i "s!/snap/pelion-edge!/snap/${SNAPCRAFT_PROJECT_NAME}!" ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/*.yaml
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
         git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/maestro.VERSION
+      stage-packages:
+        - libuv1
 
     fluent-bit:
       plugin: cmake
@@ -498,9 +524,10 @@ parts:
         - libsystemd-dev
         - flex
         - bison
-      configflags:
+# Legacy, core18
+#      configflags:
 # Will be cmake-parameters with core20 onwards
-#     cmake-parameters:
+      cmake-parameters:
         - -DFLB_JEMALLOC=On
         - -DFLB_SHARED_LIB=Off
         - -DFLB_EXAMPLES=Off
@@ -530,7 +557,7 @@ parts:
             if [ $plugin != "windows" ]; then
               echo "  $plugin"
               go install github.com/containernetworking/plugins/$d
-              install $GOPATH/bin/$plugin ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/$plugin
+              install /build/parts/cni/install/bin/$plugin ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/$plugin
             fi
           fi
         done
@@ -566,9 +593,10 @@ parts:
       stage-packages: [systemd, util-linux]
     jq:
       plugin: autotools
-      configflags:
+# Legacy, core18
+#      configflags:
 # From core20 onwards it will be:
-#      autotools-configure-parameters:
+      autotools-configure-parameters:
         - -disable-docs
       source: https://github.com/stedolan/jq.git
       source-tag: jq-1.6
@@ -684,44 +712,65 @@ parts:
       build-packages:
       - libapparmor-dev
       - libseccomp-dev
+
     docker-libnetwork:
       plugin: go
-      go-importpath: github.com/docker/libnetwork
+      # core20 does not accept this anymore
+      #go-importpath: github.com/docker/libnetwork
       source: https://github.com/docker/libnetwork.git
       # from https://github.com/docker/docker-ce/blob/v19.03.13/components/engine/vendor.conf
       source-commit: 026aabaa659832804b01754aaadd2c0f420c68b6
+      override-pull: |
+        # with core20 go-plugin supports only go.mod - which this version of
+        # libnetwork does not have yet
+        snapcraftctl pull
+        go mod init github.com/docker/libnetwork
+        # Fix changed domains
+        go mod edit -replace github.com/coreos/bbolt=go.etcd.io/bbolt@v1.3.5
+        go mod edit -replace github.com/go-check/check=github.com/PelionIoT/check@v1.0.1
+        go mod vendor
       organize:
         'bin/proxy': bin/docker-proxy
       prime:
       - bin/docker-proxy
+
     docker-tini:
       plugin: cmake
+      # core18 uses a a default prefix, core20 and core22 do not
+      cmake-parameters:
+        - -DCMAKE_INSTALL_PREFIX=""
       source: https://github.com/krallin/tini.git
       source-type: git
       # from https://github.com/docker/docker-ce/blob/v19.03.13/components/engine/hack/dockerfile/install/tini.installer
-      source-tag: v0.18.0
+      source-tag: v0.19.0
       organize:
-        'bin/tini-static': bin/docker-init
+        'bin/tini-static' : 'bin/docker-init'
       prime:
         - bin/docker-init
+
     cosign:
       plugin: go
       source: https://github.com/sigstore/cosign.git
-      source-commit: 33973d078170f586cf27f2cc464844b3f1fa1abb
+      source-commit: v1.13.1
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
       override-build: |
-        export GOROOT=/usr/local/go1.17
+        export ALT_GO=go1.18
+        export ORI_GO=go1.15
+        export GOROOT=/usr/local/$ALT_GO
         export PATH="$GOROOT/bin:$PATH"
-        echo Hacking the go version
+        echo Hacking/changing the go version to $ALT_GO
         sudo rm /usr/local/bin/go /usr/local/bin/gofmt
-        sudo ln -sf /usr/local/go1.17/bin/go /usr/local/bin/go
-        sudo ln -sf /usr/local/go1.17/bin/gofmt /usr/local/bin/gofmt
+        sudo ln -sf "/usr/local/$ALT_GO/bin/go" /usr/local/bin/go
+        sudo ln -sf "/usr/local/$ALT_GO/bin/gofmt" /usr/local/bin/gofmt
         snapcraftctl build
-        echo Reverting the go version
+        echo Reverting the go version to $ORI_GO
         sudo rm /usr/local/bin/go /usr/local/bin/gofmt
-        sudo ln -sf /usr/local/go1.15/bin/go /usr/local/bin/go
-        sudo ln -sf /usr/local/go1.15/bin/gofmt /usr/local/bin/gofmt
+        sudo ln -sf "/usr/local/$ORI_GO/bin/go" /usr/local/bin/go
+        sudo ln -sf "/usr/local/$ORI_GO/bin/gofmt" /usr/local/bin/gofmt
+      stage:
+        - -bin/help
+
     bouncer:
       plugin: cmake
       source: https://github.com/PelionIoT/bouncer.git

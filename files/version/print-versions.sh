@@ -10,7 +10,7 @@ while [ -n "$1" ]; do
     shift
 done
 
-echo -n "relay-term: "; cat "${SNAP}/wigwag/etc/edge-node-modules.VERSION"
+echo -n "pe-terminal: "; cat "${SNAP}/wigwag/etc/pe-terminal.VERSION"
 echo -n "pe-utils: "; "${SNAP}/wigwag/pe-utils/identity-tools/developer_identity/create-dev-identity.sh" -V
 echo -n "edge-core: "; "${SNAP}/wigwag/mbed/edge-core" --version
 echo -n "devicedb: "; "${SNAP}/wigwag/system/bin/devicedb" -version
