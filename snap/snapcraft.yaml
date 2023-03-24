@@ -781,6 +781,8 @@ parts:
 
     bouncer:
       plugin: cmake
+      cmake-parameters:
+        - -DCMAKE_INSTALL_PREFIX=""
       source: https://github.com/PelionIoT/bouncer.git
       source-type: git
       source-tag: v1.1.0
