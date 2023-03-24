@@ -528,6 +528,7 @@ parts:
 #      configflags:
 # Will be cmake-parameters with core20 onwards
       cmake-parameters:
+        - -DCMAKE_INSTALL_PREFIX=""
         - -DFLB_JEMALLOC=On
         - -DFLB_SHARED_LIB=Off
         - -DFLB_EXAMPLES=Off
