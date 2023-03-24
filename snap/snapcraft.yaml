@@ -591,6 +591,7 @@ parts:
       stage:
         - -usr/share/*
       stage-packages: [systemd, util-linux]
+
     jq:
       plugin: autotools
 # Legacy, core18
@@ -604,6 +605,12 @@ parts:
         - libtool
         - flex
         - bison
+        - make
+        - automake
+        - autoconf
+      stage-packages:
+        - jq
+
     curl:
       plugin: nil
       stage-packages:
