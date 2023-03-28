@@ -103,8 +103,8 @@ exec "${SNAP}/wigwag/system/bin/edge-proxy" \
     -cert-strategy-options=path=/1/pt \
     -cert-strategy-options=device-cert-name=mbed.LwM2MDeviceCert \
     -cert-strategy-options=private-key-name=mbed.LwM2MDevicePrivateKey \
+    -forwarding-addresses={\"gateways.local\":\"${GATEWAYS_ADDRESS#"https://"}\"\,\"containers.local\":\"${CONTAINERS_ADDRESS#"https://"}\"} \
     "${EXTERN_ARG}" \
     "${EXTERN_CACERT_ARG}" \
     "${HTTP_TUNNEL_ARGS}" \
-    "${HTTPS_TUNNEL_ARGS}" \
-    -forwarding-addresses={\"gateways.local\":\"${GATEWAYS_ADDRESS#"https://"}\"\,\"containers.local\":\"${CONTAINERS_ADDRESS#"https://"}\"}
+    "${HTTPS_TUNNEL_ARGS}"
