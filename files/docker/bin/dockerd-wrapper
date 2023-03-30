@@ -9,7 +9,7 @@ runtime_path_prefix="/run/snap.$SNAP_INSTANCE_NAME"
 
 workaround_apparmor_profile_reload() {
     #https://github.com/docker/docker-snap/issues/4
-    if [ ! -f "$aa_profile_refreshed" ]; then
+    if [ ! -f "$aa_profile_reloaded" ]; then
         if [ "$(grep -c 'docker-default (enforce)' /sys/kernel/security/apparmor/profiles)" -ge 1 ]; then
             export DOCKER_AA_RELOAD=1
             touch $aa_profile_reloaded
