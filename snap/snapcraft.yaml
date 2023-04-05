@@ -1,6 +1,6 @@
 name: pelion-edge
 base: core
-version: "2.3.1-2"
+version: "2.3.1-3"
 summary: Pelion Edge
 description: Pelion Edge
 confinement: strict
@@ -359,6 +359,8 @@ parts:
         - CGO_LDFLAGS: "-L${SNAPCRAFT_PART_BUILD}/vendor/github.com/armPelionEdge/greasego/deps/lib ${CGO_LDFLAGS}"
       override-build: |
         # Build maestro-shell dependencies
+        # Pin the version of gyp.git to be used
+        sed -i -e "s,build/gyp,build/gyp\n    cd build/gyp\n    git checkout d6c5dd51dc3a60bf4ff32a5256713690a1a10376\n    cd ../..,g" build-deps.sh
         ./build-deps.sh
         # Build maestro-shell
         snapcraftctl build
@@ -372,6 +374,7 @@ parts:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
       source: https://github.com/mikefarah/yq.git
       go-importpath: github.com/mikefarah/yq
+      source-commit: 5911ab29297e530c69847cea591591cf36675a54
     maestro:
       plugin: make
       source: https://github.com/PelionIot/maestro.git
@@ -385,6 +388,8 @@ parts:
         # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
         export GOBIN=${GOPATH}/bin
 
+        # Pin the version of gyp.git to be used
+        sed -i -e "s,build/gyp,build/gyp\n    cd build/gyp\n    git checkout d6c5dd51dc3a60bf4ff32a5256713690a1a10376\n    cd ../..,g" build-deps.sh
         # Build maestro dependencies
         DEBUG= ./build-deps.sh
         # Build maestro
