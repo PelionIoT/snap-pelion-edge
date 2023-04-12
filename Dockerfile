@@ -94,6 +94,7 @@ RUN apt-get install --yes \
       gosu \
       openssh-client \
       software-properties-common \
+      libbtrfs-dev \
       rsync
 #RUN sudo add-apt-repository ppa:deadsnakes/ppa
 #RUN sudo apt-get update && \
