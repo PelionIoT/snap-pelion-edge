@@ -9,6 +9,9 @@ architectures:
   - build-on: amd64
     run-on: amd64
 plugs:
+    home:
+      read: all
+    removable-media:
     snapd:
         interface: snapd-control
         refresh-schedule: managed
@@ -24,8 +27,29 @@ plugs:
           - /var/lib/snapd/apparmor/profiles
           - /var/log
           - /run/log/journal
-    home:
-        read: all
+    usr-libexec-kubernetes:
+        interface: system-files
+        read:
+          - /usr/libexec/kubernetes
+          - /usr/libexec/kubernetes/volume
+          - /usr/libexec/kubernetes/volume/exec
+        write:
+          - /usr/libexec/kubernetes
+          - /usr/libexec/kubernetes/volume
+          - /usr/libexec/kubernetes/volume/exec
+    run-docker:
+        interface: system-files
+        read:
+          - /run/docker.pid
+          - /run/containerd/containerd.sock
+        write:
+          - /run/docker.pid
+          - /run/containerd/containerd.sock
+    etc-apparmor-abi:
+        interface: system-files
+        read:
+          - /etc/apparmor.d/abi/2.13
+
     edge-tool-files:
         interface: personal-files
         read:
@@ -35,12 +59,12 @@ plugs:
     privileged:
         interface: docker-support
         privileged-containers: true
+    docker-cli:
+        interface: docker
     dbus-wpa:
         bus: system
         interface: dbus
         name: fi.w1.wpa_supplicant1
-    docker-cli:
-        interface: docker
     network:
 slots:
     docker-daemon:
@@ -61,11 +85,15 @@ layout:
         bind: $SNAP_COMMON/var/log/pods
     /var/log/containers:
         bind: $SNAP_COMMON/var/log/containers
+
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
     edge-tool:
       command: bin/edge-tool
-      plugs: [home, edge-tool-files]
+      plugs:
+        - home
+        - edge-tool-files
+
     edge-core:
       restart-delay: 5s
       restart-condition: always
@@ -86,14 +114,21 @@ apps:
         - shutdown
         - snapd-control
         - system-files-logs
+
     help:
       command: bin/print-help
+
     fluent-bit:
       restart-delay: 5s
       restart-condition: always
       command: launch-fluent-bit.sh
       daemon: simple
-      plugs: [network, network-bind, system-files-logs, log-observe]
+      plugs:
+        - network
+        - network-bind
+        - system-files-logs
+        - log-observe
+
     maestro:
       command: launch-maestro.sh
       environment:
@@ -101,13 +136,34 @@ apps:
       restart-delay: 5s
       restart-condition: always
       daemon: simple
-      plugs: [account-control, bluetooth-control, dbus-wpa, firewall-control, hardware-observe, log-observe, modem-manager, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-manager, network-observe, x11, system-files-logs]
+      plugs:
+        - account-control
+        - bluetooth-control
+        - dbus-wpa
+        - firewall-control
+        - hardware-observe
+        - log-observe
+        - modem-manager
+        - mount-observe
+        - netlink-audit
+        - netlink-connector
+        - network-bind
+        - network-control
+        - network-manager
+        - network-observe
+        - x11
+        - system-files-logs
+
     edge-proxy:
       restart-delay: 5s
       restart-condition: always
       command: launch-edge-proxy.sh
       daemon: simple
-      plugs: [network-bind, network-control, home]
+      plugs:
+        - network-bind
+        - network-control
+        - home
+
     pe-terminal:
       restart-delay: 5s
       restart-condition: always
@@ -116,14 +172,31 @@ apps:
       daemon: simple
       environment:
         TERM: xterm-256color
-      plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, snapd-control, shutdown, network-manager, modem-manager, log-observe]
+      plugs:
+      - network
+      - ssh-keys
+      - ssh-public-keys
+      - network-bind
+      - network-control
+      - network-observe
+      - snapd-control
+      - shutdown
+      - network-manager
+      - modem-manager
+      - log-observe
+
     identity:
       command: launch-pelion-identity.sh $SNAP $SNAP_DATA
       daemon: simple
-      plugs: [network, network-control]
+      plugs:
+        - network
+        - network-control
+
     platform-version:
       command: bin/platform-version.sh
-      plugs: [snapd-control]
+      plugs:
+        - snapd-control
+
     kubelet:
       restart-delay: 5s
       after: [dockerd, bouncer]
@@ -135,6 +208,7 @@ apps:
       plugs:
         - bluetooth-control
         - docker
+        - docker-cli
         - firewall-control
         - hardware-observe
         - kubernetes-support
@@ -150,6 +224,10 @@ apps:
         - system-files-logs
         - system-observe
         - system-trace
+        - run-docker
+        - usr-libexec-kubernetes
+        - etc-apparmor-abi
+
     docker:
       command: bin/docker
       environment:
@@ -164,26 +242,38 @@ apps:
         - network
         - home
         - network-control
+        - removable-media
+
     dockerd:
       command: bin/dockerd-wrapper
       daemon: simple
       environment:
         DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
       plugs:
-        - network-bind
         - firewall-control
-        - support
-        - privileged
+        - fuse-support
         - home
         - kernel-module-observe
+        - log-observe
+        - microstack-support
+        - mount-observe
+        - network-bind
+        - network-control
+        - privileged
+        - steam-support
+        - support
       slots:
         - docker-daemon
+
     docker-help:
       command: bin/help
+
     version:
       command: bin/print-versions
+
     cosign:
       command: bin/cosign
+
     bouncer:
       command: launch-bouncer.sh
       daemon: simple
@@ -294,7 +384,7 @@ parts:
 # Legacy, core18
 #      configflags:
 # Will be cmake-parameters with core20 onwards
-      cmake-parameters: 
+      cmake-parameters:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
         - -DFIRMWARE_UPDATE=ON
@@ -540,6 +630,7 @@ parts:
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
       organize:
         bin/fluent-bit: wigwag/system/bin/fluent-bit
+
     cni:
       plugin: go
       source: https://github.com/containernetworking/plugins.git
@@ -702,6 +793,9 @@ parts:
         install -T bin/ctr "${SNAPCRAFT_PART_INSTALL}/bin/docker-containerd-ctr"
       after:
       - docker-wrapper-scripts
+      build-packages:
+      - make
+
     docker-runc:
       plugin: make
       source: https://github.com/opencontainers/runc.git
