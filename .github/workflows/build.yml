@@ -23,6 +23,12 @@ jobs:
       - name: Build snap
         run: |
           docker run --rm -v "$PWD":/build -w /build ${USER}/snapcraft:latest bash -c "sudo apt-get update && snapcraft --debug"
+      - name: Archive the snap-binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: pelion-edge-${{ github.job }}.snap
+          path: ./pelion-edge*.snap
+          if-no-files-found: error
 
   run-pysh-check-no-more-lines:
     runs-on: ubuntu-22.04
