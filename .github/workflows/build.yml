@@ -1,20 +1,28 @@
 name: Build
 on: push
 
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: snap-pelion-edge-${{ github.event.pull_request.head.label || github.head_ref || github.ref }} 
+  cancel-in-progress: true
+
 jobs:
-  build:
+  build-snap:
     runs-on: [ "self-hosted", "edge-builder" ]
+    timeout-minutes: 40
     steps:
+      - name: Enable write on all files
+        run:  chmod a+w -R .
       - name: Check out code
         uses: actions/checkout@v3
       - name: Copy mbed_cloud_dev_credentials.c
         env:
-          MBED_CLOUD_DEV_CREDENTIALS: ${{ secrets.MBED_CLOUD_DEV_CREDENTIALS_C_RYAN }}
+          MBED_CLOUD_DEV_CREDENTIALS: ${{ secrets.MBED_CLOUD_DEV_CREDENTIALS_SNAP_CI }}
         run: |
           echo "$MBED_CLOUD_DEV_CREDENTIALS" > mbed_cloud_dev_credentials.c
       - name: Copy update_default_resources.c
         env:
-          UPDATE_DEFAULT_RESOURCES: ${{ secrets.UPDATE_DEFAULT_RESOURCES_C_RYAN }}
+          UPDATE_DEFAULT_RESOURCES: ${{ secrets.UPDATE_DEFAULT_RESOURCES_SNAP_CI }}
         run: |
           echo "$UPDATE_DEFAULT_RESOURCES" > update_default_resources.c
       - name: Build Docker image
@@ -22,13 +30,89 @@ jobs:
           docker build --no-cache -f Dockerfile --label snapcore/snapcraft --tag ${USER}/snapcraft:latest .
       - name: Build snap
         run: |
+          # If previous run failed, set everything to write mode.
+          chmod a+w -R .
           docker run --rm -v "$PWD":/build -w /build ${USER}/snapcraft:latest bash -c "sudo apt-get update && snapcraft --debug"
+          # The build left files with no write rights, which ruins next test run
+          chmod a+w -R .
       - name: Archive the snap-binary
         uses: actions/upload-artifact@v3
         with:
-          name: pelion-edge-${{ github.job }}.snap
+          name: pelion-edge-amd64.snap
           path: ./pelion-edge*.snap
           if-no-files-found: error
+      - name: Archive connect.sh
+        uses: actions/upload-artifact@v3
+        with:
+          name: connect.sh
+          path: ./connect.sh
+          if-no-files-found: error
+
+  test:
+    runs-on: ubuntu-22.04
+    needs: build-snap
+    timeout-minutes: 40
+    env:
+      ACCESS_KEY: ${{ secrets.IZUMA_ACCESS_KEY }}
+    steps:
+      - name: Check out scripts-internal & e2e tests repos
+        run: | 
+          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
+          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github".insteadOf "https://github"
+          git clone git@github.com:PelionIoT/e2e-edge-test-suite
+          git clone git@github.com:PelionIoT/scripts-internal.git
+          ls -al
+      - name: Set up Python v3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: v3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r e2e-edge-test-suite/requirements.txt
+          sudo apt install virtualenv
+          curl -LO https://dl.k8s.io/release/v1.25.0/bin/linux/amd64/kubectl
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          kubectl version --client
+      - name: Get pelion-edge.snap from storage
+        uses: actions/download-artifact@v3
+        with:
+          name: pelion-edge-amd64.snap
+          path: e2e-edge-test-suite
+      - name: Get connect.sh from storage
+        uses: actions/download-artifact@v3
+        with:
+          name: connect.sh
+          path: e2e-edge-test-suite
+      - name: Install snap as sudo
+        run: |
+          sudo scripts-internal/snap/snap-install.sh -s e2e-edge-test-suite/pelion-edge_2.6.0_amd64.snap
+          sleep 5
+          sudo snap restart pelion-edge
+          sleep 5
+# Disabled for now - reboot is required to get installation working correctly,
+# we cannot however reboot a GitHub runner mid-job.
+#      - name: Run snap-test
+#        if: ${{ failure() }} || ${{ success() }}
+#        run: |
+#          cd e2e-edge-test-suite
+#          ../scripts-internal/snap/snap-test.sh -a ${{ secrets.IZUMA_ACCESS_KEY }}
+      - name: Remove snap
+        if: always()
+        run: |
+          sudo scripts-internal/snap/snap-remove.sh -a ${{ secrets.IZUMA_ACCESS_KEY }} -s pelion-edge
+#      - name: Archive the pytest.log
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: pytest.log
+#          path: e2e-edge-test-suite/pytest.log
+#          if-no-files-found: error
+#      - name: Publish Test Results
+#        uses: EnricoMi/publish-unit-test-result-action@v2
+#        if: always()
+#        with:
+#          files: |
+#           results.xml
 
   run-pysh-check-no-more-lines:
     runs-on: ubuntu-22.04
