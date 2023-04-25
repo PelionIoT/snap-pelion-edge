@@ -645,9 +645,10 @@ parts:
           if [ -d "$d" ]; then
             plugin="$(basename "$d")"
             if [ $plugin != "windows" ]; then
-              echo "  $plugin"
+              echo "  cni/$plugin"
               go install github.com/containernetworking/plugins/$d
-              install /build/parts/cni/install/bin/$plugin ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/$plugin
+              # Build happens in parts/cni/build - use relative path to enable cross-compilation
+              install ../install/bin/$plugin ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/$plugin
             fi
           fi
         done
