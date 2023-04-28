@@ -241,6 +241,7 @@ apps:
         - docker-cli
         - network
         - home
+        - process-control
         - network-control
         - removable-media
 
@@ -260,10 +261,16 @@ apps:
         - network-bind
         - network-control
         - privileged
+        - process-control
         - steam-support
         - support
       slots:
         - docker-daemon
+
+    curl:
+      command: bin/curl
+      plugs:
+        - network
 
     docker-help:
       command: bin/help
@@ -510,11 +517,26 @@ parts:
     edge-proxy:
       plugin: go
       source: https://github.com/PelionIoT/edge-proxy.git
-      source-commit: v1.2.0-RC1
+      source-commit: v1.2.0
       build-environment:
         - GOFLAGS:  "$GOFLAGS -modcacherw"
       override-build: |
+        export ALT_GO=go1.18
+        export ORI_GO=go1.15
+        export GOROOT=/usr/local/$ALT_GO
+        export PATH="$GOROOT/bin:$PATH"
+        echo Hacking/changing the go version to $ALT_GO
+        sudo rm /usr/local/bin/go /usr/local/bin/gofmt
+        sudo ln -sf "/usr/local/$ALT_GO/bin/go" /usr/local/bin/go
+        sudo ln -sf "/usr/local/$ALT_GO/bin/gofmt" /usr/local/bin/gofmt
+
         snapcraftctl build
+
+        echo Reverting the go version to $ORI_GO
+        sudo rm /usr/local/bin/go /usr/local/bin/gofmt
+        sudo ln -sf "/usr/local/$ORI_GO/bin/go" /usr/local/bin/go
+        sudo ln -sf "/usr/local/$ORI_GO/bin/gofmt" /usr/local/bin/gofmt
+
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/config/edge-proxy.conf.json ${SNAPCRAFT_PART_INSTALL}/
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/scripts/launch-edge-proxy.sh ${SNAPCRAFT_PART_INSTALL}/
@@ -700,22 +722,55 @@ parts:
         - make
         - automake
         - autoconf
+        - openssl
       stage-packages:
         - jq
 
     curl:
-      plugin: nil
+      plugin: autotools
+      source: https://github.com/curl/curl.git
+      source-tag: curl-8_0_1
+      autotools-configure-parameters:
+      - --with-libssh
+      - --enable-threaded-resolver
+      - --with-nghttp2
+      - --with-gssapi
+      - --prefix=/
+      - --with-openssl
+      build-packages:
+        # Curl build dependencies
+        - libgsasl7-dev
+        - libssl-dev
+        - libssh-dev
+        - zlib1g-dev
+        - libbrotli-dev
+        - libidn11-dev
+        - librtmp-dev
+        - libldap2-dev
+        - libnghttp2-dev
+        - libzstd-dev
+        - libpsl-dev
+        - libkrb5-dev
+        # for build-in manual
+        - groff
       stage-packages:
-        - curl
-      stage:
-        - -usr/share/*
-      organize:
-        usr/bin/curl: bin/curl
+        - libssh-4
+        - libpsl5
+        - libzstd1
+        - libgsasl7
+        - libbrotli1
+        - libidn2-0
+        - libldap-2.4-2
+        - librtmp1
+        - libsasl2-2
+        - libssl1.1
+        - libnghttp2-14
+
     docker-wrapper-scripts:
       plugin: dump
       source: files/docker/
-      stage-packages:
-      - mount
+#      stage-packages:
+#      - mount
       stage:
       - bin/*
       - patches/*
@@ -770,7 +825,6 @@ parts:
       - pkg-config
       stage-packages:
       - zfsutils-linux
-      - aufs-tools
       - libltdl7
 
     docker-containerd:
