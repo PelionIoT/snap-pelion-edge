@@ -731,40 +731,16 @@ parts:
       source: https://github.com/curl/curl.git
       source-tag: curl-8_0_1
       autotools-configure-parameters:
-      - --with-libssh
-      - --enable-threaded-resolver
-      - --with-nghttp2
-      - --with-gssapi
       - --prefix=/
       - --with-openssl
       build-packages:
         # Curl build dependencies
-        - libgsasl7-dev
         - libssl-dev
         - libssh-dev
-        - zlib1g-dev
-        - libbrotli-dev
-        - libidn11-dev
-        - librtmp-dev
-        - libldap2-dev
-        - libnghttp2-dev
         - libzstd-dev
         - libpsl-dev
-        - libkrb5-dev
         # for build-in manual
         - groff
-      stage-packages:
-        - libssh-4
-        - libpsl5
-        - libzstd1
-        - libgsasl7
-        - libbrotli1
-        - libidn2-0
-        - libldap-2.4-2
-        - librtmp1
-        - libsasl2-2
-        - libssl1.1
-        - libnghttp2-14
 
     docker-wrapper-scripts:
       plugin: dump
