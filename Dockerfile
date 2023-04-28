@@ -93,6 +93,8 @@ RUN apt-get install --yes \
       git \
       gosu \
       openssh-client \
+      openssl \
+      libssl-dev \
       software-properties-common \
       libbtrfs-dev \
       rsync
