@@ -29,6 +29,7 @@ sudo snap connect "${SNAP_NAME}:support"                    :docker-support
 sudo snap connect "${SNAP_NAME}:firewall-control"           :firewall-control
 sudo snap connect "${SNAP_NAME}:docker-cli"                 "${SNAP_NAME}:docker-daemon"
 sudo snap connect "${SNAP_NAME}:log-observe"                :log-observe
+sudo snap connect "${SNAP_NAME}:login-session-observe"      :login-session-observe
 sudo snap connect "${SNAP_NAME}:system-files-logs"          :system-files
 sudo snap connect "${SNAP_NAME}:kernel-module-observe"      :kernel-module-observe
 sudo snap connect "${SNAP_NAME}:system-trace"               :system-trace

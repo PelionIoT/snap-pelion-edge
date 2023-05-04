@@ -49,11 +49,17 @@ plugs:
         interface: system-files
         read:
           - /etc/apparmor.d/abi/2.13
-
     edge-tool-files:
         interface: personal-files
         read:
           - $HOME/.mbed_cloud_config.json
+    testnet-credential-files:
+        interface: system-files
+        read:
+          - /usr/bin/credentials/bootstrap.pem
+          - /usr/bin/credentials/device01_cert.pem
+          - /usr/bin/credentials/device01_key.pem
+          - /usr/bin/credentials/lwm2m.pem
     support:
         interface: docker-support
     privileged:
@@ -277,6 +283,20 @@ apps:
 
     version:
       command: bin/print-versions
+
+    edge-info:
+      command: bin/edge-info
+      plugs:
+        - mount-observe
+        - network-bind
+        - login-session-observe
+
+    edge-testnet:
+      command: bin/edge-testnet
+      plugs:
+        - network-bind
+        - testnet-credential-files
+        - steam-support
 
     cosign:
       command: bin/cosign
@@ -581,13 +601,28 @@ parts:
     pe-utils:
       plugin: nil
       source: https://github.com/PelionIoT/pe-utils.git
-      source-tag: 2.0.15
+      source-tag: 2.1.0
       override-build: |
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
         install ${SNAPCRAFT_PROJECT_DIR}/files/pe-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
         cp -r identity-tools ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils/
         chmod -R 0755 ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
+        install -d ${SNAPCRAFT_PART_INSTALL}/bin/credentials
+        cp -r fw-tools/credentials/* ${SNAPCRAFT_PART_INSTALL}/bin/credentials
+      organize:
+        'edge-info/edge-info': bin/edge-info
+        'fw-tools/edge-testnet': bin/edge-testnet
+        'fw-tools/credentials/bootstrap.pem': bin/credentials/bootstrap.pem
+        'fw-tools/credentials/device01_cert.pem': bin/credentials/device01_cert.pem
+        'fw-tools/credentials/device01_key.pem': bin/credentials/device01_key.pem
+        'fw-tools/credentials/lwm2m.pem': bin/credentials/lwm2m.pem
+      stage-packages:
+        - procps
+        - bc
+        - net-tools
+        - netcat-openbsd
+
     yq:
       plugin: go
       build-environment:
@@ -725,6 +760,8 @@ parts:
         - openssl
       stage-packages:
         - jq
+      organize:
+        'jq': bin/jq
 
     curl:
       plugin: autotools
@@ -877,7 +914,7 @@ parts:
         'bin/tini-static': bin/docker-init
       prime:
         - -bin/tini
-        - bin/docker-init
+        - -bin/docker-init
       build-packages:
       - build-essential
 
