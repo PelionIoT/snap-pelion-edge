@@ -623,6 +623,31 @@ parts:
         - net-tools
         - netcat-openbsd
 
+    edge-info:
+      plugin: dump
+      source: https://github.com/PelionIoT/pe-utils.git
+      source-tag: 2.1.0
+      organize:
+        'edge-info/edge-info': bin/edge-info
+      stage-packages:
+        - procps
+        - bc
+        - net-tools
+
+    edge-testnet:
+      plugin: dump
+      source: https://github.com/PelionIoT/pe-utils.git
+      source-tag: 2.1.0
+      organize:
+        'fw-tools/edge-testnet': bin/edge-testnet
+        'fw-tools/credentials/bootstrap.pem': bin/credentials/bootstrap.pem
+        'fw-tools/credentials/device01_cert.pem': bin/credentials/device01_cert.pem
+        'fw-tools/credentials/device01_key.pem': bin/credentials/device01_key.pem
+        'fw-tools/credentials/lwm2m.pem': bin/credentials/lwm2m.pem
+      stage-packages:
+        - net-tools
+        - netcat-openbsd
+
     yq:
       plugin: go
       build-environment:
