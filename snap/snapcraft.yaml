@@ -778,6 +778,8 @@ parts:
         - libpsl-dev
         # for build-in manual
         - groff
+      stage-packages:
+        - libpsl5
 
     docker-wrapper-scripts:
       plugin: dump
@@ -913,8 +915,8 @@ parts:
       organize:
         'bin/tini-static': bin/docker-init
       prime:
-        - -bin/tini
-        - -bin/docker-init
+        - bin/tini
+        - bin/docker-init
       build-packages:
       - build-essential
 
