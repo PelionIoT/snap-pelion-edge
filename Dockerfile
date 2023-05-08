@@ -87,17 +87,19 @@ COPY --from=builder /snap/bin/snapcraft /snap/bin/snapcraft
 # Generate locale and install dependencies.
 RUN apt-get update && apt-get dist-upgrade --yes && DEBIAN_FRONTEND="noninteractive" apt-get install --yes snapd sudo locales && locale-gen en_US.UTF-8
 RUN apt-get install --yes \
-      curl \
-      jq \
-      squashfs-tools \
-      git \
-      gosu \
-      openssh-client \
-      openssl \
-      libssl-dev \
-      software-properties-common \
-      libbtrfs-dev \
-      rsync
+        gawk \
+        bc \
+        curl \
+        jq \
+        squashfs-tools \
+        git \
+        gosu \
+        openssh-client \
+        openssl \
+        libssl-dev \
+        software-properties-common \
+        libbtrfs-dev \
+        rsync
 #RUN sudo add-apt-repository ppa:deadsnakes/ppa
 #RUN sudo apt-get update && \
 #    && DEBIAN_FRONTEND="noninteractive" apt-get install --yes python3.9 virtualenv
