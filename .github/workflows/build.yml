@@ -90,6 +90,12 @@ jobs:
           sleep 5
           sudo snap restart pelion-edge
           sleep 5
+      - name: Run edge-info
+        run: pelion-edge.edge-info
+      - name: Run version
+        run: pelion-edge.version
+      - name: Run edge-testnet
+        run: pelion-edge.edge-testnet
 # Disabled for now - reboot is required to get installation working correctly,
 # we cannot however reboot a GitHub runner mid-job.
 #      - name: Run snap-test
