@@ -1,10 +1,3 @@
 {
-    "version" : "0.0.1",
-    "packages" : [{
-       "name" : "WigWag-Firmware",
-       "version" : "",
-       "description" : "Base Factory deviceOS",
-       "node_module_hash" : "",
-       "ww_module_hash" : ""
-    }]
+    "version" : "2.6.0-dev"
 }
