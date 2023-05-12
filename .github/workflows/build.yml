@@ -86,7 +86,8 @@ jobs:
           path: e2e-edge-test-suite
       - name: Install snap as sudo
         run: |
-          sudo scripts-internal/snap/snap-install.sh -s e2e-edge-test-suite/pelion-edge_2.6.0_amd64.snap
+          snapfile=$(ls e2e-edge-test-suite/*.snap)
+          sudo scripts-internal/snap/snap-install.sh -s $snapfile
           sleep 5
           sudo snap restart pelion-edge
           sleep 5
