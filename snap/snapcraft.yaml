@@ -1,6 +1,7 @@
 name: pelion-edge
 base: core20
-version: "2.6.0"
+version: "2.6.0-dev"
+# Remember to update the versions.json under files/pe-utils, too
 summary: Izuma Edge
 description: Izuma Edge Device Management solution
 confinement: strict
@@ -603,8 +604,9 @@ parts:
       source: https://github.com/PelionIoT/pe-utils.git
       source-tag: 2.1.0
       override-build: |
+        install -d ${SNAPCRAFT_PART_INSTALL}/edge/etc
+        install ${SNAPCRAFT_PROJECT_DIR}/files/pe-utils/versions.json ${SNAPCRAFT_PART_INSTALL}/edge/etc/
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        install ${SNAPCRAFT_PROJECT_DIR}/files/pe-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
         cp -r identity-tools ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils/
         chmod -R 0755 ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
