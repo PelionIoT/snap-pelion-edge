@@ -84,23 +84,20 @@ jobs:
         with:
           name: connect.sh
           path: e2e-edge-test-suite
-      - name: Install snap as sudo
+      - name: Install snap as sudo and test
         run: |
           snapfile=$(ls e2e-edge-test-suite/*.snap)
           sudo scripts-internal/snap/snap-install.sh -s $snapfile
           sleep 5
           sudo snap restart pelion-edge
           sleep 5
-      - name: Run help
-        run: pelion-edge.help
-      - name: Run edge-info
-        run: pelion-edge.edge-info
-      - name: Run version
-        run: pelion-edge.version
-      - name: Run edge-testnet
-        run: pelion-edge.edge-testnet
-      - name: Run curl version
-        run: pelion-edge.curl --version
+          snap services
+          snap list
+          pelion-edge.help
+          pelion-edge.edge-info
+          pelion-edge.version
+          pelion-edge.edge-testnet
+          pelion-edge.curl --version
 
 # Disabled for now - reboot is required to get installation working correctly,
 # we cannot however reboot a GitHub runner mid-job.
