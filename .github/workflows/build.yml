@@ -98,9 +98,11 @@ jobs:
           pelion-edge.version
           pelion-edge.edge-testnet
           pelion-edge.curl --version
+      - name: Check out code
+        uses: actions/checkout@v3
       - name: Check snap-pelion-edge versions
         run: |
-          sudo snap install yq  
+          sudo snap install yq
           snapcraftyamlver=$(yq -r ".version" <snap/snapcraft.yaml |sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g")
           version=$(pelion-edge.version |grep snap-pelion-edge | awk -F' ' '{ print $NF }')
           if [[ "$snapcraftyamlver" != "$version" ]]; then
