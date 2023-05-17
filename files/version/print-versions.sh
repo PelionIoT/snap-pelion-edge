@@ -10,13 +10,17 @@ while [ -n "$1" ]; do
     shift
 done
 
-echo -n "pe-terminal: "; cat "${SNAP}/wigwag/etc/pe-terminal.VERSION"
-echo -n "pe-utils: "; "cat ${SNAP}/identity-tools/developer_identity/VERSION"
+echo -n "snap-pelion-edge: "; jq -r ".version" < "${SNAP}/edge/versions.json"
 echo -n "edge-core: "; "${SNAP}/wigwag/mbed/edge-core" --version
-echo -n "maestro: "; cat "${SNAP}/wigwag/etc/maestro.VERSION"
-echo -n "edge-proxy: "; cat "${SNAP}/wigwag/etc/edge-proxy.VERSION"
+echo -n "pe-terminal: "; cat "${SNAP}/edge/pe-terminal.VERSION"
+echo -n "pe-utils: "; cat "${SNAP}/edge/pe-utils.VERSION"
+echo -n "edge-info: "; cat "${SNAP}/edge/edge-info.VERSION"
+echo -n "edge-testnet: "; cat "${SNAP}/edge/edge-testnet.VERSION"
+echo -n "maestro: "; cat "${SNAP}/edge/maestro.VERSION"
+echo -n "edge-proxy: "; cat "${SNAP}/edge/edge-proxy.VERSION"
 echo -n "kubelet: "; "${SNAP}/wigwag/system/bin/kubelet" --version | cut -d' ' -f2
-echo -n "bouncer: "; cat "${SNAP}/wigwag/etc/bouncer.VERSION"
+echo -n "bouncer: "; cat "${SNAP}/edge/bouncer.VERSION"
+echo -n "cosign: "; cat "${SNAP}/edge/cosign.VERSION"
 if [ "${SHOW_DOCKER}" = "true" ]; then
     echo -n "docker: "; "${SNAP}/bin/docker" --version
     echo -n "docker-runc: "; "${SNAP}/bin/docker-runc" --version
