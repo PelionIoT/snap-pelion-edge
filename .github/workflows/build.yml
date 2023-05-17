@@ -55,6 +55,8 @@ jobs:
     env:
       ACCESS_KEY: ${{ secrets.IZUMA_ACCESS_KEY }}
     steps:
+      - name: Check out code
+        uses: actions/checkout@v3
       - name: Check out scripts-internal & e2e tests repos
         run: | 
           git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
@@ -98,8 +100,6 @@ jobs:
           pelion-edge.version
           pelion-edge.edge-testnet
           pelion-edge.curl --version
-      - name: Check out code
-        uses: actions/checkout@v3
       - name: Check snap-pelion-edge versions
         run: |
           sudo snap install yq
