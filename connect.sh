@@ -46,6 +46,7 @@ sudo snap connect "${SNAP_NAME}:process-control"            :process-control
 sudo snap connect "${SNAP_NAME}:shutdown"                   :shutdown
 sudo snap connect "${SNAP_NAME}:home"                       :home
 sudo snap connect "${SNAP_NAME}:edge-tool-files"            :personal-files
+sudo snap connect "${SNAP_NAME}:edge-identity-file"         :system-files
 sudo snap connect "${SNAP_NAME}:usr-libexec-kubernetes"     :system-files
 sudo snap connect "${SNAP_NAME}:run-docker"                 :system-files
 sudo snap connect "${SNAP_NAME}:fuse-support"               :fuse-support
