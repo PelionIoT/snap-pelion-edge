@@ -568,7 +568,7 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/config/edge-proxy.conf.json ${SNAPCRAFT_PART_INSTALL}/
         install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/scripts/launch-edge-proxy.sh ${SNAPCRAFT_PART_INSTALL}/
         install -d ${SNAPCRAFT_PART_INSTALL}/edge
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/edge/edge-proxy.VERSION
+        git describe --tags --always > ${SNAPCRAFT_PART_INSTALL}/edge/edge-proxy.VERSION
       organize:
         bin/edge-proxy: wigwag/system/bin/edge-proxy
 
@@ -597,7 +597,7 @@ parts:
         sudo ln -sf "/usr/local/$ORI_GO/bin/gofmt" /usr/local/bin/gofmt
 
         install -d ${SNAPCRAFT_PART_INSTALL}/edge
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/edge/pe-terminal.VERSION
+        git describe --tags --always >"${SNAPCRAFT_PART_INSTALL}/edge/pe-terminal.VERSION"
 
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install ${SNAPCRAFT_PROJECT_DIR}/files/pe-terminal/config/pe-terminal.conf.json ${SNAPCRAFT_PART_INSTALL}/
@@ -618,7 +618,7 @@ parts:
         chmod -R 0755 ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
         install -d ${SNAPCRAFT_PART_INSTALL}/bin/credentials
         cp -r fw-tools/credentials/* ${SNAPCRAFT_PART_INSTALL}/bin/credentials
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/edge/pe-utils.VERSION
+        git describe --tags --always >"${SNAPCRAFT_PART_INSTALL}/edge/pe-utils.VERSION"
       stage-packages:
         - gawk
         - bc
@@ -631,7 +631,7 @@ parts:
       source-tag: 2.2.0
       override-build: |
         install -d "${SNAPCRAFT_PART_INSTALL}/edge"
-        git describe --tags > "${SNAPCRAFT_PART_INSTALL}/edge/edge-info.VERSION"
+        git describe --tags --always >"${SNAPCRAFT_PART_INSTALL}/edge/edge-info.VERSION"
         snapcraftctl build
       organize:
         'edge-info/edge-info' : bin/edge-info
@@ -647,7 +647,7 @@ parts:
       source-tag: 2.2.0
       override-build: |
         install -d "${SNAPCRAFT_PART_INSTALL}/edge"
-        git describe --tags > "${SNAPCRAFT_PART_INSTALL}/edge/edge-testnet.VERSION"
+        git describe --tags  --always >"${SNAPCRAFT_PART_INSTALL}/edge/edge-testnet.VERSION"
         snapcraftctl build
       organize:
         'fw-tools/edge-testnet': bin/edge-testnet
@@ -695,7 +695,7 @@ parts:
         # fixup the SNAP and SNAP_DATA variables in the config files based on the snap name
         sed -i "s!/snap/pelion-edge!/snap/${SNAPCRAFT_PROJECT_NAME}!" ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/*.yaml
         install -d ${SNAPCRAFT_PART_INSTALL}/edge
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/edge/maestro.VERSION
+        git describe --tags  --always >"${SNAPCRAFT_PART_INSTALL}/edge/maestro.VERSION"
       stage-packages:
         - libuv1
 
@@ -722,7 +722,7 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/fluent-bit/scripts/launch-fluent-bit.sh ${SNAPCRAFT_PART_INSTALL}/
         install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
         install -d ${SNAPCRAFT_PART_INSTALL}/edge
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/edge/fluent-bit.VERSION
+        git describe --tags --always > ${SNAPCRAFT_PART_INSTALL}/edge/fluent-bit.VERSION
       organize:
         bin/fluent-bit: wigwag/system/bin/fluent-bit
 
@@ -756,7 +756,7 @@ parts:
         install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files/cni/99-loopback.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/99-loopback.conf
 
         install -d ${SNAPCRAFT_PART_INSTALL}/edge
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/edge/cni.VERSION
+        git describe --tags --always >"${SNAPCRAFT_PART_INSTALL}/edge/cni.VERSION"
 
     kubelet:
       plugin: make
@@ -780,7 +780,7 @@ parts:
         install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-edgenet.sh ${SNAPCRAFT_PART_INSTALL}/
 
         install -d ${SNAPCRAFT_PART_INSTALL}/edge
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/edge/kubelet.VERSION
+        git describe --tags  --always >"${SNAPCRAFT_PART_INSTALL}/edge/kubelet.VERSION"
 
       stage:
         - -usr/share/*
@@ -986,7 +986,7 @@ parts:
         sudo ln -sf "/usr/local/$ORI_GO/bin/go" /usr/local/bin/go
         sudo ln -sf "/usr/local/$ORI_GO/bin/gofmt" /usr/local/bin/gofmt
         install -d ${SNAPCRAFT_PART_INSTALL}/edge
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/edge/cosign.VERSION
+        git describe --tags --always > "${SNAPCRAFT_PART_INSTALL}/edge/cosign.VERSION"
       stage:
         - -bin/help
 
@@ -1001,4 +1001,4 @@ parts:
         snapcraftctl build
         install ${SNAPCRAFT_PROJECT_DIR}/files/bouncer/scripts/launch-bouncer.sh ${SNAPCRAFT_PART_INSTALL}/
         install -d ${SNAPCRAFT_PART_INSTALL}/edge
-        git -C ${SNAPCRAFT_PART_SRC} describe --tags > ${SNAPCRAFT_PART_INSTALL}/edge/bouncer.VERSION
+        git -C ${SNAPCRAFT_PART_SRC} describe --tags >"${SNAPCRAFT_PART_INSTALL}/edge/bouncer.VERSION"
