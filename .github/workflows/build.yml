@@ -157,3 +157,10 @@ jobs:
       - run: |
           echo . >scripts-internal/.nopyshcheck
           scripts-internal/ci/more-lines-checker.sh dev ${{ github.ref_name }} "scripts-internal/pysh/pysh-check.sh --workdir ."
+
+  yamllint-snapcraft-yaml:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - run: sudo apt-get install yamllint
+      - run: yamllint -c lint-config.yaml snap/snapcraft.yaml
