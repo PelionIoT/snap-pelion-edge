@@ -408,16 +408,13 @@ parts:
         # Override the generic update scripts with our own
         echo "Override the generic update scripts with our own"
         install "${SNAPCRAFT_PROJECT_DIR}"/files/edge-core/scripts/arm_update_*.sh "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed"
-      prime: [ '*', -edge-core-src.tgz ]
+      prime: ['*', -edge-core-src.tgz]
     edge-core:
       # this variant of edge-core is compiled with factory provisioning mode
       plugin: cmake
       after:
       - edge-core-src
       source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
-# Legacy, core18
-#      configflags:
-# Will be cmake-parameters with core20 onwards
       cmake-parameters:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
@@ -451,9 +448,6 @@ parts:
       after:
       - edge-core-src
       source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
-# Legacy, core18
-#      configflags:
-# Will be cmake-parameters with core20 onwards
       cmake-parameters:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
@@ -500,9 +494,6 @@ parts:
       after:
       - edge-core-src
       source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
-# Legacy, core18
-#      configflags:
-# Will be cmake-parameters with core20 onwards
       cmake-parameters:
         - -DCMAKE_BUILD_TYPE=Release
         - -DTRACE_LEVEL=WARN
@@ -531,7 +522,7 @@ parts:
       plugin: python
       source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
       source-subdir: edge-tool
-      requirements: [ "${SNAPCRAFT_PART_SRC}/edge-tool/requirements.txt" ]
+      requirements: ["${SNAPCRAFT_PART_SRC}/edge-tool/requirements.txt"]
       override-build: |
         if [ "${SNAPCRAFT_PROJECT_GRADE}" = "devel" ]; then
             snapcraftctl build
@@ -546,7 +537,7 @@ parts:
       source: https://github.com/PelionIoT/edge-proxy.git
       source-tag: v1.3.0
       build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
+        - GOFLAGS: "$GOFLAGS -modcacherw"
       override-build: |
         export ALT_GO=go1.18
         export ORI_GO=go1.15
@@ -577,7 +568,7 @@ parts:
       source: https://github.com/PelionIoT/pe-terminal.git
       source-tag: v1.1.0
       build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
+        - GOFLAGS: "$GOFLAGS -modcacherw"
       override-build: |
         export ALT_GO=go1.18
         export ORI_GO=go1.15
@@ -634,7 +625,7 @@ parts:
         git describe --tags --always >"${SNAPCRAFT_PART_INSTALL}/edge/edge-info.VERSION"
         snapcraftctl build
       organize:
-        'edge-info/edge-info' : bin/edge-info
+        'edge-info/edge-info': bin/edge-info
       stage-packages:
         - gawk
         - bc
@@ -662,7 +653,7 @@ parts:
     yq:
       plugin: go
       build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
+        - GOFLAGS: "$GOFLAGS -modcacherw"
       source: https://github.com/mikefarah/yq.git
       source-tag: 3.4.1
 
@@ -673,7 +664,7 @@ parts:
       build-packages:
         - libuv1-dev
       build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
+        - GOFLAGS: "$GOFLAGS -modcacherw"
       override-build: |
         # setup the go build environment
         . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
@@ -707,9 +698,6 @@ parts:
         - libsystemd-dev
         - flex
         - bison
-# Legacy, core18
-#      configflags:
-# Will be cmake-parameters with core20 onwards
       cmake-parameters:
         - -DCMAKE_INSTALL_PREFIX=""
         - -DFLB_JEMALLOC=On
@@ -788,9 +776,6 @@ parts:
 
     jq:
       plugin: autotools
-# Legacy, core18
-#      configflags:
-# From core20 onwards it will be:
       autotools-configure-parameters:
         - -disable-docs
       source: https://github.com/stedolan/jq.git
@@ -829,8 +814,8 @@ parts:
     docker-wrapper-scripts:
       plugin: dump
       source: files/docker/
-#      stage-packages:
-#      - mount
+      # stage-packages:
+      # - mount
       stage:
       - bin/*
       - patches/*
@@ -970,7 +955,7 @@ parts:
       source: https://github.com/sigstore/cosign.git
       source-commit: v1.13.1
       build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
+        - GOFLAGS: "$GOFLAGS -modcacherw"
       override-build: |
         export ALT_GO=go1.18
         export ORI_GO=go1.15
