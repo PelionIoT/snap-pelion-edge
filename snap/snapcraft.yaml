@@ -608,7 +608,7 @@ parts:
     pe-utils:
       plugin: nil
       source: https://github.com/PelionIoT/pe-utils.git
-      source-tag: 2.2.0
+      source-tag: 2.2.2
       override-build: |
         install -d ${SNAPCRAFT_PART_INSTALL}/edge/etc
         install ${SNAPCRAFT_PROJECT_DIR}/files/pe-utils/versions.json ${SNAPCRAFT_PART_INSTALL}/edge/
@@ -628,7 +628,7 @@ parts:
     edge-info:
       plugin: dump
       source: https://github.com/PelionIoT/pe-utils.git
-      source-tag: 2.2.0
+      source-tag: 2.2.2
       override-build: |
         install -d "${SNAPCRAFT_PART_INSTALL}/edge"
         git describe --tags --always >"${SNAPCRAFT_PART_INSTALL}/edge/edge-info.VERSION"
@@ -644,7 +644,7 @@ parts:
     edge-testnet:
       plugin: dump
       source: https://github.com/PelionIoT/pe-utils.git
-      source-tag: 2.2.0
+      source-tag: 2.2.2
       override-build: |
         install -d "${SNAPCRAFT_PART_INSTALL}/edge"
         git describe --tags  --always >"${SNAPCRAFT_PART_INSTALL}/edge/edge-testnet.VERSION"
