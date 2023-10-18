@@ -47,7 +47,7 @@ function snap_refresh_each() {
         response=$(curl -sS -H "Content-Type: application/json" --unix-socket /run/snapd.socket http://localhost/v2/snaps/$snapname -X POST -d '{ "action": "refresh" }')
         status=$(echo $response | jq -r '.status')
         kind=$(echo $response | jq -r '.result.kind')
-        type=$(echo respone | jq -r '.type')
+        type=$(echo $response | jq -r '.type')
         if [ "$status" = "Accepted" ]; then
             change_id=$(echo $response | jq -r '.change')
             echo $change_id > $REFRESH_WATCHID
@@ -56,7 +56,7 @@ function snap_refresh_each() {
             log_msg "$snapname: $kind. skipping to next snap."
             return 1
         else
-            log_msg "$snapname: Attemped snap refresh; unhandled response."
+            log_msg "$snapname: Attempted snap refresh; unhandled response."
             log_msg "Complete response: $response"
             return 1
         fi
