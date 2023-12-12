@@ -177,3 +177,14 @@ jobs:
       - uses: actions/checkout@v3
       - run: sudo apt-get install yamllint
       - run: yamllint -c lint-config.yaml snap/snapcraft.yaml
+      - name: Check yq compliancy
+        run: |
+          sudo snap install yq
+          yq -r "." <snap/snapcraft.yaml >yqout.yaml
+          if diff -u snap/snapcraft.yaml yqout.yaml
+          then
+            echo "yq compliancy check passed"
+          else
+            echo "yq compliancy check failed"
+            exit 1
+          fi
