@@ -763,7 +763,7 @@ parts:
   curl:
     plugin: autotools
     source: https://github.com/curl/curl.git
-    source-tag: curl-8_0_1
+    source-tag: curl-8_5_0
     autotools-configure-parameters:
       - --prefix=/
       - --with-openssl
