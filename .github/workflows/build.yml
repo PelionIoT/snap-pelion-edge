@@ -162,14 +162,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: sudo apt-get install black pycodestyle pydocstyle shellcheck python3
-      - name: Set GitHub access token via git config
-        run: | 
-          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
-          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github".insteadOf "https://github"
-      - run: git clone git@github.com:PelionIoT/scripts-internal.git
+      - name: Check out scripts-internal
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          repository: PelionIoT/scripts-internal
+          path: scripts-internal
       - run: |
           echo . >scripts-internal/.nopyshcheck
-          scripts-internal/ci/more-lines-checker.sh dev ${{ github.ref_name }} "scripts-internal/pysh/pysh-check.sh --workdir ."
+          scripts-internal/ci/more-lines-checker.sh dev ${{ github.ref_name }} "scripts-internal/pysh-check/pysh-check.sh --workdir ."
 
   yamllint-snapcraft-yaml:
     runs-on: ubuntu-22.04
