@@ -5,20 +5,20 @@
 # current working directory should be the Docker source directory
 
 for patch in "$SNAPCRAFT_STAGE"/patches/*.patch; do
-	echo "Applying $(basename "$patch") ..."
-	sed "s/pelion-edge/${SNAPCRAFT_PROJECT_NAME}/g" "$patch" | git apply --ignore-space-change --ignore-whitespace -
-	echo
+    echo "Applying $(basename "$patch") ..."
+    sed "s/pelion-edge/${SNAPCRAFT_PROJECT_NAME}/g" "$patch" | git apply --ignore-space-change --ignore-whitespace -
+    echo
 done
 
 export BUILDTIME="$(
-	date --rfc-3339 ns 2>/dev/null | sed -e 's/ /T/' \
-		|| date -u
+    date --rfc-3339 ns 2>/dev/null | sed -e 's/ /T/' \
+        || date -u
 )"
 
 export DOCKER_BUILDTAGS='
-	apparmor
-	seccomp
-	selinux
+    apparmor
+    seccomp
+    selinux
 '
 #	pkcs11
 
