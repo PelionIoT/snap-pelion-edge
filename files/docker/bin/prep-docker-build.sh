@@ -20,6 +20,6 @@ export DOCKER_BUILDTAGS='
     seccomp
     selinux
 '
-#	pkcs11
+# pkcs11
 
 export AUTO_GOPATH=1
