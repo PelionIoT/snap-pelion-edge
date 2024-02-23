@@ -503,6 +503,7 @@ parts:
     source-subdir: edge-tool
     requirements: ["${SNAPCRAFT_PART_SRC}/edge-tool/requirements.txt"]
     override-build: |
+      set -ex
       if [ "${SNAPCRAFT_PROJECT_GRADE}" = "devel" ]; then
           snapcraftctl build
       fi
