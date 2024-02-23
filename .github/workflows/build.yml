@@ -157,7 +157,7 @@ jobs:
 #          files: |
 #           results.xml
 
-  run-pysh-check-no-more-lines:
+  pysh-check:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
