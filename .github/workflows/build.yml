@@ -181,7 +181,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Shellcheck logs
-          path: *.log
+          path: "./*.log"
               
   yamllint-snapcraft-yaml:
     runs-on: ubuntu-22.04
