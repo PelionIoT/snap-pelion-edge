@@ -46,13 +46,13 @@ jobs:
           # The build left files with no write rights, which ruins next test run
           chmod a+w -R .
       - name: Archive the snap-binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pelion-edge-amd64.snap
           path: ./pelion-edge*.snap
           if-no-files-found: error
       - name: Archive connect.sh
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: connect.sh
           path: ./connect.sh
@@ -78,7 +78,7 @@ jobs:
           git clone git@github.com:PelionIoT/scripts-internal.git
           ls -al
       - name: Set up Python v3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: v3.8
       - name: Install dependencies
@@ -90,12 +90,12 @@ jobs:
           sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
           kubectl version --client
       - name: Get pelion-edge.snap from storage
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: pelion-edge-amd64.snap
           path: e2e-edge-test-suite
       - name: Get connect.sh from storage
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: connect.sh
           path: e2e-edge-test-suite
@@ -149,7 +149,7 @@ jobs:
         run: |
           sudo scripts-internal/snap/snap-remove.sh -a ${{ secrets.IZUMA_ACCESS_KEY }} -s pelion-edge
 #      - name: Archive the pytest.log
-#        uses: actions/upload-artifact@v3
+#        uses: actions/upload-artifact@v4
 #        with:
 #          name: pytest.log
 #          path: e2e-edge-test-suite/pytest.log
@@ -178,7 +178,7 @@ jobs:
           cat pysh-check.log
       - name: Archive the logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Shellcheck logs
           path: "./*.log"
