@@ -170,8 +170,16 @@ jobs:
           path: scripts-internal
       - run: |
           echo . >scripts-internal/.nopyshcheck
-          scripts-internal/ci/more-lines-checker.sh dev ${{ github.ref_name }} "scripts-internal/pysh-check/pysh-check.sh --workdir ."
-
+          scripts-internal/ci/more-lines-checker.sh dev ${{ github.ref_name }} "scripts-internal/pysh-check/pysh-check.sh --workdir . pysh" > pysh-check.log
+          cat pysh-check.log
+      - name: Archive the logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: Shellcheck logs
+          path: *.log
+          if-no-files-found: skip
+              
   yamllint-snapcraft-yaml:
     runs-on: ubuntu-22.04
     steps:
