@@ -160,7 +160,7 @@ jobs:
   pysh-check:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: sudo apt-get install black pycodestyle pydocstyle shellcheck python3
       - name: Check out scripts-internal
         uses: actions/checkout@v4
@@ -175,7 +175,7 @@ jobs:
   yamllint-snapcraft-yaml:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: sudo apt-get install yamllint
       - run: yamllint -c lint-config.yaml snap/snapcraft.yaml
       - name: Check yq compliancy
