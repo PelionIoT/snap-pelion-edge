@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build-snap:
-    runs-on: [ "self-hosted", "edge-builder" ]
+    runs-on: [ "self-hosted", "snap" ]
     timeout-minutes: 40
     steps:
       - name: Enable write on all files
