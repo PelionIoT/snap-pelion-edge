@@ -1,4 +1,4 @@
-name: Build
+name: align-pe-utils-versions
 on: 
     push:
         paths:
