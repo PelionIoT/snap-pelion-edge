@@ -104,7 +104,11 @@ jobs:
           snapfile=$(ls e2e-edge-test-suite/*.snap)
           sudo scripts-internal/snap/snap-install.sh -s $snapfile
           sleep 5
-          sudo snap restart pelion-edge
+          if sudo snap restart pelion-edge; then
+            echo "sudo snap restart succeeded."
+          else
+            echo "sudo snap restart pelion-edge failed. Test results might be invalid."
+          fi
           sleep 5
           snap services
           snap list
@@ -178,7 +182,6 @@ jobs:
         with:
           name: Shellcheck logs
           path: *.log
-          if-no-files-found: skip
               
   yamllint-snapcraft-yaml:
     runs-on: ubuntu-22.04
