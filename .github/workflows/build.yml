@@ -187,7 +187,7 @@ jobs:
           path: "./*.log"
               
   yamllint-snapcraft-yaml:
-    runs-on: client
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get install yamllint
