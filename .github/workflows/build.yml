@@ -160,6 +160,9 @@ jobs:
 #        with:
 #          files: |
 #           results.xml
+      - name: Clean up .gitconfig
+        if: always()
+        run: rm -f ~/.gitconfig
 
   pysh-check:
     runs-on: ubuntu-22.04
