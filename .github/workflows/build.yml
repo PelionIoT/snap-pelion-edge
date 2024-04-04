@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build-snap:
-    runs-on: [ "self-hosted", "snap" ]
+    runs-on: [ "snap" ]
     timeout-minutes: 40
     steps:
       - name: Enable write on all files
@@ -165,7 +165,7 @@ jobs:
         run: rm -f ~/.gitconfig
 
   pysh-check:
-    runs-on: ubuntu-22.04
+    runs-on: client
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get install black pycodestyle pydocstyle shellcheck python3
@@ -187,7 +187,7 @@ jobs:
           path: "./*.log"
               
   yamllint-snapcraft-yaml:
-    runs-on: ubuntu-22.04
+    runs-on: client
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get install yamllint
