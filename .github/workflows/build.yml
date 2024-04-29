@@ -15,8 +15,7 @@ concurrency:
 
 jobs:
   build-snap:
-    runs-on: [ "snap" ]
-    timeout-minutes: 40
+    runs-on: [ "self-hosted", "snap" ]
     steps:
       - name: Enable write on all files
         run:  chmod a+w -R .
