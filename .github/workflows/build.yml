@@ -167,7 +167,7 @@ jobs:
     runs-on: client
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install black pycodestyle pydocstyle shellcheck python3
+      - run: sudo apt-get install -y black pycodestyle pydocstyle shellcheck python3
       - name: Check out scripts-internal
         uses: actions/checkout@v4
         with:
