@@ -1,0 +1,46 @@
+name: align-pe-utils-versions
+on: 
+    push:
+        paths:
+            - 'snap/snapcraft.yaml'
+
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: align-pe-utils-${{ github.event.pull_request.head.label || github.head_ref || github.ref }} 
+  cancel-in-progress: true
+
+jobs:
+    check-pe-utils-aligned:
+        runs-on: ubuntu-22.04
+        steps:
+        - name: Check out code
+          uses: actions/checkout@v4
+        - name: Install yq
+          run: sudo snap install yq
+        - name: Check tag/hash alignment
+          run: |
+            pe_source=$(yq ".parts.pe-utils.source-commit" < snap/snapcraft.yaml)
+            info_source=$(yq ".parts.edge-info.source-commit" < snap/snapcraft.yaml)
+            testnet_source=$(yq ".parts.edge-testnet.source-commit" < snap/snapcraft.yaml)
+            # We might use tags or source commit (during dev)
+            if [[ "$pe_source" != "null" ]] && [[ "$info_source" != "null" ]] && [[ "$testnet_source" != "null" ]] ; then
+              if [[ "$pe_source" != "$info_source" ]] || [[ "$pe_source" != "$testnet_source" ]]; then
+                echo "pe-utils, edge-info and/or edge-testnet not using same commit hash!"
+                echo "pe-utils    : $pe_source"
+                echo "edge-info   : $info_source"
+                echo "edge-testnet: $testnet_source"
+                exit 1
+              fi
+            else
+              pe_tag=$(yq ".parts.pe-utils.source-tag" < snap/snapcraft.yaml)
+              info_tag=$(yq ".parts.edge-info.source-tag" < snap/snapcraft.yaml)
+              testnet_tag=$(yq ".parts.edge-testnet.source-tag" < snap/snapcraft.yaml)
+              # shellcheck disable=SC2252
+              if [[ "$pe_tag" != "$info_tag" ]] || [[ "$pe_tag" != "$testnet_tag" ]]; then
+                echo "pe-utils, edge-info and/or edge-testnet not using same tag!"
+                echo "pe-utils    : $pe_tag"
+                echo "edge-info   : $info_tag"
+                echo "edge-testnet: $testnet_tag"
+                exit 1
+              fi
+            fi

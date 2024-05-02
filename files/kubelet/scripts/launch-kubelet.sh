@@ -65,6 +65,12 @@ if [[ $(snapctl get kubelet.offline-mode) = "true" ]]; then
     OFFLINE_CACHE_OPTION="--offline-cache-path=${SNAP_COMMON}/var/lib/kubelet/store"
 fi
 
+if [[ $(snapctl get kubelet.container-signing) = "true" ]]; then
+    DOCKER_SOCK_PATH="/var/run/docker-proxy.sock"
+else
+    DOCKER_SOCK_PATH="/var/run/docker.sock"
+fi
+
 exec ${SNAP}/wigwag/system/bin/kubelet \
     --root-dir=${SNAP_COMMON}/var/lib/kubelet \
     $OFFLINE_CACHE_OPTION \
@@ -77,6 +83,6 @@ exec ${SNAP}/wigwag/system/bin/kubelet \
     --network-plugin=cni \
     --node-status-update-frequency=150s \
     --register-node=true \
-    --docker-endpoint=unix://$runtime_path_prefix/var/run/docker.sock \
+    --docker-endpoint=unix://$runtime_path_prefix$DOCKER_SOCK_PATH \
     --v 2 \
     $NODE_IP_OPTION

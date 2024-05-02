@@ -1,6 +1,7 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
 # Copyright (c) 2020, Pelion and affiliates.
+# Copyright (c) 2023, Izuma Networks
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -20,8 +21,8 @@
 # $1: install path to the parent of the wigwag folder (i.e., SNAP)
 # $2: destination path to RW storage (i.e., SNAP_DATA)
 
-IDENTITY_JSON_DIR=${2}/userdata/edge_gw_identity
-export IDENTITY_JSON=${IDENTITY_JSON_DIR}/identity.json
+IDENTITY_JSON_DIR="${2}/userdata/edge_gw_identity"
+export IDENTITY_JSON="${IDENTITY_JSON_DIR}/identity.json"
 
 LOCKFILE=/tmp/wait-for-pelion-identity.lck
 (
@@ -29,13 +30,13 @@ LOCKFILE=/tmp/wait-for-pelion-identity.lck
     flock -w 30 9 || exit 1
 
     IDENTITY_JSON_CREATED=false
-    while [ ! -f ${IDENTITY_JSON} ]; do
+    while [ ! -f "${IDENTITY_JSON}" ]; do
         IDENTITY_JSON_CREATED=true
         sleep 5
-        $1/wigwag/pe-utils/identity-tools/generate-identity.sh \
-            8081 ${IDENTITY_JSON_DIR}
+        "$1/wigwag/pe-utils/identity-tools/generate-identity.sh" \
+            8081 "${IDENTITY_JSON_DIR}"
     done
-    if ${IDENTITY_JSON_CREATED}; then
-        snapctl restart ${SNAP_INSTANCE_NAME}.edge-proxy
+    if "${IDENTITY_JSON_CREATED}"; then
+        snapctl restart "${SNAP_INSTANCE_NAME}.edge-proxy"
     fi
-) 9>${LOCKFILE}
+) 9>"${LOCKFILE}"

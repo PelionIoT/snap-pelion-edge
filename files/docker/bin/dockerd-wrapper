@@ -9,7 +9,7 @@ runtime_path_prefix="/run/snap.$SNAP_INSTANCE_NAME"
 
 workaround_apparmor_profile_reload() {
     #https://github.com/docker/docker-snap/issues/4
-    if [ ! -f "$aa_profile_refreshed" ]; then
+    if [ ! -f "$aa_profile_reloaded" ]; then
         if [ "$(grep -c 'docker-default (enforce)' /sys/kernel/security/apparmor/profiles)" -ge 1 ]; then
             export DOCKER_AA_RELOAD=1
             touch $aa_profile_reloaded
@@ -35,21 +35,21 @@ workaround_missing_xdg_runtime_dir() {
 }
 
 yolo() {
-	"$@" > /dev/null 2>&1 || :
+    "$@" > /dev/null 2>&1 || :
 }
 
 force_umount() {
-	yolo umount    "$@"
-	yolo umount -f "$@"
-	yolo umount -l "$@"
+    yolo umount    "$@"
+    yolo umount -f "$@"
+    yolo umount -l "$@"
 }
 
 dir="$(mktemp -d)"
 trap "force_umount --no-mtab '$dir'; rm -rf '$dir'" EXIT
 # try mounting a few FS types to force the kernel to try loading modules
 for t in aufs overlay zfs; do
-	yolo mount --no-mtab -t "$t" /dev/null "$dir"
-	force_umount --no-mtab "$dir"
+    yolo mount --no-mtab -t "$t" /dev/null "$dir"
+    force_umount --no-mtab "$dir"
 done
 # inside our snap, we can't "modprobe" for whatever reason (probably no access to the .ko files)
 # so this forces the kernel itself to "modprobe" for these filesystems so that the modules we need are available to Docker
@@ -75,17 +75,17 @@ workaround_apparmor_profile_reload
 workaround_missing_xdg_runtime_dir
 
 if [ $(snapctl get docker.bridge) = "disable" ]; then
-	BRIDGEOPTS="--bridge=none"
+    BRIDGEOPTS="--bridge=none"
 else
-	BRIDGEOPTS=""
+    BRIDGEOPTS=""
 fi
 
 exec dockerd \
-	-G $default_socket_group \
-	--exec-root="$runtime_path_prefix/var/run/docker" \
-	--data-root="$SNAP_COMMON/var/lib/docker" \
-	--pidfile="$runtime_path_prefix/var/run/docker.pid" \
-	--host="unix://$runtime_path_prefix/var/run/docker.sock" \
-	--config-file="$SNAP_DATA/config/daemon.json" \
-	$BRIDGEOPTS \
-	"$@"
+    -G $default_socket_group \
+    --exec-root="$runtime_path_prefix/var/run/docker" \
+    --data-root="$SNAP_COMMON/var/lib/docker" \
+    --pidfile="$runtime_path_prefix/var/run/docker.pid" \
+    --host="unix://$runtime_path_prefix/var/run/docker.sock" \
+    --config-file="$SNAP_DATA/config/daemon.json" \
+    $BRIDGEOPTS \
+    "$@"

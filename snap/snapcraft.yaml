@@ -1,641 +1,949 @@
 name: pelion-edge
-base: core
-version: "2.3.1-2"
-summary: Pelion Edge
-description: Pelion Edge
+base: core20
+version: "2.6.0-dev"
+# Remember to update the versions.json under files/pe-utils, too
+summary: Izuma Edge
+description: Izuma Edge Device Management solution
 confinement: strict
 grade: devel
 architectures:
-  - amd64
+  - build-on: amd64
+    run-on: amd64
 plugs:
-    snapd:
-        interface: snapd-control
-        refresh-schedule: managed
-    system-files-logs:
-        interface: system-files
-        read:
-          - /run/systemd/journal
-          - /run/systemd/private
-          - /var/lib/snapd/apparmor/profiles
-        write:
-          - /run/systemd/journal
-          - /run/systemd/private
-          - /var/lib/snapd/apparmor/profiles
-          - /var/log
-          - /run/log/journal
-    home:
-        read: all
-    support:
-        interface: docker-support
-    privileged:
-        interface: docker-support
-        privileged-containers: true
-    dbus-wpa:
-        bus: system
-        interface: dbus
-        name: fi.w1.wpa_supplicant1
-    docker-cli:
-        interface: docker
-    network:
+  home:
+    read: all
+  removable-media:
+  snapd:
+    interface: snapd-control
+    refresh-schedule: managed
+  system-files-logs:
+    interface: system-files
+    read:
+      - /run/systemd/journal
+      - /run/systemd/private
+      - /var/lib/snapd/apparmor/profiles
+    write:
+      - /run/systemd/journal
+      - /run/systemd/private
+      - /var/lib/snapd/apparmor/profiles
+      - /var/log
+      - /run/log/journal
+  usr-libexec-kubernetes:
+    interface: system-files
+    read:
+      - /usr/libexec/kubernetes
+      - /usr/libexec/kubernetes/volume
+      - /usr/libexec/kubernetes/volume/exec
+    write:
+      - /usr/libexec/kubernetes
+      - /usr/libexec/kubernetes/volume
+      - /usr/libexec/kubernetes/volume/exec
+  run-docker:
+    interface: system-files
+    read:
+      - /run/docker.pid
+      - /run/containerd/containerd.sock
+    write:
+      - /run/docker.pid
+      - /run/containerd/containerd.sock
+  etc-apparmor-abi:
+    interface: system-files
+    read:
+      - /etc/apparmor.d/abi/2.13
+  edge-tool-files:
+    interface: personal-files
+    read:
+      - $HOME/.mbed_cloud_config.json
+  testnet-credential-files:
+    interface: system-files
+    read:
+      - /usr/bin/credentials/bootstrap.pem
+      - /usr/bin/credentials/device01_cert.pem
+      - /usr/bin/credentials/device01_key.pem
+      - /usr/bin/credentials/lwm2m.pem
+  edge-identity-file:
+    interface: system-files
+    read:
+      - /var/snap/pelion-edge/current/userdata/edge_gw_identity/identity.json
+  support:
+    interface: docker-support
+  privileged:
+    interface: docker-support
+    privileged-containers: true
+  docker-cli:
+    interface: docker
+  dbus-wpa:
+    bus: system
+    interface: dbus
+    name: fi.w1.wpa_supplicant1
+  network:
 slots:
-    docker-daemon:
-        interface: docker
-    docker-executables:
-        content: docker-executables
-        interface: content
-        read:
-          - .
+  docker-daemon:
+    interface: docker
+  docker-executables:
+    content: docker-executables
+    interface: content
+    read:
+      - .
 layout:
-    /var/lib/dockershim:
-        bind: $SNAP_DATA/var/lib/dockershim
-    /etc/docker:
-        bind: $SNAP_DATA/etc/docker
-    /var/lib/kubelet:
-        bind: $SNAP_COMMON/var/lib/kubelet
-    /var/log/pods:
-        bind: $SNAP_COMMON/var/log/pods
-    /var/log/containers:
-        bind: $SNAP_COMMON/var/log/containers
+  /var/lib/dockershim:
+    bind: $SNAP_DATA/var/lib/dockershim
+  /etc/docker:
+    bind: $SNAP_DATA/etc/docker
+  /var/lib/kubelet:
+    bind: $SNAP_COMMON/var/lib/kubelet
+  /var/log/pods:
+    bind: $SNAP_COMMON/var/log/pods
+  /var/log/containers:
+    bind: $SNAP_COMMON/var/log/containers
 # List of applications (commands, binaries, daemons) in the snap.
 apps:
-    relay-term:
-      restart-delay: 5s
-      restart-condition: always
-      command: bin/node $SNAP/wigwag/wigwag-core-modules/relay-term/src/index.js start $SNAP/wigwag/wigwag-core-modules/relay-term/config/config.json
-      daemon: simple
-      environment:
-        NODE_PATH: $SNAP/wigwag/devicejs-core-modules/node_modules
-        LD_LIBRARY_PATH: $SNAP/wigwag/system/lib
-        PATH: $PATH:$SNAP/wigwag/system/bin
-        DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
-      plugs: [network, ssh-keys, ssh-public-keys, network-bind, network-control, network-observe, snapd-control, shutdown, network-manager, modem-manager, log-observe]
-    edge-core:
-      restart-delay: 5s
-      restart-condition: always
-      command: launch-edge-core.sh
-      daemon: simple
-      environment:
-        DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
-      plugs:
-        - docker
-        - hardware-observe
-        - kubernetes-support
-        - log-observe
-        - mount-observe
-        - network-bind
-        - network-control
-        - network-observe
-        - process-control
-        - shutdown
-        - snapd-control
-        - system-files-logs
-    help:
-      command: bin/print-help
-    devicedb:
-      command: wigwag/system/bin/devicedb start -conf $SNAP_DATA/wigwag/etc/devicejs/devicedb.yaml
-      restart-delay: 5s
-      restart-condition: always
-      daemon: simple
-      plugs: [hardware-observe, network-bind, network-control, network-observe, snapd-control]
-    fluent-bit:
-      restart-delay: 5s
-      restart-condition: always
-      command: launch-fluent-bit.sh
-      daemon: simple
-      plugs: [network, network-bind, system-files-logs, log-observe]
-    maestro:
-      command: launch-maestro.sh
-      environment:
-        LD_LIBRARY_PATH: $SNAP/wigwag/system/lib
-      restart-delay: 5s
-      restart-condition: always
-      daemon: simple
-      plugs: [account-control, bluetooth-control, dbus-wpa, firewall-control, hardware-observe, log-observe, modem-manager, mount-observe, netlink-audit, netlink-connector, network-bind, network-control, network-manager, network-observe, x11, system-files-logs]
-    maestro-shell:
-      command: wigwag/system/bin/maestro-shell
-      environment:
-        LD_LIBRARY_PATH: $SNAP/wigwag/system/lib
-      plugs: [network-bind, network-control, network-observe]
-    edge-proxy:
-      restart-delay: 5s
-      restart-condition: always
-      command: launch-edge-proxy.sh
-      daemon: simple
-      plugs: [network-bind, network-control, home]
-    identity:
-      command: launch-pelion-identity.sh $SNAP $SNAP_DATA
-      daemon: simple
-      plugs: [network, network-control]
-    platform-version:
-      command: bin/platform-version.sh
-      plugs: [snapd-control]
-    kubelet:
-      restart-delay: 5s
-      after: [dockerd]
-      restart-condition: always
-      command: launch-kubelet.sh
-      daemon: simple
-      environment:
-        DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
-      plugs:
-        - bluetooth-control
-        - docker
-        - firewall-control
-        - hardware-observe
-        - kubernetes-support
-        - log-observe
-        - mount-observe
-        - netlink-audit
-        - netlink-connector
-        - network-bind
-        - network-control
-        - network-observe
-        - process-control
-        - support
-        - system-files-logs
-        - system-observe
-        - system-trace
-    docker:
-      command: bin/docker
-      environment:
-        GIT_TEMPLATE_DIR: $SNAP/share/git-core/templates
-        GIT_CONFIG_NOSYSTEM: "true"
-        GIT_EXEC_PATH: $SNAP/libexec/git-core
-        GIT_TEXTDOMAINDIR: $SNAP/usr/share/locale
-        DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
-      completer: bin/docker-completion.sh
-      plugs:
-        - docker-cli
-        - network
-        - home
-        - network-control
-    dockerd:
-      command: bin/dockerd-wrapper
-      daemon: simple
-      environment:
-        DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
-      plugs:
-        - network-bind
-        - firewall-control
-        - support
-        - privileged
-        - home
-        - kernel-module-observe
-      slots:
-        - docker-daemon
-    docker-help:
-      command: bin/help
-    version:
-      command: bin/print-versions
-    cosign:
-      command: bin/cosign
+  edge-tool:
+    command: bin/edge-tool
+    plugs:
+      - home
+      - edge-tool-files
+  edge-core:
+    restart-delay: 5s
+    restart-condition: always
+    command: launch-edge-core.sh
+    daemon: simple
+    environment:
+      DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
+    plugs:
+      - docker
+      - hardware-observe
+      - kubernetes-support
+      - log-observe
+      - mount-observe
+      - network-bind
+      - network-control
+      - network-observe
+      - process-control
+      - shutdown
+      - snapd-control
+      - system-files-logs
+  help:
+    command: bin/print-help
+  fluent-bit:
+    restart-delay: 5s
+    restart-condition: always
+    command: launch-fluent-bit.sh
+    daemon: simple
+    plugs:
+      - network
+      - network-bind
+      - system-files-logs
+      - log-observe
+  maestro:
+    command: launch-maestro.sh
+    environment:
+      LD_LIBRARY_PATH: $SNAP/wigwag/system/lib
+    restart-delay: 5s
+    restart-condition: always
+    daemon: simple
+    plugs:
+      - account-control
+      - bluetooth-control
+      - dbus-wpa
+      - firewall-control
+      - hardware-observe
+      - log-observe
+      - modem-manager
+      - mount-observe
+      - netlink-audit
+      - netlink-connector
+      - network-bind
+      - network-control
+      - network-manager
+      - network-observe
+      - x11
+      - system-files-logs
+  edge-proxy:
+    restart-delay: 5s
+    restart-condition: always
+    command: launch-edge-proxy.sh
+    daemon: simple
+    plugs:
+      - network-bind
+      - network-control
+      - home
+  pe-terminal:
+    restart-delay: 5s
+    restart-condition: always
+    after: [edge-proxy]
+    command: launch-pe-terminal.sh
+    daemon: simple
+    environment:
+      TERM: xterm-256color
+    plugs:
+      - network
+      - ssh-keys
+      - ssh-public-keys
+      - network-bind
+      - network-control
+      - network-observe
+      - snapd-control
+      - shutdown
+      - network-manager
+      - modem-manager
+      - log-observe
+  identity:
+    command: launch-pelion-identity.sh $SNAP $SNAP_DATA
+    daemon: simple
+    plugs:
+      - network
+      - network-control
+  platform-version:
+    command: bin/platform-version.sh
+    plugs:
+      - snapd-control
+  kubelet:
+    restart-delay: 5s
+    after: [dockerd, bouncer]
+    restart-condition: always
+    command: launch-kubelet.sh
+    daemon: simple
+    environment:
+      DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
+    plugs:
+      - bluetooth-control
+      - docker
+      - docker-cli
+      - firewall-control
+      - hardware-observe
+      - kubernetes-support
+      - log-observe
+      - mount-observe
+      - netlink-audit
+      - netlink-connector
+      - network-bind
+      - network-control
+      - network-observe
+      - process-control
+      - support
+      - system-files-logs
+      - system-observe
+      - system-trace
+      - run-docker
+      - usr-libexec-kubernetes
+      - etc-apparmor-abi
+  docker:
+    command: bin/docker
+    environment:
+      GIT_TEMPLATE_DIR: $SNAP/share/git-core/templates
+      GIT_CONFIG_NOSYSTEM: "true"
+      GIT_EXEC_PATH: $SNAP/libexec/git-core
+      GIT_TEXTDOMAINDIR: $SNAP/usr/share/locale
+      DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
+    completer: bin/docker-completion.sh
+    plugs:
+      - docker-cli
+      - network
+      - home
+      - process-control
+      - network-control
+      - removable-media
+  dockerd:
+    command: bin/dockerd-wrapper
+    daemon: simple
+    environment:
+      DOCKER_HOST: unix:///run/snap.$SNAP_INSTANCE_NAME/var/run/docker.sock
+    plugs:
+      - firewall-control
+      - fuse-support
+      - home
+      - kernel-module-observe
+      - log-observe
+      - microstack-support
+      - mount-observe
+      - network-bind
+      - network-control
+      - privileged
+      - process-control
+      - steam-support
+      - support
+    slots:
+      - docker-daemon
+  curl:
+    command: bin/curl
+    plugs:
+      - network
+  docker-help:
+    command: bin/help
+  version:
+    command: bin/print-versions
+  edge-info:
+    command: bin/edge-info
+    plugs:
+      - edge-identity-file
+      - mount-observe
+      - network-bind
+      - login-session-observe
+      - steam-support
+  edge-testnet:
+    command: bin/edge-testnet
+    plugs:
+      - network-bind
+      - testnet-credential-files
+      - steam-support
+  cosign:
+    command: bin/cosign
+  bouncer:
+    command: launch-bouncer.sh
+    daemon: simple
+    restart-delay: 5s
+    restart-condition: always
+    plugs:
+      - network-bind
 parts:
-    help:
-      plugin: dump
-      source: files/help/
-      override-build: |
-        snapcraftctl build
-        chmod a+x bin/print-help
-    version:
-      plugin: dump
-      source: files/version/
-      override-build: |
-        snapcraftctl build
-        chmod a+x print-versions.sh
-      organize:
-        print-versions.sh: bin/print-versions
-    platform-version:
-      plugin: dump
-      source: files/platform-version/
-      organize:
-        platform-version.sh: bin/platform-version.sh
-    identity:
-      plugin: dump
-      source: files/identity/
-    nmcli:
-      plugin: nil
-      stage-packages:
-        - network-manager
-        - libslang2
-        - libatm1
-      organize:
-        usr/bin/nmcli: bin/nmcli
-    mmcli:
-      plugin: nil
-      stage-packages:
-        - modemmanager
-      organize:
-        usr/bin/mmcli: bin/mmcli
-    snap:
-      plugin: nil
-      stage-packages:
-        - snapd
-      organize:
-        usr/bin/snap: bin/snap
-    edge-core:
-      plugin: cmake
-      source: https://github.com/ARMmbed/mbed-edge.git
-      source-tag: 0.16.1
-      build-environment:
-        - COAP_PORT_OVERRIDE_443: "false"
-      stage-packages: [coreutils]
-      override-pull: |
-        snapcraftctl pull
-        # mbed_cloud_dev_credentials.c is required if DEVELOPER_MODE=ON
-        # update_default_resources.c is required if DEVELOPER_MODE=ON && FIRMWARE_UPDATE=ON
-        # Piping to true allows the cp to not fail when the file is not present
-        cp ${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c config/mbed_cloud_dev_credentials.c || true
-        cp ${SNAPCRAFT_PROJECT_DIR}/update_default_resources.c config/update_default_resources.c || true
-        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/mbed_cloud_client_user_config.h config/mbed_cloud_client_user_config.h
-        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/sotp_fs_linux.h config/sotp_fs_linux.h
-        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/osreboot.c edge-core/osreboot.c
-        cp ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/cmake/target.cmake config/target.cmake
-        cp ${SNAPCRAFT_PART_SRC}/cmake/toolchains/mcc-linux-x86.cmake config/toolchain.cmake
-        sed -i 's!/dev/random!/dev/urandom!' lib/mbed-cloud-client/mbed-client-pal/Source/Port/Reference-Impl/OS_Specific/Linux/Board_Specific/TARGET_x86_x64/pal_plat_x86_x64.c
-        sed -i 's!\(MAX_RECONNECT_TIMEOUT\).*!\1 60!' lib/mbed-cloud-client/mbed-client/mbed-client/m2mconstants.h
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Increasing-Path-Size.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0002-use-customized-edge-core-update-scripts.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0003-Call-a-restart-script-during-fota.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0004-Read-platform-version-files-into-LWM2M-resources.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0005-Add-support-for-network-proxy.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0006-Call-a-script-on-factory-reset.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0007-add-API-to-set-a-resource-value-without-forced-text-.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0008-add-stubs-for-gateway-statistics-resources.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0009-add-cpu-usage-3-0-3320.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0010-add-cpu-temp-3-0-3303.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0011-add-RAM-total-3-0-3322-and-RAM-free-3-0-3321.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0012-add-disk-free-3-0-3323-and-disk-total-3-0-3324.patch
-        git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0013-add-snap-version-3-0-4001.patch
-        if [ "${COAP_PORT_OVERRIDE_443}" = "true" ]; then
-            echo "PATCHING PORT 443 OVERRIDE"
-            [ -f config/mbed_cloud_dev_credentials.c ] && sed -i 's,\(coaps://[^:]*:\)5684,\1443,' config/mbed_cloud_dev_credentials.c
-            git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0014-force-port-443.patch
-        fi
-      configflags:
-        - -DCMAKE_BUILD_TYPE=Release
-        - -DTRACE_LEVEL=WARN
-        - -DFIRMWARE_UPDATE=ON
-        - -DDEVELOPER_MODE=ON
-        - -DFACTORY_MODE=OFF
-        - -DFOTA_ENABLE=OFF
-        - -DMBED_CLOUD_CLIENT_CURL_DYNAMIC_LINK=OFF
-        - -DBYOC_MODE=OFF
-        - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
-        - -DMBED_CLOUD_DEV_UPDATE_ID=ON
-        - -DNETWORK_PROXY_SUPPORT=ON
-        - -DPARSEC_TPM_SE_SUPPORT=OFF
-      override-build: |
-        snapcraftctl build
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
-        install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/config/edge-core.conf ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-bootloader.sh ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-factory-reset ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/launch-edge-core.sh ${SNAPCRAFT_PART_INSTALL}/
-        # install the generic update scripts
-        install ${SNAPCRAFT_PART_SRC}/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/scripts/generic/*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
-        # override the generic update scripts with our own
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/arm_update_*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
-    edge-proxy:
-      plugin: go
-      source: https://github.com/PelionIoT/edge-proxy.git
-      source-commit: 8f0f10790ac8f98787cc4a4a913dff358a1485c9
-      go-importpath: github.com/PelionIoT/edge-proxy
-      build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
-      override-build: |
-        snapcraftctl build
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/config/edge-proxy.conf.json ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/scripts/launch-edge-proxy.sh ${SNAPCRAFT_PART_INSTALL}/
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/edge-proxy.VERSION
-      organize:
-        bin/edge-proxy: wigwag/system/bin/edge-proxy
-    devicedb:
-      plugin: go
-      source: https://github.com/PelionIoT/devicedb.git
-      source-commit: d24df289ab24a035ebf64d2ed27a2d531a2319da
-      go-importpath: github.com/armPelionEdge/devicedb
-      build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
-      organize:
-        'bin/*': wigwag/system/bin/
-    edge-node-modules:
-      plugin: nodejs
-      nodejs-version: 12.20.1
-      nodejs-package-manager: npm
-      build-packages:
-        - python
-        - build-essential
-      source: https://github.com/PelionIoT/edge-node-modules.git
-      source-commit: bcafcba2e6602ef486a8975c67a1df3872289499
-      source-subdir: relay-term
-      override-build: |
-        snapcraftctl build
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/edge-node-modules.VERSION
-      organize:
-        'config': wigwag/wigwag-core-modules/relay-term/config
-        'node_modules': wigwag/wigwag-core-modules/relay-term/node_modules
-        'src': wigwag/wigwag-core-modules/relay-term/src
-    pe-utils:
-      plugin: nil
-      source: https://github.com/PelionIoT/pe-utils.git
-      source-tag: 2.0.7
-      override-build: |
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        install ${SNAPCRAFT_PROJECT_DIR}/files/pe-utils/version.json ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
-        cp -r identity-tools ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils/
-        chmod -R 0755 ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
-    maestro-shell:
-      plugin: go
-      source: https://github.com/PelionIot/maestro-shell.git
-      source-commit: aa2336b361555c471daab0d2dc21a7f750bdf813
-      go-importpath: github.com/armPelionEdge/maestro-shell
-      build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
-        - CGO_LDFLAGS: "-L${SNAPCRAFT_PART_BUILD}/vendor/github.com/armPelionEdge/greasego/deps/lib ${CGO_LDFLAGS}"
-      override-build: |
-        # Build maestro-shell dependencies
-        ./build-deps.sh
-        # Build maestro-shell
-        snapcraftctl build
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/maestro-shell.VERSION
-      organize:
-        bin/maestro-shell: wigwag/system/bin/maestro-shell
-    yq:
-      plugin: go
-      build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
-      source: https://github.com/mikefarah/yq.git
-      go-importpath: github.com/mikefarah/yq
-    maestro:
-      plugin: make
-      source: https://github.com/PelionIot/maestro.git
-      source-commit: 20caa5d032424a11146b7923eaaed74e80de96da
-      build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
-      override-build: |
-        # setup the go build environment
-        . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
-        gopartbootstrap github.com/armPelionEdge/maestro
-        # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
-        export GOBIN=${GOPATH}/bin
-
-        # Build maestro dependencies
-        DEBUG= ./build-deps.sh
-        # Build maestro
-        DEBUG= DEBUG2= ./build.sh
-
-        # Install maestro components into the SNAPCRAFT_PART_INSTALL folder so that it is
-        # copied into the prime directory during the prime step
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
-
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/config/maestro-config-dell5000.yaml ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/template.devicedb.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
-        install ${GOPATH}/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
-
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
-        LIBS_DIR="${GOPATH}/src/github.com/armPelionEdge/maestro/vendor/github.com/armPelionEdge/greasego/deps/lib"
-        ALL_LIBS="libTW.a libprofiler.a libstacktrace.a libtcmalloc.la libtcmalloc_debug.a libtcmalloc_minimal.la libuv.a libgrease.so libprofiler.la libstacktrace.la libtcmalloc_and_profiler.a libtcmalloc_debug.la libtcmalloc_minimal_debug.a libgrease.so.1 libtcmalloc.a libtcmalloc_and_profiler.la  libtcmalloc_minimal.a libtcmalloc_minimal_debug.la libtcmalloc_minimal.so*"
-        for f in $ALL_LIBS; do
-          install -m 0755 $LIBS_DIR/$f ${SNAPCRAFT_PART_INSTALL}/wigwag/system/lib
-        done
-        # fixup the SNAP and SNAP_DATA variables in the config files based on the snap name
-        sed -i "s!/snap/pelion-edge!/snap/${SNAPCRAFT_PROJECT_NAME}!" ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/*.yaml
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
-        git describe --tags > ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/maestro.VERSION
-    fluent-bit:
-      plugin: cmake
-      source: https://github.com/fluent/fluent-bit.git
-      source-tag: v1.7.9
-      build-packages:
-        - libsystemd-dev
-        - flex
-        - bison
-      configflags:
-        - -DFLB_JEMALLOC=On
-        - -DFLB_SHARED_LIB=Off
-        - -DFLB_EXAMPLES=Off
-        - -DFLB_IN_SYSTEMD=On
-      override-build: |
-        snapcraftctl build
-        install ${SNAPCRAFT_PROJECT_DIR}/files/fluent-bit/config/fluent-bit.conf ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/fluent-bit/scripts/launch-fluent-bit.sh ${SNAPCRAFT_PART_INSTALL}/
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
-      organize:
-        bin/fluent-bit: wigwag/system/bin/fluent-bit
-    cni:
-      plugin: go
-      source: https://github.com/containernetworking/plugins.git
-      source-commit: 1f33fb729ae2b8900785f896df2dc1f6fe5e8239
-      go-importpath: github.com/containernetworking/plugins
-      build-environment:
-        - GOFLAGS: "${GOFLAGS} -mod=vendor -modcacherw"
-      override-build: |
-        export GOPATH=${SNAPCRAFT_PART_SRC}/../go
-
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin
-        PLUGINS="plugins/meta/* plugins/main/* plugins/ipam/*"
-        for d in $PLUGINS; do
-          echo "$d"
-          if [ -d "$d" ]; then
-            plugin="$(basename "$d")"
-            if [ $plugin != "windows" ]; then
-              echo "  $plugin"
-              go install github.com/containernetworking/plugins/$d
-              install $GOPATH/bin/$plugin ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/$plugin
-            fi
+  help:
+    plugin: dump
+    source: files/help/
+    override-build: |
+      snapcraftctl build
+      chmod a+x bin/print-help
+  version:
+    plugin: dump
+    source: files/version/
+    override-build: |
+      snapcraftctl build
+      chmod a+x print-versions.sh
+    organize:
+      print-versions.sh: bin/print-versions
+  platform-version:
+    plugin: dump
+    source: files/platform-version/
+    organize:
+      platform-version.sh: bin/platform-version.sh
+  identity:
+    plugin: dump
+    source: files/identity/
+  nmcli:
+    plugin: nil
+    stage-packages:
+      - network-manager
+      - libslang2
+      - libatm1
+    organize:
+      usr/bin/nmcli: bin/nmcli
+  mmcli:
+    plugin: nil
+    stage-packages:
+      - modemmanager
+    organize:
+      usr/bin/mmcli: bin/mmcli
+  snap:
+    plugin: nil
+    stage-packages:
+      - snapd
+    organize:
+      usr/bin/snap: bin/snap
+  edge-core-src:
+    plugin: cmake
+    source: https://github.com/PelionIoT/mbed-edge.git
+    source-tag: 0.21.0
+    build-environment:
+      - COAP_PORT_OVERRIDE_443: "false"
+    stage-packages: [coreutils]
+    override-pull: |
+      snapcraftctl pull
+      cp "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/mbed_cloud_client_user_config.h" config/mbed_cloud_client_user_config.h
+      cp "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/sotp_fs_linux.h" config/sotp_fs_linux.h
+      cp "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/src/osreboot.c" edge-core/osreboot.c
+      cp "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/cmake/target.cmake" config/target.cmake
+      cp "${SNAPCRAFT_PART_SRC}/cmake/toolchains/mcc-linux-x86.cmake" config/toolchain.cmake
+      # patch the mbed-cloud-client library
+      sed -i 's!/dev/random!/dev/urandom!' lib/mbed-cloud-client/mbed-client-pal/Source/Port/Reference-Impl/OS_Specific/Linux/Board_Specific/TARGET_x86_x64/pal_plat_x86_x64.c
+      sed -i 's!\(MAX_RECONNECT_TIMEOUT\).*!\1 60!' lib/mbed-cloud-client/mbed-client/mbed-client/m2mconstants.h
+      git -C lib/mbed-cloud-client/ apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0001-Add-PAL-Proxy-module-using-HTTP.patch
+      git -C lib/mbed-cloud-client/ apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0002-Increasing-Path-Size.patch
+      git -C lib/mbed-cloud-client/ apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0003-Call-a-restart-script-during-fota.patch
+      git -C lib/mbed-cloud-client/ apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0004-use-customized-edge-core-update-scripts.patch
+      git -C lib/mbed-cloud-client/ apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0005-Read-platform-version-files-into-LWM2M-resources.patch
+      # patch edge-core
+      git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0010-Add-network-proxy-support.patch"
+      git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0011-Call-a-script-on-factory-reset.patch"
+      git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0013-add-stubs-for-gateway-statistics-resources.patch"
+      git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0014-add-cpu-usage-3-0-3320.patch"
+      git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0015-add-cpu-temp-3-0-3303.patch"
+      git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0016-add-RAM-total-3-0-3322-and-RAM-free-3-0-3321.patch"
+      git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0017-add-disk-free-3-0-3323-and-disk-total-3-0-3324.patch"
+      git apply "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0018-add-snap-version-3-0-4001.patch"
+      if [ "${COAP_PORT_OVERRIDE_443}" = "true" ]; then
+          echo "PATCHING PORT 443 OVERRIDE"
+          [ -f config/mbed_cloud_dev_credentials.c ] && sed -i 's,\(coaps://[^:]*:\)5684,\1443,' config/mbed_cloud_dev_credentials.c
+          git apply ${SNAPCRAFT_PROJECT_DIR}/files/edge-core/patches/0019-force-port-443.patch
+      fi
+    override-build: |
+      tar -C "${SNAPCRAFT_PART_SRC}" -czf "${SNAPCRAFT_PART_BUILD}/edge-core-src.tgz" .
+      cp edge-core-src.tgz "${SNAPCRAFT_PART_INSTALL}"
+      install -d "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed"
+      install "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/config/edge-core.conf" "${SNAPCRAFT_PART_INSTALL}/"
+      install "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-bootloader.sh" "${SNAPCRAFT_PART_INSTALL}/"
+      install "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/edge-core-factory-reset" "${SNAPCRAFT_PART_INSTALL}/"
+      install "${SNAPCRAFT_PROJECT_DIR}/files/edge-core/scripts/launch-edge-core.sh" "${SNAPCRAFT_PART_INSTALL}/"
+      # install the generic update scripts
+      install ${SNAPCRAFT_PART_SRC}/lib/mbed-cloud-client/update-client-hub/modules/pal-linux/scripts/generic/*.sh ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/
+      # Override the generic update scripts with our own
+      echo "Override the generic update scripts with our own"
+      install "${SNAPCRAFT_PROJECT_DIR}"/files/edge-core/scripts/arm_update_*.sh "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed"
+    prime: ['*', -edge-core-src.tgz]
+  edge-core:
+    # this variant of edge-core is compiled with factory provisioning mode
+    plugin: cmake
+    after:
+      - edge-core-src
+    source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DTRACE_LEVEL=WARN
+      - -DFIRMWARE_UPDATE=ON
+      - -DDEVELOPER_MODE=OFF
+      - -DFACTORY_MODE=ON
+      - -DFOTA_ENABLE=OFF
+      - -DMBED_CLOUD_CLIENT_CURL_DYNAMIC_LINK=OFF
+      - -DBYOC_MODE=OFF
+      - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
+      - -DMBED_CLOUD_DEV_UPDATE_ID=ON
+      - -DNETWORK_PROXY_SUPPORT=ON
+      - -DPARSEC_TPM_SE_SUPPORT=OFF
+    override-build: |
+      snapcraftctl build
+      install -d "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed"
+      install bin/edge-core "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core"
+    stage:
+      - wigwag/mbed/edge-core
+  edge-core-dev:
+    # this variant of edge-core is compiled with developer provisioning mode
+    plugin: cmake
+    build-packages:
+      - build-essential
+      - clang
+      - gcc
+      - libc6-dev
+      - libclang-dev
+      - libcurl4-openssl-dev
+      - libgpiod-dev
+    after:
+      - edge-core-src
+    source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DTRACE_LEVEL=WARN
+      - -DFIRMWARE_UPDATE=ON
+      - -DDEVELOPER_MODE=ON
+      - -DFACTORY_MODE=OFF
+      - -DFOTA_ENABLE=OFF
+      - -DMBED_CLOUD_CLIENT_CURL_DYNAMIC_LINK=OFF
+      - -DBYOC_MODE=OFF
+      - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
+      - -DMBED_CLOUD_DEV_UPDATE_ID=ON
+      - -DNETWORK_PROXY_SUPPORT=ON
+      - -DPARSEC_TPM_SE_SUPPORT=OFF
+    override-pull: |
+      snapcraftctl pull
+      # mbed_cloud_dev_credentials.c is required if DEVELOPER_MODE=ON
+      # update_default_resources.c is required if DEVELOPER_MODE=ON && FIRMWARE_UPDATE=ON
+      # Piping to true allows the cp to not fail when the file is not present
+      cp "${SNAPCRAFT_PROJECT_DIR}/mbed_cloud_dev_credentials.c" config/mbed_cloud_dev_credentials.c || true
+      cp "${SNAPCRAFT_PROJECT_DIR}/update_default_resources.c" config/update_default_resources.c || true
+    override-build: |
+      install -d "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed"
+      if [ "${SNAPCRAFT_PROJECT_GRADE}" = "devel" ]; then
+          # allow devmode to succeed if the credentials don't exist.  if this is the case,
+          # then we won't install the devmode version of edge-core into the snap.
+          if [ -f "${SNAPCRAFT_PART_SRC}/config/mbed_cloud_dev_credentials.c" ]; then
+              snapcraftctl build
+              install bin/edge-core "${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core-dev"
           fi
-        done
+      fi
+    stage:
+      - wigwag/mbed/*
+  edge-core-byoc:
+    # this variant of edge-core is compiled with byoc provisioning mode
+    plugin: cmake
+    build-packages:
+      - build-essential
+      - clang
+      - gcc
+      - libc6-dev
+      - libclang-dev
+      - libcurl4-openssl-dev
+      - libgpiod-dev
+    after:
+      - edge-core-src
+    source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DTRACE_LEVEL=WARN
+      - -DDEVELOPER_MODE=OFF
+      - -DFACTORY_MODE=OFF
+      - -DBYOC_MODE=ON
+      - -DFIRMWARE_UPDATE=ON
+      - -DFOTA_ENABLE=OFF
+      - -DMBED_CLOUD_CLIENT_CURL_DYNAMIC_LINK=OFF
+      - -DTARGET_CONFIG_ROOT=${SNAPCRAFT_PART_SRC}/config
+      - -DMBED_CLOUD_DEV_UPDATE_ID=ON
+      - -DNETWORK_PROXY_SUPPORT=ON
+      - -DPARSEC_TPM_SE_SUPPORT=OFF
+    override-build: |
+      install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed
+      if [ "${SNAPCRAFT_PROJECT_GRADE}" = "devel" ]; then
+          snapcraftctl build
+          install bin/edge-core ${SNAPCRAFT_PART_INSTALL}/wigwag/mbed/edge-core-byoc
+      fi
+    stage:
+      - wigwag/mbed/*
+  edge-core-tool:
+    after:
+      - edge-core-src
+    plugin: python
+    source: "${SNAPCRAFT_STAGE}/edge-core-src.tgz"
+    source-subdir: edge-tool
+    requirements: ["${SNAPCRAFT_PART_SRC}/edge-tool/requirements.txt"]
+    override-build: |
+      set -ex
+      if [ "${SNAPCRAFT_PROJECT_GRADE}" = "devel" ]; then
+          snapcraftctl build
+      fi
+      install -d ${SNAPCRAFT_PART_INSTALL}/bin
+      install ${SNAPCRAFT_PROJECT_DIR}/files/edge-core-tool/edge-core-tool.sh ${SNAPCRAFT_PART_INSTALL}/bin/edge-tool
+    organize:
+      bin/edge_tool.py: wigwag/mbed/edge-tool/edge_tool.py
+      bin/cbor_converter.py: wigwag/mbed/edge-tool/cbor_converter.py
+  edge-proxy:
+    plugin: go
+    source: https://github.com/PelionIoT/edge-proxy.git
+    source-tag: v1.3.0
+    build-environment:
+      - GOFLAGS: "$GOFLAGS -modcacherw"
+    override-build: |
+      export ALT_GO=go1.18
+      export ORI_GO=go1.15
+      export GOROOT=/usr/local/$ALT_GO
+      export PATH="$GOROOT/bin:$PATH"
+      echo Hacking/changing the go version to $ALT_GO
+      sudo rm /usr/local/bin/go /usr/local/bin/gofmt
+      sudo ln -sf "/usr/local/$ALT_GO/bin/go" /usr/local/bin/go
+      sudo ln -sf "/usr/local/$ALT_GO/bin/gofmt" /usr/local/bin/gofmt
 
-        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files/cni/c2d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d
-        install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files/cni/c2d-inner ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d-inner
+      snapcraftctl build
 
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d
-        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files/cni/10-c2d.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/10-c2d.conf
-        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files/cni/99-loopback.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/99-loopback.conf
-    kubelet:
-      plugin: make
-      source: https://github.com/PelionIoT/edge-kubelet.git
-      source-commit: 35225842cd6b20d98613d8c1b08b7a376bd3209d
-      build-packages:
-        - libseccomp-dev
-      override-build: |
-        # setup the go build environment
-        . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
-        gopartbootstrap k8s.io/kubernetes
+      echo Reverting the go version to $ORI_GO
+      sudo rm /usr/local/bin/go /usr/local/bin/gofmt
+      sudo ln -sf "/usr/local/$ORI_GO/bin/go" /usr/local/bin/go
+      sudo ln -sf "/usr/local/$ORI_GO/bin/gofmt" /usr/local/bin/gofmt
 
-        cd hack/make-rules
-        KUBE_VERBOSE=0 ./build.sh cmd/kubelet
+      install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+      install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/config/edge-proxy.conf.json ${SNAPCRAFT_PART_INSTALL}/
+      install ${SNAPCRAFT_PROJECT_DIR}/files/edge-proxy/scripts/launch-edge-proxy.sh ${SNAPCRAFT_PART_INSTALL}/
+      install -d ${SNAPCRAFT_PART_INSTALL}/edge
+      git describe --tags --always > ${SNAPCRAFT_PART_INSTALL}/edge/edge-proxy.VERSION
+    organize:
+      bin/edge-proxy: wigwag/system/bin/edge-proxy
+  pe-terminal:
+    plugin: go
+    source: https://github.com/PelionIoT/pe-terminal.git
+    source-tag: v1.1.0
+    build-environment:
+      - GOFLAGS: "$GOFLAGS -modcacherw"
+    override-build: |
+      export ALT_GO=go1.18
+      export ORI_GO=go1.15
+      export GOROOT=/usr/local/$ALT_GO
+      export PATH="$GOROOT/bin:$PATH"
 
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/var/lib/kubelet
-        install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
-        install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/config/kubeconfig ${SNAPCRAFT_PART_INSTALL}/wigwag/system/var/lib/kubelet/kubeconfig
-        install -m 0755 ${GOPATH}/src/k8s.io/kubernetes/_output/bin/kubelet ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/kubelet
-        install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-kubelet.sh ${SNAPCRAFT_PART_INSTALL}/
-        install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-edgenet.sh ${SNAPCRAFT_PART_INSTALL}/
-      stage:
-        - -usr/share/*
-      stage-packages: [systemd, util-linux]
-    jq:
-      plugin: autotools
-      configflags:
-        - -disable-docs
-      source: https://github.com/stedolan/jq.git
-      source-tag: jq-1.6
-      build-packages:
-        - libtool
-        - flex
-        - bison
-    curl:
-      plugin: autotools
-      source: https://github.com/curl/curl.git
-      source-tag: curl-7_65_3
-      install-via: prefix
-      build-packages:
-        - libtool
-    docker-wrapper-scripts:
-      plugin: dump
-      source: files/docker/
-      stage-packages:
-      - mount
-      stage:
-      - bin/*
-      - config/daemon.json
-      prime:
-      - bin/*
-      - config/daemon.json
-    docker-docker:
-      plugin: make
-      source: https://github.com/docker/docker-ce.git
-      source-tag: v19.03.13
-      source-depth: 1
-      override-pull: |
-        snapcraftctl pull
-        for patch in ${SNAPCRAFT_PROJECT_DIR}/files/docker/patches/*.patch; do
-            echo "Applying $(basename "$patch") ..."
-            sed "s/pelion-edge/${SNAPCRAFT_PROJECT_NAME}/g" "$patch" | git apply --ignore-space-change --ignore-whitespace -
-            echo
-        done
-      override-build: |
-        # docker build specific environment variables
-        export DOCKER_GITCOMMIT=$(git rev-parse --short HEAD)
-        export DISABLE_WARN_OUTSIDE_CONTAINER=1
-        export DOCKER_BUILDTAGS='apparmor seccomp exclude_graphdriver_btrfs exclude_graphdriver_devicemapper'
+      echo Hacking/changing the go version to $ALT_GO
+      sudo rm /usr/local/bin/go /usr/local/bin/gofmt
+      sudo ln -sf "/usr/local/$ALT_GO/bin/go" /usr/local/bin/go
+      sudo ln -sf "/usr/local/$ALT_GO/bin/gofmt" /usr/local/bin/gofmt
 
-        # setup the go build environment for docker
-        rm -rf .gopath
-        export GOPATH="$(pwd)/.gopath"
-        mkdir -p ${GOPATH}/src/github.com/docker
-        mkdir -p ${SNAPCRAFT_PART_INSTALL}/bin
+      snapcraftctl build
 
-        # build the dockerd binary
-        ln -sf ${SNAPCRAFT_PART_BUILD}/components/engine ${GOPATH}/src/github.com/docker/docker
-        cd ${GOPATH}/src/github.com/docker/docker
-        ./hack/make.sh dynbinary
-        install -T bundles/dynbinary-daemon/dockerd ${SNAPCRAFT_PART_INSTALL}/bin/dockerd
+      echo Reverting the go version to $ORI_GO
+      sudo rm /usr/local/bin/go /usr/local/bin/gofmt
+      sudo ln -sf "/usr/local/$ORI_GO/bin/go" /usr/local/bin/go
+      sudo ln -sf "/usr/local/$ORI_GO/bin/gofmt" /usr/local/bin/gofmt
 
-        # build the docker cli
-        ln -sf ${SNAPCRAFT_PART_BUILD}/components/cli ${GOPATH}/src/github.com/docker/cli
-        cd ${GOPATH}/src/github.com/docker/cli
-        unset CFLAGS
-        unset LDFLAGS
-        make dynbinary
-        install -T "$GOPATH/src/github.com/docker/cli/build/docker" "$SNAPCRAFT_PART_INSTALL/bin/docker"
+      install -d ${SNAPCRAFT_PART_INSTALL}/edge
+      git describe --tags --always >"${SNAPCRAFT_PART_INSTALL}/edge/pe-terminal.VERSION"
 
-        install -T "${SNAPCRAFT_PART_BUILD}/components/cli/contrib/completion/bash/docker" "${SNAPCRAFT_PART_INSTALL}/bin/docker-completion.sh"
-      build-packages:
+      install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+      install ${SNAPCRAFT_PROJECT_DIR}/files/pe-terminal/config/pe-terminal.conf.json ${SNAPCRAFT_PART_INSTALL}/
+      install ${SNAPCRAFT_PROJECT_DIR}/files/pe-terminal/launch-pe-terminal.sh ${SNAPCRAFT_PART_INSTALL}/
+    organize:
+      bin/pe-terminal: wigwag/system/bin/pe-terminal
+  pe-utils:
+    plugin: nil
+    source: https://github.com/PelionIoT/pe-utils.git
+    source-tag: 2.3.5
+    override-build: |
+      install -d ${SNAPCRAFT_PART_INSTALL}/edge/etc
+      install ${SNAPCRAFT_PROJECT_DIR}/files/pe-utils/versions.json ${SNAPCRAFT_PART_INSTALL}/edge/
+      install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc
+      install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
+      cp -r identity-tools ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils/
+      chmod -R 0755 ${SNAPCRAFT_PART_INSTALL}/wigwag/pe-utils
+      install -d ${SNAPCRAFT_PART_INSTALL}/bin/credentials
+      cp -r fw-tools/credentials/* ${SNAPCRAFT_PART_INSTALL}/bin/credentials
+      git describe --tags --always >"${SNAPCRAFT_PART_INSTALL}/edge/pe-utils.VERSION"
+    stage-packages:
+      - gawk
+      - bc
+      - procps
+      - net-tools
+  edge-info:
+    plugin: dump
+    source: https://github.com/PelionIoT/pe-utils.git
+    source-tag: 2.3.5
+    override-build: |
+      install -d "${SNAPCRAFT_PART_INSTALL}/edge"
+      git describe --tags --always >"${SNAPCRAFT_PART_INSTALL}/edge/edge-info.VERSION"
+      snapcraftctl build
+    organize:
+      'edge-info/edge-info': bin/edge-info
+    stage-packages:
+      - gawk
+      - bc
+      - procps
+      - net-tools
+  edge-testnet:
+    plugin: dump
+    source: https://github.com/PelionIoT/pe-utils.git
+    source-tag: 2.3.5
+    override-build: |
+      install -d "${SNAPCRAFT_PART_INSTALL}/edge"
+      git describe --tags  --always >"${SNAPCRAFT_PART_INSTALL}/edge/edge-testnet.VERSION"
+      snapcraftctl build
+    organize:
+      'fw-tools/edge-testnet': bin/edge-testnet
+      'fw-tools/credentials/bootstrap.pem': bin/credentials/bootstrap.pem
+      'fw-tools/credentials/device01_cert.pem': bin/credentials/device01_cert.pem
+      'fw-tools/credentials/device01_key.pem': bin/credentials/device01_key.pem
+      'fw-tools/credentials/lwm2m.pem': bin/credentials/lwm2m.pem
+    stage-packages:
+      - net-tools
+      - netcat-openbsd
+  yq:
+    plugin: go
+    build-environment:
+      - GOFLAGS: "$GOFLAGS -modcacherw"
+    source: https://github.com/mikefarah/yq.git
+    source-tag: 3.4.1
+  maestro:
+    plugin: make
+    source: https://github.com/PelionIoT/maestro.git
+    source-commit: v3.0.0
+    build-packages:
+      - libuv1-dev
+    build-environment:
+      - GOFLAGS: "$GOFLAGS -modcacherw"
+    override-build: |
+      # setup the go build environment
+      . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
+      gopartbootstrap github.com/PelionIoT/maestro
+      # Specify GOBIN so that maestro/build.sh doesn't do unexpected things
+      export GOBIN=${GOPATH}/bin
+
+      go build -o ${GOPATH}/bin/maestro maestro/main.go
+
+      # Install maestro components into the SNAPCRAFT_PART_INSTALL folder so that it is
+      # copied into the prime directory during the prime step
+      install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/launch-maestro.sh ${SNAPCRAFT_PART_INSTALL}/
+
+      install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates
+      install ${SNAPCRAFT_PROJECT_DIR}/files/maestro/config/maestro-config-dell5000.yaml ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/
+      install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+      install ${GOPATH}/bin/maestro ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/maestro
+
+      # fixup the SNAP and SNAP_DATA variables in the config files based on the snap name
+      sed -i "s!/snap/pelion-edge!/snap/${SNAPCRAFT_PROJECT_NAME}!" ${SNAPCRAFT_PART_INSTALL}/wigwag/etc/templates/*.yaml
+      install -d ${SNAPCRAFT_PART_INSTALL}/edge
+      git describe --tags  --always >"${SNAPCRAFT_PART_INSTALL}/edge/maestro.VERSION"
+    stage-packages:
+      - libuv1
+  fluent-bit:
+    plugin: cmake
+    source: https://github.com/fluent/fluent-bit.git
+    source-tag: v1.7.9
+    build-packages:
+      - libsystemd-dev
+      - flex
+      - bison
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=""
+      - -DFLB_JEMALLOC=On
+      - -DFLB_SHARED_LIB=Off
+      - -DFLB_EXAMPLES=Off
+      - -DFLB_IN_SYSTEMD=On
+    override-build: |
+      snapcraftctl build
+      install ${SNAPCRAFT_PROJECT_DIR}/files/fluent-bit/config/fluent-bit.conf ${SNAPCRAFT_PART_INSTALL}/
+      install ${SNAPCRAFT_PROJECT_DIR}/files/fluent-bit/scripts/launch-fluent-bit.sh ${SNAPCRAFT_PART_INSTALL}/
+      install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+      install -d ${SNAPCRAFT_PART_INSTALL}/edge
+      git describe --tags --always > ${SNAPCRAFT_PART_INSTALL}/edge/fluent-bit.VERSION
+    organize:
+      bin/fluent-bit: wigwag/system/bin/fluent-bit
+  cni:
+    plugin: go
+    source: https://github.com/containernetworking/plugins.git
+    source-commit: 1f33fb729ae2b8900785f896df2dc1f6fe5e8239
+    override-build: |
+      export GOPATH=${SNAPCRAFT_PART_SRC}/../go
+
+      install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin
+      PLUGINS="plugins/meta/* plugins/main/* plugins/ipam/*"
+      for d in $PLUGINS; do
+        echo "$d"
+        if [ -d "$d" ]; then
+          plugin="$(basename "$d")"
+          if [ $plugin != "windows" ]; then
+            echo "  cni/$plugin"
+            go install github.com/containernetworking/plugins/$d
+            # Build happens in parts/cni/build - use relative path to enable cross-compilation
+            install ../install/bin/$plugin ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/$plugin
+          fi
+        fi
+      done
+
+      install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files/cni/c2d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d
+      install -m 0755 ${SNAPCRAFT_PROJECT_DIR}/files/cni/c2d-inner ${SNAPCRAFT_PART_INSTALL}/wigwag/system/opt/cni/bin/c2d-inner
+
+      install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d
+      install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files/cni/10-c2d.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/10-c2d.conf
+      install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files/cni/99-loopback.conf ${SNAPCRAFT_PART_INSTALL}/wigwag/system/etc/cni/net.d/99-loopback.conf
+
+      install -d ${SNAPCRAFT_PART_INSTALL}/edge
+      git describe --tags --always >"${SNAPCRAFT_PART_INSTALL}/edge/cni.VERSION"
+  kubelet:
+    plugin: make
+    source: https://github.com/PelionIoT/edge-kubelet.git
+    source-commit: 35225842cd6b20d98613d8c1b08b7a376bd3209d
+    build-packages:
       - libseccomp-dev
-      - pkg-config
-      stage-packages:
-      - aufs-tools
-    docker-containerd:
-      plugin: make
-      source: https://github.com/containerd/containerd.git
-      # for source-commit see docker/components/engine/vendor.conf
-      # https://github.com/docker/docker-ce/blob/master/components/engine/project/PACKAGERS.md#go-dependencies
-      source-commit: 481103c8793316c118d9f795cde18060847c370e
-      override-build: |
-        # setup the go build environment for containerd
-        . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
-        gopartbootstrap github.com/containerd/containerd
+    override-build: |
+      # setup the go build environment
+      . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
+      gopartbootstrap k8s.io/kubernetes
 
-        export BUILDTAGS='no_btrfs static_build netgo'
-        export EXTRA_FLAGS=''
-        export EXTRA_LDFLAGS=''
-        make
+      cd hack/make-rules
+      KUBE_VERBOSE=0 ./build.sh cmd/kubelet
 
-        install -d "${SNAPCRAFT_PART_INSTALL}/bin"
-        install -T bin/containerd "${SNAPCRAFT_PART_INSTALL}/bin/containerd"
-        install -T bin/containerd "${SNAPCRAFT_PART_INSTALL}/bin/docker-containerd"
+      install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/var/lib/kubelet
+      install -d ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin
+      install -m 0644 ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/config/kubeconfig ${SNAPCRAFT_PART_INSTALL}/wigwag/system/var/lib/kubelet/kubeconfig
+      install -m 0755 ${GOPATH}/src/k8s.io/kubernetes/_output/bin/kubelet ${SNAPCRAFT_PART_INSTALL}/wigwag/system/bin/kubelet
+      install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-kubelet.sh ${SNAPCRAFT_PART_INSTALL}/
+      install ${SNAPCRAFT_PROJECT_DIR}/files/kubelet/scripts/launch-edgenet.sh ${SNAPCRAFT_PART_INSTALL}/
 
-        install -T bin/containerd-shim "${SNAPCRAFT_PART_INSTALL}/bin/containerd-shim"
-        install -T bin/containerd-shim "${SNAPCRAFT_PART_INSTALL}/bin/docker-containerd-shim"
+      install -d ${SNAPCRAFT_PART_INSTALL}/edge
+      git describe --tags  --always >"${SNAPCRAFT_PART_INSTALL}/edge/kubelet.VERSION"
+    stage:
+      - -usr/share/*
+    stage-packages: [systemd, util-linux]
+  jq:
+    plugin: autotools
+    autotools-configure-parameters:
+      - -disable-docs
+    source: https://github.com/stedolan/jq.git
+    source-tag: jq-1.6
+    build-packages:
+      - libtool
+      - flex
+      - bison
+      - make
+      - automake
+      - autoconf
+      - openssl
+    stage-packages:
+      - jq
+    organize:
+      'jq': bin/jq
+  curl:
+    plugin: autotools
+    source: https://github.com/curl/curl.git
+    source-tag: curl-8_5_0
+    autotools-configure-parameters:
+      - --prefix=/
+      - --with-openssl
+    build-packages:
+      # Curl build dependencies
+      - libssl-dev
+      - libssh-dev
+      - libzstd-dev
+      - libpsl-dev
+      # for build-in manual
+      - groff
+    stage-packages:
+      - libpsl5
+  docker-wrapper-scripts:
+    plugin: dump
+    source: files/docker/
+    # stage-packages:
+    # - mount
+    stage:
+      - bin/*
+      - patches/*
+      - config/daemon.json
+    prime:
+      - -bin/prep-docker-build.sh
+      - -patches/*
+      - bin/*
+      - config/daemon.json
+  docker-docker:
+    plugin: make
+    source: https://github.com/docker/docker-ce.git
+    source-tag: v18.06.1-ce
+    source-depth: 1
+    override-build: |
+      # docker build specific environment variables
+      export VERSION=$(cat VERSION)
+      export DOCKER_GITCOMMIT=$(git rev-parse --short HEAD)
+      export GITCOMMIT=$DOCKER_GITCOMMIT
+      export DISABLE_WARN_OUTSIDE_CONTAINER=1
 
-        install -T bin/ctr "${SNAPCRAFT_PART_INSTALL}/bin/containerd-ctr"
-        install -T bin/ctr "${SNAPCRAFT_PART_INSTALL}/bin/docker-containerd-ctr"
-      after:
+      # this patches the docker sources
+      . "$SNAPCRAFT_STAGE/bin/prep-docker-build.sh"
+
+      # setup the go build environment for docker-ce
+      . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
+      gopartbootstrap github.com/docker/docker-ce
+
+      # build the dockerd binary
+      cd components/engine
+      ./hack/make.sh dynbinary
+      cd $GOIMPORTPATH
+
+      unset LDFLAGS
+      ln -s "$(pwd)/components/cli" $GOPATH/src/github.com/docker/cli
+      make -C $GOPATH/src/github.com/docker/cli dynbinary
+
+      install -d "$SNAPCRAFT_PART_INSTALL/bin"
+      install -T "$GOPATH/src/github.com/docker/cli/build/docker" "$SNAPCRAFT_PART_INSTALL/bin/docker"
+      install -T "$GOPATH/src/github.com/docker/docker-ce/components/engine/bundles/latest/dynbinary-daemon/dockerd" "$SNAPCRAFT_PART_INSTALL/bin/dockerd"
+      install -T "$GOPATH/src/github.com/docker/docker-ce/components/cli/contrib/completion/bash/docker" "$SNAPCRAFT_PART_INSTALL/bin/docker-completion.sh"
+    after:
       - docker-wrapper-scripts
-    docker-runc:
-      plugin: make
-      source: https://github.com/opencontainers/runc.git
-      # for source-tag see vendor.conf and RUNC.md in https://github.com/containerd/containerd
-      source-tag: v1.0.0-rc8
-      override-build: |
-        # setup the go build environment for runc
-        . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
-        gopartbootstrap github.com/opencontainers/runc
+    build-packages:
+      - gcc
+      - libc6-dev
+      - libdevmapper-dev
+      - libltdl-dev
+      - patch
+      - git
+      - pkg-config
+    stage-packages:
+      - zfsutils-linux
+      - libltdl7
+  docker-containerd:
+    plugin: go
+    source: https://github.com/containerd/containerd.git
+    # from : https://github.com/docker/docker-ce/blob/v18.06.1-ce/components/engine/hack/dockerfile/install/containerd.installer
+    source-tag: v1.1.2
+    override-build: |
+      # setup the go build environment for containerd
+      . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
+      gopartbootstrap github.com/containerd/containerd
 
-        make BUILDTAGS='seccomp apparmor' COMMIT=
+      make GIT_COMMIT= GIT_BRANCH= LDFLAGS=
 
-        install -d "${SNAPCRAFT_PART_INSTALL}/bin"
-        install -T runc "${SNAPCRAFT_PART_INSTALL}/bin/runc"
-        install -T runc "${SNAPCRAFT_PART_INSTALL}/bin/docker-runc"
-      build-packages:
+      install -d "$SNAPCRAFT_PART_INSTALL/bin"
+      install -T bin/containerd "$SNAPCRAFT_PART_INSTALL/bin/docker-containerd"
+      install -T bin/containerd-shim "$SNAPCRAFT_PART_INSTALL/bin/docker-containerd-shim"
+      install -T bin/ctr "$SNAPCRAFT_PART_INSTALL/bin/docker-containerd-ctr"
+    after:
+      - docker-wrapper-scripts
+    build-packages:
+      - make
+  docker-runc:
+    plugin: make
+    source: https://github.com/opencontainers/runc.git
+    # from https://github.com/docker/docker-ce/blob/v18.06.1-ce/components/engine/hack/dockerfile/install/runc.installer
+    source-commit: 69663f0bd4b60df09991c08812a60108003fa340
+    override-build: |
+      # setup the go build environment for runc
+      . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
+      gopartbootstrap github.com/opencontainers/runc
+
+      make BUILDTAGS='seccomp apparmor selinux' COMMIT=
+
+      install -d "$SNAPCRAFT_PART_INSTALL/bin"
+      install -T runc "$SNAPCRAFT_PART_INSTALL/bin/docker-runc"
+    after:
+      - docker-wrapper-scripts
+    build-packages:
       - libapparmor-dev
       - libseccomp-dev
-    docker-libnetwork:
-      plugin: go
-      source: https://github.com/docker/libnetwork.git
-      go-importpath: github.com/docker/libnetwork
-      # from https://github.com/docker/docker-ce/blob/v19.03.13/components/engine/vendor.conf
-      source-commit: 026aabaa659832804b01754aaadd2c0f420c68b6
-      organize:
-        'bin/proxy': bin/docker-proxy
-      prime:
-      - bin/docker-proxy
-    docker-tini:
-      plugin: cmake
-      source: https://github.com/krallin/tini.git
-      source-type: git
-      # from https://github.com/docker/docker-ce/blob/v19.03.13/components/engine/hack/dockerfile/install/tini.installer
-      source-tag: v0.18.0
-      organize:
-        'bin/tini-static': bin/docker-init
-      prime:
-        - bin/docker-init
-    cosign:
-      plugin: go
-      source: https://github.com/sigstore/cosign.git
-      go-importpath: github.com/sigstore/cosign/cmd/cosign
-      source-commit: 33973d078170f586cf27f2cc464844b3f1fa1abb
-      build-environment:
-        - GOFLAGS:  "$GOFLAGS -modcacherw"
-      override-build: |
-        export GOROOT=/usr/local/go1.17
-        export PATH="$GOROOT/bin:$PATH"
-        echo Hacking the go version
-        sudo rm /usr/local/bin/go /usr/local/bin/gofmt
-        sudo ln -sf /usr/local/go1.17/bin/go /usr/local/bin/go
-        sudo ln -sf /usr/local/go1.17/bin/gofmt /usr/local/bin/gofmt
-        snapcraftctl build
-        echo Reverting the go version
-        sudo rm /usr/local/bin/go /usr/local/bin/gofmt
-        sudo ln -sf /usr/local/go1.14/bin/go /usr/local/bin/go
-        sudo ln -sf /usr/local/go1.14/bin/gofmt /usr/local/bin/gofmt
+      - make
+  docker-libnetwork:
+    plugin: make
+    source: https://github.com/docker/libnetwork.git
+    # from https://github.com/docker/docker-ce/blob/v18.06.1-ce/components/engine/hack/dockerfile/install/proxy.installer
+    source-commit: 3ac297bc7fd0afec9051bbb47024c9bc1d75bf5b
+    override-build: |
+      # setup the go build environment for libnetwork
+      . ${SNAPCRAFT_PROJECT_DIR}/files/docker/bin/go-build-helper.sh
+      gopartbootstrap github.com/docker/libnetwork
+      make build-local
+      install -d "$SNAPCRAFT_PART_INSTALL/bin"
+      install -T bin/docker-proxy "$SNAPCRAFT_PART_INSTALL/bin/docker-proxy"
+      install -T bin/dnet "$SNAPCRAFT_PART_INSTALL/bin/dnet"
+    after:
+      - docker-wrapper-scripts
+    build-packages:
+      - iptables
+      - make
+  docker-tini:
+    plugin: cmake
+    # core18 uses a a default prefix, core20 and core22 do not
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=""
+    source: https://github.com/krallin/tini.git
+    source-type: git
+    # from https://github.com/docker/docker-ce/blob/v19.03.12/components/engine/hack/dockerfile/install/tini.installer
+    source-tag: v0.18.0
+    organize:
+      'bin/tini-static': bin/docker-init
+    prime:
+      - bin/tini
+      - bin/docker-init
+    build-packages:
+      - build-essential
+  cosign:
+    plugin: go
+    source: https://github.com/sigstore/cosign.git
+    source-commit: v1.13.1
+    build-environment:
+      - GOFLAGS: "$GOFLAGS -modcacherw"
+    override-build: |
+      export ALT_GO=go1.18
+      export ORI_GO=go1.15
+      export GOROOT=/usr/local/$ALT_GO
+      export PATH="$GOROOT/bin:$PATH"
+      echo Hacking/changing the go version to $ALT_GO
+      sudo rm /usr/local/bin/go /usr/local/bin/gofmt
+      sudo ln -sf "/usr/local/$ALT_GO/bin/go" /usr/local/bin/go
+      sudo ln -sf "/usr/local/$ALT_GO/bin/gofmt" /usr/local/bin/gofmt
+      snapcraftctl build
+      echo Reverting the go version to $ORI_GO
+      sudo rm /usr/local/bin/go /usr/local/bin/gofmt
+      sudo ln -sf "/usr/local/$ORI_GO/bin/go" /usr/local/bin/go
+      sudo ln -sf "/usr/local/$ORI_GO/bin/gofmt" /usr/local/bin/gofmt
+      install -d ${SNAPCRAFT_PART_INSTALL}/edge
+      git describe --tags --always > "${SNAPCRAFT_PART_INSTALL}/edge/cosign.VERSION"
+    stage:
+      - -bin/help
+  bouncer:
+    plugin: cmake
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=""
+    source: https://github.com/PelionIoT/bouncer.git
+    source-type: git
+    source-tag: v1.1.0
+    override-build: |
+      snapcraftctl build
+      install ${SNAPCRAFT_PROJECT_DIR}/files/bouncer/scripts/launch-bouncer.sh ${SNAPCRAFT_PART_INSTALL}/
+      install -d ${SNAPCRAFT_PART_INSTALL}/edge
+      git -C ${SNAPCRAFT_PART_SRC} describe --tags >"${SNAPCRAFT_PART_INSTALL}/edge/bouncer.VERSION"

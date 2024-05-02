@@ -1,4 +1,4 @@
-From 6d1ef481fa3fcc68ce2bb01e116bfe854b1fa0d9 Mon Sep 17 00:00:00 2001
+From fac60a32a0b3f1f76b1bc636f8f4564096d61281 Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Wed, 10 Mar 2021 15:09:28 -0600
 Subject: [PATCH 10/14] add cpu temp /3/0/3303
@@ -89,5 +89,5 @@ index 026e1b2..5ca2e33 100644
      gsr_create_resource(GATEWAY_STATS_OBJ_ID,
                          0,
 -- 
-2.17.1
+2.30.1 (Apple Git-130)
 

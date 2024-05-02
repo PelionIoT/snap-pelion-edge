@@ -27,10 +27,6 @@ var_defs:
      value: "{{SNAP}}/wigwag/system/bin/node"
    - key: "MAESTRO_RUNNER_DIR"
      value: "{{SNAP}}/wigwag/devicejs-core-modules/maestroRunner"
-   - key: "LOCAL_DEVICEDB_PORT"
-     value: 9000
-   - key: "LOCAL_DATABASE_STORAGE_DIRECTORY"
-     value: "{{SNAP_DATA}}/userdata/etc/devicedb/db"
    - key: "RELAY_VERSIONS_FILE"
      value: "{{SNAP}}/wigwag/etc/versions.json"
    - key: "FACTORY_VERSIONS_FILE"
@@ -52,27 +48,6 @@ gateway_capabilities:
   - name: "urn:fid:pelion.com:kaas:1.0.0"
     enable: true
     config_filepath: "{{SNAP}}/wigwag/system/var/lib/kubelet/kubeconfig"
-mdns:
-  # disable: true
-  static_records:
-   - name: "WigWagRelay"
-     service: "_wwservices._tcp"  # normally something like https or ftp
-     # domain: "local"     # local is default
-     interfaces: "eth0"
-     not_interfaces: "Witap0"
-     port: 3131
-     text:
-      - "wwid={{ARCH_SERIAL_NUMBER}}"
-     hostname: "wigwaggateway"
-   - name: "WigWagRelay_{{ARCH_SERIAL_NUMBER}}"
-     service: "_wwservices._tcp"  # normally something like https or ftp
-     # domain: "local"     # local is default
-     interfaces: "eth0"
-     not_interfaces: "Witap0"
-     port: 3131
-     text:
-      - "wwid={{ARCH_SERIAL_NUMBER}}"
-     hostname: "{{ARCH_SERIAL_NUMBER}}"
 targets:
    - file: "{{SNAP_DATA}}/userdata/maestro.log"
      rotate:
@@ -92,8 +67,4 @@ targets:
        - levels: error
          format_pre: "\u001B[31m"    # red
          format_post: "\u001B[39m"
-static_file_generators:
-   - name: "devicedb"
-     template_file: "{{SNAP}}/wigwag/etc/templates/template.devicedb.conf"
-     output_file: "{{SNAP_DATA}}/wigwag/etc/devicejs/devicedb.yaml"
 config_end: true

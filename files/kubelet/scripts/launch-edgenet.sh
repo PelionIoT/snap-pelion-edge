@@ -1,6 +1,7 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
 # Copyright (c) 2020, Arm Limited and affiliates.
+# Copyright (c) 2023, Izuma Networks
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -21,14 +22,14 @@ EDGENET_GATEWAY=$(snapctl get kubelet.edgenet-gateway)
 
 docker network inspect edgenet &>/dev/null
 if [ $? -eq 0 ]; then
-	# edgenet already exists
-	CURRENT_SUBNET=$(docker network inspect --format='{{range .IPAM.Config}}{{.Subnet}}{{end}}' edgenet)
-	CURRENT_GATEWAY=$(docker network inspect --format='{{range .IPAM.Config}}{{.Gateway}}{{end}}' edgenet)
-	if [[ ${CURRENT_SUBNET} != ${EDGENET_SUBNET} || ${CURRENT_GATEWAY} != ${EDGENET_GATEWAY} ]]; then
-		docker network rm edgenet
-		docker network create --subnet=${EDGENET_SUBNET} --gateway=${EDGENET_GATEWAY} edgenet
-	fi
+    # edgenet already exists
+    CURRENT_SUBNET=$(docker network inspect --format='{{range .IPAM.Config}}{{.Subnet}}{{end}}' edgenet)
+    CURRENT_GATEWAY=$(docker network inspect --format='{{range .IPAM.Config}}{{.Gateway}}{{end}}' edgenet)
+    if [[ ${CURRENT_SUBNET} != ${EDGENET_SUBNET} || ${CURRENT_GATEWAY} != ${EDGENET_GATEWAY} ]]; then
+        docker network rm edgenet
+        docker network create --subnet=${EDGENET_SUBNET} --gateway=${EDGENET_GATEWAY} edgenet
+    fi
 else
-	# edgenet does not already exist
-	docker network create --subnet=${EDGENET_SUBNET} --gateway=${EDGENET_GATEWAY} edgenet
+    # edgenet does not already exist
+    docker network create --subnet=${EDGENET_SUBNET} --gateway=${EDGENET_GATEWAY} edgenet
 fi

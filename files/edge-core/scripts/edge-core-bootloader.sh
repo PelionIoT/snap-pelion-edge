@@ -1,6 +1,7 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
 # Copyright (c) 2020, Arm Limited and affiliates.
+# Copyright (c) 2023, Izuma Networks
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -32,30 +33,31 @@ REFRESH_WATCHID=${SNAP_COMMON}/refresh_watch_id
 
 function log_msg()
 {
-	echo "$@" |  systemd-cat -p info -t "EDGE-CORE-Bootloader"
+    echo "$@" |  systemd-cat -p info -t "EDGE-CORE-Bootloader"
 }
 
 function snap_refresh_each() {
-    local snapname=${1}
+    local snapname
+    snapname=${1}
     log_msg "Refreshing $snapname"
 
     if [ -e "${REFRESH_WATCHID}" ]; then
         echo "Snap refresh already in progress..."
         return 0
     else
-        response=$(curl -sS -H "Content-Type: application/json" --unix-socket /run/snapd.socket http://localhost/v2/snaps/$snapname -X POST -d '{ "action": "refresh" }')
-        status=$(echo $response | jq -r '.status')
-        kind=$(echo $response | jq -r '.result.kind')
-        type=$(echo respone | jq -r '.type')
+        response=$(curl -sS -H "Content-Type: application/json" --unix-socket /run/snapd.socket http://localhost/v2/snaps/"$snapname" -X POST -d '{ "action": "refresh" }')
+        status=$(echo "$response" | jq -r '.status')
+        kind=$(echo "$response" | jq -r '.result.kind')
+        type=$(echo "$response" | jq -r '.type')
         if [ "$status" = "Accepted" ]; then
-            change_id=$(echo $response | jq -r '.change')
-            echo $change_id > $REFRESH_WATCHID
+            change_id=$(echo "$response" | jq -r '.change')
+            echo "$change_id" > "$REFRESH_WATCHID"
             return 0
-        elif [[ "$type"=="error"  &&  "$kind" == "snap-no-update-available" ]]; then
+        elif [[ "$type" == "error"  &&  "$kind" == "snap-no-update-available" ]]; then
             log_msg "$snapname: $kind. skipping to next snap."
             return 1
         else
-            log_msg "$snapname: Attemped snap refresh; unhandled response."
+            log_msg "$snapname: Attempted snap refresh; unhandled response."
             log_msg "Complete response: $response"
             return 1
         fi
@@ -64,18 +66,21 @@ function snap_refresh_each() {
 
 # From https://snapcraft.io/docs/network-requirements api.snapcraft.io:443 should be accessible
 function check_network_access() {
-  stage=$1
+  stage="$1"
   URI="api.snapcraft.io"
-  local waittime=0
-  local maxwaittime=$2
-  local sleeptime=15
+  local waittime
+  waittime=0
+  local maxwaittime
+  maxwaittime="$2"
+  local sleeptime
+  sleeptime=15
 
-  curl $URI
+  curl "$URI"
   rc=$?
   log_msg "$stage: Wait for network connectivity for $maxwaittime seconds, rc=$rc" # TODO: rm rc in log
   while (( rc != 0 ))
   do
-    sleep $sleeptime
+    sleep "$sleeptime"
     (( waittime = waittime + sleeptime ))
     if (( waittime > maxwaittime ));
     then
@@ -83,7 +88,7 @@ function check_network_access() {
       break
     fi
     log_msg "$stage: waited $waittime"
-    curl $URI
+    curl "$URI"
     rc=$?
   done
 }
@@ -98,73 +103,80 @@ WATCH_ID_STATUS_NONE=1
 WATCH_ID_STATUS_ERROR=2
 WATCH_ID_STATUS_TIMEOUT=3
 function check_snap_refresh() {
-	local watch_id_file=$SNAP_COMMON/refresh_watch_id
-	local timestamp=$(date +%s)
-	local timeout=$(snapctl get edge-core.refresh-timeout)
-	local tdiff=0
-	local retval=$WATCH_ID_STATUS_NONE
-	if [ -f "$watch_id_file" ]; then
-		retval=$WATCH_ID_STATUS_TIMEOUT
-		watch_id=$(cat "$watch_id_file")
-		log_msg "Waiting for snap refresh ID $watch_id, max $timeout seconds"
-		local end_msg="did not complete in time"
-		while [ $tdiff -lt $timeout ]; do
-			status=$(curl -sS --unix-socket /run/snapd.socket http://localhost/v2/changes/$watch_id | jq -r .result.status)
-			[ "$status" = "Done" ] && {
-				retval=$WATCH_ID_STATUS_SUCCESS
-				end_msg="completed successfully"
-				break
-			}
-			[ "$status" = "Error" ] && {
-				retval=$WATCH_ID_STATUS_ERROR
-				end_msg="finished with error"
-				break
-			}
-			sleep 1
-			tdiff=$(($(date +%s) - timestamp))
-		done
+    local watch_id_file
+    watch_id_file="$SNAP_COMMON"/refresh_watch_id
+    local timestamp
+    timestamp=$(date +%s)
+    local timeout
+    timeout=$(snapctl get edge-core.refresh-timeout)
+    local tdiff
+    tdiff=0
+    local retval
+    retval=$WATCH_ID_STATUS_NONE
+    if [ -f "$watch_id_file" ]; then
+        retval=$WATCH_ID_STATUS_TIMEOUT
+        watch_id=$(cat "$watch_id_file")
+        log_msg "Waiting for snap refresh ID $watch_id, max $timeout seconds"
+        local end_msg="did not complete in time"
+        while [ $tdiff -lt "$timeout" ]; do
+            status=$(curl -sS --unix-socket /run/snapd.socket http://localhost/v2/changes/"$watch_id" | jq -r .result.status)
+            [ "$status" = "Done" ] && {
+                retval=$WATCH_ID_STATUS_SUCCESS
+                end_msg="completed successfully"
+                break
+            }
+            [ "$status" = "Error" ] && {
+                retval=$WATCH_ID_STATUS_ERROR
+                end_msg="finished with error"
+                break
+            }
+            sleep 1
+            tdiff=$(($(date +%s) - timestamp))
+        done
         if [[ $end_msg = "did not complete in time" ]]; then
-            snap abort $watch_id
+            snap abort "$watch_id"
         fi
-		log_msg "Snap refresh $end_msg"
-		rm "$watch_id_file" 2>/dev/null
-	else
-		log_msg "No snap refresh in progress"
-	fi
-	return $retval
+        log_msg "Snap refresh $end_msg"
+        rm "$watch_id_file" 2>/dev/null
+    else
+        log_msg "No snap refresh in progress"
+    fi
+    return $retval
 }
 
 function check_error() {
-    if [ $2 != 0 ]; then
+    if [ "$2" != 0 ]; then
         echo "$1 failed: $2"
         rm -rf "${UPGRADE_WORKDIR_FAILED}"
         mv "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
-        exit $3
+        exit "$3"
     fi
 }
 
 function snap_refresh_all_snaps() {
     log_msg "Refresh all snaps..."
     # snaplist sorted by snap-name
-    local snaplist=$(curl -sS --unix-socket /run/snapd.socket http://localhost/v2/snaps -X GET |jq -r '.result|sort_by(.name)[].name')
-    local waittime=$(snapctl get edge-core.network-wait-timeout)
+    local snaplist
+    snaplist=$(curl -sS --unix-socket /run/snapd.socket http://localhost/v2/snaps -X GET |jq -r '.result|sort_by(.name)[].name')
+    local waittime
+    waittime=$(snapctl get edge-core.network-wait-timeout)
 
     log_msg "snap-refresh-all-snaps nw wait time = $waittime"
     for eachsnap in ${snaplist}
     do
-      check_network_access ${eachsnap} ${waittime}
-      snap_refresh_each ${eachsnap}
-      if (( $? == 0 )); then
+      check_network_access "${eachsnap}" "${waittime}"
+      snap_refresh_each "${eachsnap}"
+      rc=$? # store the $rc
+      if (( rc == 0 )); then
         check_snap_refresh
-        rc = $? # store the $rc
-        if (( $rc != 0 )); then
-          (( retval=$rc ))
+        if (( rc != 0 )); then
+          (( retval=rc ))
         fi
       else
-        (( retval=$rc ))
+        (( retval=rc ))
       fi
     done
-    check_error "snap_refresh_all_snaps" $retval 3
+    check_error "snap_refresh_all_snaps" "$retval" 3
 }
 
 echo "Checking for ${UPGRADE_TGZ}"
@@ -185,7 +197,7 @@ fi
 # move into folder and call pre-refresh if exists
 if [ -e "${UPGRADE_WORKDIR}" ]; then
     echo "Processing upgrade..."
-    pushd "${UPGRADE_WORKDIR}"
+    pushd "${UPGRADE_WORKDIR}" || exit 1
 
     if [ -x pre-refresh.sh ]; then
         echo "edge-core-bootloader.sh: Running pre-refresh.sh" | systemd-cat -p info -t FOTA-PRE-REFRESH
@@ -195,13 +207,13 @@ if [ -e "${UPGRADE_WORKDIR}" ]; then
     fi
     if [ -f map-version.json ]; then
         echo "Adding new version mappings"
-        cp map-version.json ${VERSION_MAP}
+        cp map-version.json "${VERSION_MAP}"
     fi
 
     snap_refresh_all_snaps
 
     # after snap refresh completes, compare the expected hash values
-    if [ "$(cat ${PLATFORM_MD5})" != "$(${SNAP}/bin/platform-version.sh)" ]; then
+    if [ "$(cat "${PLATFORM_MD5}")" != "$("${SNAP}"/bin/platform-version.sh)" ]; then
         check_error "hash check" 1 4
     fi
 
@@ -222,7 +234,7 @@ if [ -e "${UPGRADE_WORKDIR}" ]; then
     echo "Deleting the upgrade workdir ${UPGRADE_WORKDIR}"
     rm -rf "${UPGRADE_WORKDIR}" "${UPGRADE_WORKDIR_FAILED}"
 
-    popd
+    popd || exit 0
     echo "Done processing upgrade"
 else
     echo "No upgrade in progress...continue to boot"

@@ -1,4 +1,4 @@
-From 2cd05c5814964a6e7002ca8b8a50c851a8c166ca Mon Sep 17 00:00:00 2001
+From c76608323f444001bc99571031d121bf1a80799d Mon Sep 17 00:00:00 2001
 From: Nic Costa <nic.costa@gmail.com>
 Date: Wed, 10 Mar 2021 15:28:28 -0600
 Subject: [PATCH 11/14] add RAM total /3/0/3322 and RAM free /3/0/3321
@@ -70,5 +70,5 @@ index 5ca2e33..ad9bc21 100644
      return;
  }
 -- 
-2.17.1
+2.30.1 (Apple Git-130)
 

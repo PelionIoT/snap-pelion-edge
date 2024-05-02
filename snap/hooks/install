@@ -17,6 +17,18 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------
 
+echo "snap/hooks/install"
+
 # disable auto-start on some services.
 # as of snapcraft v3.8, services can't be configured to be disabled by default
 # in snapcraft.yaml and must instead be disabled in the install hook.
+
+# disable relay-term in favour to use pe-terminal.
+#snapctl stop --disable "${SNAP_INSTANCE_NAME}.relay-term"
+
+# error: cannot perform the following tasks:
+# - Run install hook of "pelion-edge" snap if present (run hook "install":
+#-----
+#update.go:85: cannot change mount namespace according to change mount (/var/lib/snapd/hostfs/boot /boot none bind,ro 0 0): permission denied
+#error: error running snapctl: unknown service: "pelion-edge.relay-term"
+#-----)
