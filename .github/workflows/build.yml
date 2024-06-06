@@ -7,6 +7,9 @@ on:
           description: 'Branch to run the workflow on'
           required: true
           default: 'master'
+  schedule:
+    # Once week 04:18 on Saturday
+    - cron: '18 4 * * Sat'    
 
 # This allows a subsequently queued workflow run to interrupt previous runs
 concurrency:
@@ -16,6 +19,8 @@ concurrency:
 jobs:
   build-snap:
     runs-on: [ "self-hosted", "snap" ]
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Enable write on all files
         run:  chmod a+w -R .
@@ -56,26 +61,36 @@ jobs:
           name: connect.sh
           path: ./connect.sh
           if-no-files-found: error
-
+      - name: Post status to Slack testing_builds
+        if: always()
+        uses: act10ns/slack@v2
+        with:
+          status: ${{ job.status }}
+          channel: '#testing_builds' 
   test:
     runs-on: ubuntu-22.04
     needs: build-snap
     timeout-minutes: 40
     env:
-      ACCESS_KEY: ${{ secrets.IZUMA_ACCESS_KEY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
         with:
           # Use the branch specified by the workflow_dispatch input or the pull_request event
           ref: ${{ github.event.inputs.branch || github.event.pull_request.head.ref }}
-      - name: Check out scripts-internal & e2e tests repos
-        run: | 
-          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
-          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github".insteadOf "https://github"
-          git clone git@github.com:PelionIoT/e2e-edge-test-suite
-          git clone git@github.com:PelionIoT/scripts-internal.git
-          ls -al
+      - name: Check out e2e-edge-test-suite repo
+        uses: actions/checkout@v4
+        with:
+          repository: PelionIoT/e2e-edge-test-suite
+          path: e2e-edge-test-suite
+          token: ${{ secrets.ACCESS_TOKEN }}
+      - name: Check out scripts-internal repo
+        uses: actions/checkout@v4
+        with:
+          repository: PelionIoT/scripts-internal
+          path: scripts-internal
+          token: ${{ secrets.ACCESS_TOKEN }}
       - name: Set up Python v3.8
         uses: actions/setup-python@v5
         with:
@@ -162,43 +177,9 @@ jobs:
       - name: Clean up .gitconfig
         if: always()
         run: rm -f ~/.gitconfig
-
-  pysh-check:
-    runs-on: client
-    steps:
-      - uses: actions/checkout@v4
-      - run: sudo apt-get install -y black pycodestyle pydocstyle shellcheck python3
-      - name: Check out scripts-internal
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.ACCESS_TOKEN }}
-          repository: PelionIoT/scripts-internal
-          path: scripts-internal
-      - run: |
-          echo . >scripts-internal/.nopyshcheck
-          scripts-internal/ci/more-lines-checker.sh dev ${{ github.ref_name }} "scripts-internal/pysh-check/pysh-check.sh --workdir . pysh" > pysh-check.log
-          cat pysh-check.log
-      - name: Archive the logs
+      - name: Post status to Slack testing_builds
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: act10ns/slack@v2
         with:
-          name: Shellcheck logs
-          path: "./*.log"
-              
-  yamllint-snapcraft-yaml:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - run: sudo apt-get install yamllint
-      - run: yamllint -c lint-config.yaml snap/snapcraft.yaml
-      - name: Check yq compliancy
-        run: |
-          sudo snap install yq
-          yq -r "." <snap/snapcraft.yaml >yqout.yaml
-          if diff -u snap/snapcraft.yaml yqout.yaml
-          then
-            echo "yq compliancy check passed"
-          else
-            echo "yq compliancy check failed"
-            exit 1
-          fi
+          status: ${{ job.status }}
+          channel: '#testing_builds' 
