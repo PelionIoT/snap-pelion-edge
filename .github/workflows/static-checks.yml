@@ -18,6 +18,9 @@ jobs:
         runs-on: client
         steps:
           - uses: actions/checkout@v4
+            with:
+              # Use the branch specified by the workflow_dispatch input or the pull_request event
+              ref: ${{ github.event.inputs.branch || github.event.pull_request.head.ref }}
           - run: sudo apt-get install -y black pycodestyle pydocstyle shellcheck python3
           - name: Check out scripts-internal
             uses: actions/checkout@v4
@@ -40,6 +43,9 @@ jobs:
         runs-on: ubuntu-22.04
         steps:
           - uses: actions/checkout@v4
+            with:
+              # Use the branch specified by the workflow_dispatch input or the pull_request event
+              ref: ${{ github.event.inputs.branch || github.event.pull_request.head.ref }}
           - run: sudo apt-get install yamllint
           - run: yamllint -c lint-config.yaml snap/snapcraft.yaml
           - name: Check yq compliancy
