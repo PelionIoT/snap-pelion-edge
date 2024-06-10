@@ -1,0 +1,61 @@
+name: Static check
+on: 
+  push:
+  workflow_dispatch:
+    inputs:
+        branch:
+          description: 'Branch to run the workflow on'
+          required: true
+          default: 'master'
+
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+    group: static-checks-${{ github.event.pull_request.head.label || github.head_ref || github.ref }} 
+    cancel-in-progress: true
+
+jobs:
+    pysh-check:
+        runs-on: client
+        steps:
+          - uses: actions/checkout@v4
+            with:
+              # Use the branch specified by the workflow_dispatch input or the pull_request event
+              ref: ${{ github.event.inputs.branch || github.event.pull_request.head.ref }}
+          - run: sudo apt-get install -y black pycodestyle pydocstyle shellcheck python3
+          - name: Check out scripts-internal
+            uses: actions/checkout@v4
+            with:
+              token: ${{ secrets.ACCESS_TOKEN }}
+              repository: PelionIoT/scripts-internal
+              path: scripts-internal
+          - run: |
+              echo . >scripts-internal/.nopyshcheck
+              scripts-internal/ci/more-lines-checker.sh dev ${{ github.ref_name }} "scripts-internal/pysh-check/pysh-check.sh --workdir . pysh" > pysh-check.log
+              cat pysh-check.log
+          - name: Archive the logs
+            if: always()
+            uses: actions/upload-artifact@v4
+            with:
+              name: Shellcheck logs
+              path: "./*.log"
+                  
+    yamllint-snapcraft-yaml:
+        runs-on: ubuntu-22.04
+        steps:
+          - uses: actions/checkout@v4
+            with:
+              # Use the branch specified by the workflow_dispatch input or the pull_request event
+              ref: ${{ github.event.inputs.branch || github.event.pull_request.head.ref }}
+          - run: sudo apt-get install yamllint
+          - run: yamllint -c lint-config.yaml snap/snapcraft.yaml
+          - name: Check yq compliancy
+            run: |
+              sudo snap install yq
+              yq -r "." <snap/snapcraft.yaml >yqout.yaml
+              if diff -u snap/snapcraft.yaml yqout.yaml
+              then
+                echo "yq compliancy check passed"
+              else
+                echo "yq compliancy check failed"
+                exit 1
+              fi
