@@ -1,7 +1,7 @@
 ARG RISK=stable
 ARG UBUNTU=20.04
-ARG http_proxy=""
-ARG https_proxy=""
+#ARG http_proxy=""
+#ARG https_proxy=""
 # Based on Docker image at;
 # https://raw.githubusercontent.com/snapcore/snapcraft/master/docker/Dockerfile
 # Update to focal + merged in what we had originally here.
@@ -11,13 +11,13 @@ ARG https_proxy=""
 # ARG https_proxy="https://<user>:<password>@<proxy-ip>:<proxy-port>"
 
 # Use the proxy from docker build for the container runtime environment as well
-FROM ubuntu:$UBUNTU as builder
+FROM ubuntu:$UBUNTU AS builder
 ARG RISK
 ARG UBUNTU
 RUN echo "Building snapcraft:$RISK in ubuntu:$UBUNTU"
 
-ENV http_proxy=$http_proxy
-ENV https_proxy=$https_proxy
+ENV http_proxy=""
+ENV https_proxy=""
 
 # Grab dependencies
 RUN apt-get update
@@ -125,6 +125,8 @@ RUN curl -L https://dl.google.com/go/go1.15.15.linux-amd64.tar.gz | tar -xz && \
 
 RUN curl -L https://golang.org/dl/go1.18.10.linux-amd64.tar.gz | tar -xz && \
     mv go /usr/local/go1.18
+RUN curl -L https://golang.org/dl/go1.20.14.linux-amd64.tar.gz | tar -xz && \
+    mv go /usr/local/go1.20
 
 # Install the script that sets up the user environment
 # and runs CMD as the current user instead of as root

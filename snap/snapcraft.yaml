@@ -515,11 +515,11 @@ parts:
   edge-proxy:
     plugin: go
     source: https://github.com/PelionIoT/edge-proxy.git
-    source-tag: v1.3.0
+    source-tag: v1.4.0
     build-environment:
       - GOFLAGS: "$GOFLAGS -modcacherw"
     override-build: |
-      export ALT_GO=go1.18
+      export ALT_GO=go1.20
       export ORI_GO=go1.15
       export GOROOT=/usr/local/$ALT_GO
       export PATH="$GOROOT/bin:$PATH"
@@ -545,11 +545,11 @@ parts:
   pe-terminal:
     plugin: go
     source: https://github.com/PelionIoT/pe-terminal.git
-    source-tag: v1.1.0
+    source-tag: v1.2.0
     build-environment:
       - GOFLAGS: "$GOFLAGS -modcacherw"
     override-build: |
-      export ALT_GO=go1.18
+      export ALT_GO=go1.20
       export ORI_GO=go1.15
       export GOROOT=/usr/local/$ALT_GO
       export PATH="$GOROOT/bin:$PATH"
