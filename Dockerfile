@@ -1,7 +1,5 @@
 ARG RISK=stable
 ARG UBUNTU=20.04
-#ARG http_proxy=""
-#ARG https_proxy=""
 # Based on Docker image at;
 # https://raw.githubusercontent.com/snapcore/snapcraft/master/docker/Dockerfile
 # Update to focal + merged in what we had originally here.
