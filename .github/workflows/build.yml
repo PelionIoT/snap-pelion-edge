@@ -49,6 +49,9 @@ jobs:
           docker run --rm -v "$PWD":/build -w /build ${USER}/snapcraft:latest bash -c "sudo apt-get update && snapcraft --debug"
           # The build left files with no write rights, which ruins next test run
           chmod a+w -R .
+      # Need to clean up older docker images, they fill the disk otherwise
+      - name: docker system prune -f
+        run: docker system prune -f
       - name: Archive the snap-binary
         uses: actions/upload-artifact@v4
         with:
